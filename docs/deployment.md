@@ -27,7 +27,7 @@ Two interchangeable backends, chosen at startup by a single variable:
 set but the database cannot be reached, the server **refuses to start** rather
 than quietly writing to a disk the next redeploy will wipe.
 
-The PostgreSQL schema is `scripts/migrations/003_document_store.sql`, applied
+The PostgreSQL schema lives in `server/src/store/schema.ts` and is applied
 automatically on every boot (it is idempotent). Each entity is stored as a JSONB
 document with the filterable fields lifted into indexed columns, so nothing the
 frontend sends is lost on a round trip.
@@ -79,9 +79,19 @@ Copy `.env.example` to `.env` and adjust. The variables that matter:
 
 ## 4. Free hosting for initial testing
 
-The recommended setup is **one free web service serving both the API and the UI
-on a single origin, with a free PostgreSQL database behind it**. That way data
-survives even though the free web service has no disk of its own.
+Data now lives in PostgreSQL, so the host only has to run code. Two free
+combinations are worth considering:
+
+| | Render + Neon | Vercel + Neon |
+| --- | --- | --- |
+| Data survives | yes | yes |
+| Sleeps when idle | yes, 30–60s wake-up | no |
+| Cold start | 30–60s | ~1s |
+| File uploads | work | need object storage |
+| Setup | one service | SPA on CDN, API as a function |
+
+Both are set up below. Render is simpler and keeps every feature; Vercel is
+faster and never sleeps. The steps below cover Render first, then Vercel.
 
 ### Step 1 — create a free PostgreSQL database (about 3 minutes)
 
@@ -144,11 +154,40 @@ set **both**:
 - On the API service: `ALLOWED_ORIGINS=https://your-ui-domain`
 - At frontend build time: `VITE_API_BASE_URL=https://your-api-domain/api`
 
-### Not suitable
+### Alternative: Vercel + Neon (no sleeping)
 
-Vercel and Netlify **serverless functions**: the process is recreated per
-request, and the static-file serving and upload directory this server relies on
-do not survive that model.
+Vercel's free tier does not sleep: the SPA is served from its CDN and the API
+runs as a serverless function that cold-starts in about a second. With Neon
+holding the data, this is the only free combination without the 30–60 second
+wake-up delay. `vercel.json` and `api/index.ts` are included.
+
+1. Create the Neon database as in step 1 above.
+2. In Neon, copy the **pooled** connection string (the host contains `-pooler`).
+   Serverless creates many short-lived connections, and the pooled endpoint is
+   what keeps them within the free connection limit.
+3. On vercel.com: **Add New → Project**, import the repository. Leave the build
+   settings alone — `vercel.json` sets them.
+4. Add two environment variables:
+   - `DATABASE_URL` = the **pooled** Neon string
+   - `SERVE_CLIENT` = `false` (Vercel serves the SPA; the function must not)
+5. Deploy, then check `/api/health` for `"storage":"postgres"`.
+
+What does **not** work on Vercel: the evidence-file endpoints
+(`/api/storage/upload` and `/api/storage/files/*`). A serverless filesystem is
+read-only and not shared between invocations. The app does not currently call
+them (see the note below), so nothing visible breaks — but real photo upload
+will need object storage (S3, Cloudflare R2, Supabase Storage) before it can
+work there. On Render or a volume-backed host these endpoints work as they are.
+
+### A note on photo evidence
+
+The camera and gallery buttons in the friction sheet do **not** capture a real
+photo. `handleAddPhoto` in `src/components/FrictionSheet.tsx` generates a
+coloured SVG placeholder; there is no file input anywhere in the app. The
+backend upload endpoint, MIME validation and signed URLs are implemented and
+work, but nothing in the UI uses them. Real photo capture is still to be built,
+and the choice of host affects how: on Render or a volume-backed host it can use
+the existing local provider; on Vercel it needs object storage from day one.
 
 ## 5. Before you share the URL with anyone
 

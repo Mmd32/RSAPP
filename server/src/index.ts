@@ -116,8 +116,32 @@ try {
   logger.error('Error loading catalog', e);
 }
 
-// Assigned during startup, before the server accepts connections.
+// Assigned before any route runs, by the middleware below. A serverless
+// instance cannot initialise at boot the way a long-running process does, so
+// the store is created once per process on the first request and reused.
 let store: DataStore;
+let storePromise: Promise<DataStore> | null = null;
+
+function getStore(): Promise<DataStore> {
+  if (!storePromise) {
+    storePromise = createDataStore().catch((e) => {
+      // Do not cache the failure: the next request should retry, since a
+      // managed database may simply have been waking up.
+      storePromise = null;
+      throw e;
+    });
+  }
+  return storePromise;
+}
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  getStore()
+    .then((s) => {
+      store = s;
+      next();
+    })
+    .catch(next);
+});
 
 // ----------------------------------------------------------------------------
 // HEALTH & CATALOG
@@ -880,8 +904,11 @@ app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-async function start() {
-  store = await createDataStore();
+/** Starts the long-running server. Not used when running as a serverless function. */
+export async function start() {
+  // Fail fast here rather than on the first request, so a bad DATABASE_URL is
+  // visible in the deploy log instead of as a 500 later.
+  store = await getStore();
 
   const server = app.listen(PORT, HOST, () => {
     console.log(`RSAPP Backend API Server running on http://${HOST}:${PORT}`);
@@ -904,8 +931,15 @@ async function start() {
   }
 }
 
-start().catch((e) => {
-  logger.error('Server failed to start', e);
-  console.error(e instanceof Error ? e.message : e);
-  process.exit(1);
-});
+// `vercel dev` and the Vercel runtime import this module for its exported app
+// and must not open a listening socket; a direct `npm start` must.
+if (!process.env.VERCEL) {
+  start().catch((e) => {
+    logger.error('Server failed to start', e);
+    console.error(e instanceof Error ? e.message : e);
+    process.exit(1);
+  });
+}
+
+export default app;
+export { app };

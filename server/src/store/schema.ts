@@ -1,4 +1,11 @@
--- ============================================================================
+/**
+ * PostgreSQL schema, applied on every start. Idempotent.
+ *
+ * Kept as a TypeScript module rather than a .sql file on disk: serverless
+ * bundlers ship only the JavaScript they can trace through imports, so a
+ * runtime `readFileSync` of a .sql file is the first thing to break on Vercel.
+ */
+export const DOCUMENT_STORE_SCHEMA = `-- ============================================================================
 -- RSAPP — PostgreSQL document store
 -- ============================================================================
 -- The API exchanges whole entities with the frontend (a visit carries its full
@@ -74,3 +81,4 @@ CREATE TABLE IF NOT EXISTS action_audit_logs (
 
 CREATE INDEX IF NOT EXISTS idx_audit_action_id ON action_audit_logs (action_id);
 CREATE INDEX IF NOT EXISTS idx_audit_created_at ON action_audit_logs (created_at);
+`;

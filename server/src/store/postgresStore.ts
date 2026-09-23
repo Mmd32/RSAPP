@@ -1,15 +1,12 @@
-import fs from 'fs';
-import path from 'path';
 import pg from 'pg';
 import { logger } from '../logger.js';
-import { PROJECT_ROOT } from '../config.js';
 import { CorrectiveAction, ActionAuditLog } from '../types/actions.js';
 import { DataStore, VisitFilter } from './types.js';
+import { DOCUMENT_STORE_SCHEMA } from './schema.js';
 
 const { Pool } = pg;
 
 const DEFAULT_TENANT = 'org_retail_holding';
-const MIGRATION_FILE = path.join(PROJECT_ROOT, 'scripts/migrations/003_document_store.sql');
 
 const SEED_ORGANIZATION = {
   id: DEFAULT_TENANT,
@@ -62,8 +59,7 @@ export class PostgresDataStore implements DataStore {
   }
 
   async init(): Promise<void> {
-    const sql = fs.readFileSync(MIGRATION_FILE, 'utf-8');
-    await this.pool.query(sql);
+    await this.pool.query(DOCUMENT_STORE_SCHEMA);
 
     // Guarantee the default tenant exists so the app has somewhere to write.
     await this.pool.query(
