@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Home,
   PlusCircle,
   ClipboardCheck,
   CheckCheck,
@@ -22,6 +23,7 @@ import { RetailSolutionsLogo } from '../brand/RetailSolutionsLogo';
 import { VisitSession, UserRole } from '../../types';
 
 export type ViewMode =
+  | 'LANDING'
   | 'WIZARD'
   | 'AUDIT'
   | 'REVIEW'
@@ -157,6 +159,18 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
             {!isCollapsed && (
               <span className="sidebar-group-heading">ارزیابی میدانی</span>
             )}
+
+            <button
+              type="button"
+              className={`sidebar-nav-item ${viewMode === 'LANDING' ? 'active' : ''}`}
+              onClick={() => handleNavClick('LANDING')}
+              title="صفحه اصلی"
+            >
+              <div className="nav-icon-wrap">
+                <Home size={18} />
+              </div>
+              {!isCollapsed && <span className="nav-item-label">صفحه اصلی</span>}
+            </button>
 
             <button
               type="button"

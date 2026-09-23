@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Home,
   PlusCircle,
   ClipboardCheck,
   BarChart3,
@@ -33,7 +34,20 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({
 
   return (
     <nav className="mobile-bottom-tab-bar" aria-label="ناوبری سریع موبایل">
-      {/* 1. WIZARD */}
+      {/* 1. HOME / LANDING */}
+      <button
+        type="button"
+        className={`mobile-tab-btn ${viewMode === 'LANDING' ? 'active' : ''}`}
+        onClick={() => onSelectViewMode('LANDING')}
+        aria-label="صفحه اصلی"
+      >
+        <div className="mobile-tab-icon-wrap">
+          <Home size={19} />
+        </div>
+        <span className="mobile-tab-label">خانه</span>
+      </button>
+
+      {/* 2. WIZARD */}
       <button
         type="button"
         className={`mobile-tab-btn ${viewMode === 'WIZARD' ? 'active' : ''}`}
@@ -41,12 +55,12 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({
         aria-label="بازدید جدید"
       >
         <div className="mobile-tab-icon-wrap">
-          <PlusCircle size={20} />
+          <PlusCircle size={19} />
         </div>
         <span className="mobile-tab-label">شروع جدید</span>
       </button>
 
-      {/* 2. AUDIT (Active Form) */}
+      {/* 3. AUDIT (Active Form) */}
       <button
         type="button"
         className={`mobile-tab-btn ${viewMode === 'AUDIT' ? 'active' : ''} ${!activeSession ? 'disabled' : ''}`}
@@ -55,7 +69,7 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({
         disabled={!activeSession}
       >
         <div className="mobile-tab-icon-wrap">
-          <ClipboardCheck size={20} />
+          <ClipboardCheck size={19} />
           {activeSession && (
             <span className="mobile-tab-badge ltr-num">
               {answeredCount}/{totalCount}
@@ -65,7 +79,7 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({
         <span className="mobile-tab-label">فرم ارزیابی</span>
       </button>
 
-      {/* 3. REPORT */}
+      {/* 4. REPORT */}
       <button
         type="button"
         className={`mobile-tab-btn ${viewMode === 'REPORT' ? 'active' : ''}`}
@@ -73,25 +87,9 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({
         aria-label="گزارش و رادار"
       >
         <div className="mobile-tab-icon-wrap">
-          <BarChart3 size={20} />
+          <BarChart3 size={19} />
         </div>
         <span className="mobile-tab-label">رادار ۳۶۰</span>
-      </button>
-
-      {/* 4. ACTIONS */}
-      <button
-        type="button"
-        className={`mobile-tab-btn ${viewMode === 'ACTIONS' ? 'active' : ''}`}
-        onClick={() => onSelectViewMode('ACTIONS')}
-        aria-label="اقدامات اصلاحی"
-      >
-        <div className="mobile-tab-icon-wrap">
-          <Target size={20} />
-          {actionsCount > 0 && (
-            <span className="mobile-tab-alert-dot">{actionsCount}</span>
-          )}
-        </div>
-        <span className="mobile-tab-label">اقدامات</span>
       </button>
 
       {/* 5. MENU / MORE */}
@@ -102,9 +100,12 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({
         aria-label="منوی سایر امکانات"
       >
         <div className="mobile-tab-icon-wrap">
-          <Menu size={20} />
+          <Menu size={19} />
+          {actionsCount > 0 && (
+            <span className="mobile-tab-alert-dot">{actionsCount}</span>
+          )}
         </div>
-        <span className="mobile-tab-label">سایر</span>
+        <span className="mobile-tab-label">منو</span>
       </button>
     </nav>
   );

@@ -83,14 +83,9 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
     );
   };
 
-  const isPhotoBlocked = indicator.requiresPhoto && photos.length === 0;
+  const isPhotoBlocked = false; // Relaxed for field test as requested: photos are optional
 
   const handleFinalSave = () => {
-    if (isPhotoBlocked) {
-      setPhotoError('ثبت حداقل یک عکس برای این شاخص الزامی است.');
-      return;
-    }
-
     onSave({
       severity,
       comment,
@@ -215,8 +210,8 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
               مستندات و عکس‌های شاهد:
             </label>
             {indicator.requiresPhoto && (
-              <span style={{ fontSize: 11, color: 'var(--rs-color-error)', fontWeight: 600 }}>
-                * ثبت عکس الزامی است
+              <span style={{ fontSize: 11, color: 'var(--rs-color-brand-cyan)', fontWeight: 600 }}>
+                (اختیاری در نسخه آزمایشی میدانی)
               </span>
             )}
           </div>

@@ -9,6 +9,8 @@ import {
   EvidencePhoto,
 } from './types';
 import { StartVisitWizard } from './components/StartVisitWizard';
+import { LandingPage } from './components/landing/LandingPage';
+import { StoreService } from './services/storeService';
 import { FormOverview } from './components/FormOverview';
 import { QuestionCard } from './components/QuestionCard';
 import { FrictionSheet } from './components/FrictionSheet';
@@ -107,6 +109,7 @@ const ViewLoadingFallback: React.FC = () => (
 );
 
 type ViewMode =
+  | 'LANDING'
   | 'WIZARD'
   | 'AUDIT'
   | 'REVIEW'
@@ -233,6 +236,7 @@ export const App: React.FC = () => {
     if (typeof window !== 'undefined' && window.location.hash) {
       const hash = window.location.hash.replace('#', '').toUpperCase();
       const validModes: ViewMode[] = [
+        'LANDING',
         'WIZARD',
         'AUDIT',
         'REVIEW',
@@ -247,8 +251,12 @@ export const App: React.FC = () => {
         return hash as ViewMode;
       }
     }
-    return 'WIZARD';
+    return 'LANDING';
   };
+
+  const [savedStoresCount, setSavedStoresCount] = useState<number>(() => {
+    return StoreService.getLocalStores().length;
+  });
 
   const [viewMode, setViewModeState] = useState<ViewMode>(getInitialViewMode);
   const [toolsDropdownOpen, setToolsDropdownOpen] = useState(false);
@@ -303,7 +311,7 @@ export const App: React.FC = () => {
     setThemeMode((prev) => (prev === 'light' ? 'dark' : 'light'));
   };
   const [currentUserRole, setCurrentUserRole] = useState<UserRole>('Supervisor');
-  const [currentUserName, setCurrentUserName] = useState<string>('مهندس رضوانی');
+  const [currentUserName, setCurrentUserName] = useState<string>('نیما ذوقی');
   const [currentTenantId, setCurrentTenantId] = useState<string>('org_retail_holding');
 
   // Corrective Actions State
@@ -388,7 +396,7 @@ export const App: React.FC = () => {
     }
   }, []);
 
-  // Autosave to localStorage on response changes (Section 19: Autosave)
+  // Autosave to localStorage and background API sync (Dual Persistence for field durability)
   const saveVisitState = (session: VisitSession) => {
     setIsSaving(true);
     const updatedAnalytics = {
@@ -408,11 +416,28 @@ export const App: React.FC = () => {
     };
 
     setActiveSession({ ...sessionWithAnalytics });
+    
+    // 1. Guaranteed Local Persistence (Zero data loss even without network)
     try {
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(sessionWithAnalytics));
     } catch (e) {
       console.error('Storage error', e);
     }
+
+    // 2. Dual Background API Sync (Persist to backend data/visits.json & auto-upsert store directory)
+    try {
+      fetch('/api/visits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sessionWithAnalytics),
+      }).catch((apiErr) => {
+        // Silent offline fallback - localStorage is already safe
+        console.warn('Backend background sync deferred (offline or server unreachable):', apiErr);
+      });
+    } catch (e) {
+      // Ignore background sync errors
+    }
+
     setTimeout(() => {
       setIsSaving(false);
     }, 300);
@@ -898,6 +923,7 @@ export const App: React.FC = () => {
               />
             </div>
             <h2 className="top-nav-page-title">
+              {viewMode === 'LANDING' && 'صفحه اصلی'}
               {viewMode === 'WIZARD' && 'ارزیابی جدید'}
               {viewMode === 'AUDIT' &&
                 (activeSession
@@ -1080,6 +1106,22 @@ export const App: React.FC = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {/* LANDING VIEW */}
+        {viewMode === 'LANDING' && (
+          <LandingPage
+            currentUserName={currentUserName}
+            currentUserRole={currentUserRole}
+            activeSession={activeSession}
+            savedStoresCount={savedStoresCount}
+            actionsCount={actions.length}
+            onStartNewAudit={() => setViewMode('WIZARD')}
+            onResumeAudit={() => setViewMode('AUDIT')}
+            onOpenReport={() => setViewMode('REPORT')}
+            onOpenActions={() => setViewMode('ACTIONS')}
+            onOpenCatalog={() => setViewMode('CATALOG')}
+          />
         )}
 
         {viewMode === 'WIZARD' && (

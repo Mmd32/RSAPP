@@ -71,7 +71,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
   const [mallType, setMallType] = useState<MallTypeCode>('Regional');
   const [locationContext, setLocationContext] = useState<LocationContextCode>('STREET_STORE');
   const [storeFormat, setStoreFormat] = useState<StoreFormatCode>('FLAGSHIP');
-  const [auditorName, setAuditorName] = useState('نیما رضایی (ارزیاب ارشد)');
+  const [auditorName, setAuditorName] = useState('نیما ذوقی (ارزیاب ارشد)');
   const [supervisorName, setSupervisorName] = useState('مهندس سارا احمدی (سرپرست)');
 
   const [attributes, setAttributes] = useState<StoreAttributes>({
