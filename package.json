@@ -10,6 +10,7 @@
     "start": "tsx server/src/index.ts",
     "server": "tsx server/src/index.ts",
     "server:dev": "tsx watch server/src/index.ts",
+    "data:reset": "node scripts/reset-data.mjs",
     "typecheck": "tsc --noEmit && tsc -p server/tsconfig.json",
     "test:scenarios": "python3 scripts/test_scenarios.py"
   },
