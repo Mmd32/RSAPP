@@ -1,0 +1,3637 @@
+{
+  "visit_base_1790143316": {
+    "id": "visit_base_1790143316",
+    "visitCode": "VISIT-VNK-01",
+    "tenantId": "org_1790143316181",
+    "brandName": "ZARA",
+    "branchName": "شعبه ونک",
+    "assessmentType": "STORE",
+    "businessType": "Fashion",
+    "locationContext": "STREET_STORE",
+    "attributes": {
+      "has_fitting_room": true,
+      "has_window_display": true
+    },
+    "auditorName": "علی کاظمی",
+    "startedAt": "2026-09-09T09:31:56.189279",
+    "status": "SUBMITTED",
+    "indicators": [
+      {
+        "id": "ind_fs02",
+        "code": "FS02",
+        "subject": "دید تابلو در شب",
+        "statement": "روشنایی تابلوی اصلی فروشگاه در تاریکی شب کافی است",
+        "version": 1
+      },
+      {
+        "id": "ind_fs08",
+        "code": "FS08",
+        "subject": "دید تابلو از فاصله ۱۵ متری",
+        "statement": "تابلو از فاصله ۱۵ تا ۲۰ متری معبر پیاده قابل رؤیت است",
+        "version": 1
+      },
+      {
+        "id": "ind_fe01",
+        "code": "FE01",
+        "subject": "شفافیت درب ورودی",
+        "statement": "شیشه‌های درب ورودی تمیز و بدون ترک یا برچسب اضافی است",
+        "version": 1
+      }
+    ],
+    "responses": {
+      "ind_fs02": {
+        "indicatorId": "ind_fs02",
+        "answerState": "FRICTION",
+        "severity": "HIGH",
+        "comment": "حروف نئون تابلوی اصلی خاموش هستند.",
+        "photos": [
+          {
+            "id": "p1",
+            "url": "https://img.sample/before1.jpg",
+            "timestamp": "2026-09-23T09:31:56.189286"
+          }
+        ]
+      },
+      "ind_fs08": {
+        "indicatorId": "ind_fs08",
+        "answerState": "FRICTION",
+        "severity": "MEDIUM",
+        "comment": "دید تابلو توسط درخت بدون هرس مسدود شده است.",
+        "photos": []
+      },
+      "ind_fe01": {
+        "indicatorId": "ind_fe01",
+        "answerState": "NO_FRICTION"
+      }
+    },
+    "createdAt": "2026-09-23T06:01:56.194Z",
+    "completedAt": "2026-09-10T09:31:56.192755",
+    "overallScore": 68.5
+  },
+  "visit_base_1790143399": {
+    "id": "visit_base_1790143399",
+    "visitCode": "VISIT-VNK-01",
+    "tenantId": "org_1790143399146",
+    "brandName": "ZARA",
+    "branchName": "شعبه ونک",
+    "assessmentType": "STORE",
+    "businessType": "Fashion",
+    "locationContext": "STREET_STORE",
+    "attributes": {
+      "has_fitting_room": true,
+      "has_window_display": true
+    },
+    "auditorName": "علی کاظمی",
+    "startedAt": "2026-09-09T09:33:19.158746",
+    "status": "SUBMITTED",
+    "indicators": [
+      {
+        "id": "ind_fs02",
+        "code": "FS02",
+        "subject": "دید تابلو در شب",
+        "statement": "روشنایی تابلوی اصلی فروشگاه در تاریکی شب کافی است",
+        "version": 1
+      },
+      {
+        "id": "ind_fs08",
+        "code": "FS08",
+        "subject": "دید تابلو از فاصله ۱۵ متری",
+        "statement": "تابلو از فاصله ۱۵ تا ۲۰ متری معبر پیاده قابل رؤیت است",
+        "version": 1
+      },
+      {
+        "id": "ind_fe01",
+        "code": "FE01",
+        "subject": "شفافیت درب ورودی",
+        "statement": "شیشه‌های درب ورودی تمیز و بدون ترک یا برچسب اضافی است",
+        "version": 1
+      }
+    ],
+    "responses": {
+      "ind_fs02": {
+        "indicatorId": "ind_fs02",
+        "answerState": "FRICTION",
+        "severity": "HIGH",
+        "comment": "حروف نئون تابلوی اصلی خاموش هستند.",
+        "photos": [
+          {
+            "id": "p1",
+            "url": "https://img.sample/before1.jpg",
+            "timestamp": "2026-09-23T09:33:19.158754"
+          }
+        ]
+      },
+      "ind_fs08": {
+        "indicatorId": "ind_fs08",
+        "answerState": "FRICTION",
+        "severity": "MEDIUM",
+        "comment": "دید تابلو توسط درخت بدون هرس مسدود شده است.",
+        "photos": []
+      },
+      "ind_fe01": {
+        "indicatorId": "ind_fe01",
+        "answerState": "NO_FRICTION"
+      }
+    },
+    "createdAt": "2026-09-23T06:03:19.180Z",
+    "completedAt": "2026-09-10T09:33:19.167038",
+    "overallScore": 68.5
+  },
+  "visit_revisit_1790143399": {
+    "id": "visit_revisit_1790143399",
+    "visitCode": "VISIT-VNK-02",
+    "tenantId": "org_1790143399146",
+    "brandName": "ZARA",
+    "branchName": "شعبه ونک",
+    "assessmentType": "STORE",
+    "businessType": "Fashion",
+    "locationContext": "STREET_STORE",
+    "attributes": {
+      "has_fitting_room": true,
+      "has_window_display": true
+    },
+    "auditorName": "علی کاظمی",
+    "startedAt": "2026-09-23T09:33:19.223761",
+    "completedAt": "2026-09-23T09:33:19.223764",
+    "status": "APPROVED",
+    "overallScore": 91,
+    "indicators": [
+      {
+        "id": "ind_fs02",
+        "code": "FS02",
+        "subject": "دید تابلو در شب",
+        "statement": "روشنایی تابلوی اصلی فروشگاه در تاریکی شب کافی است",
+        "version": 1
+      },
+      {
+        "id": "ind_fs08",
+        "code": "FS08",
+        "subject": "دید تابلو از فاصله ۱۵ متری",
+        "statement": "تابلو از فاصله ۱۵ تا ۲۰ متری معبر پیاده قابل رؤیت است",
+        "version": 1
+      },
+      {
+        "id": "ind_fe01",
+        "code": "FE01",
+        "subject": "شفافیت درب ورودی",
+        "statement": "شیشه‌های درب ورودی تمیز و بدون ترک یا برچسب اضافی است",
+        "version": 1
+      }
+    ],
+    "responses": {
+      "ind_fs02": {
+        "indicatorId": "ind_fs02",
+        "answerState": "NO_FRICTION",
+        "comment": "تابلو به طور یکدست در تاریکی شب می‌درخشد."
+      },
+      "ind_fs08": {
+        "indicatorId": "ind_fs08",
+        "answerState": "FRICTION",
+        "severity": "MEDIUM",
+        "comment": "درخت شهرداری همچنان هرس نشده و دید را مسدود کرده است."
+      },
+      "ind_fe01": {
+        "indicatorId": "ind_fe01",
+        "answerState": "NO_FRICTION"
+      }
+    },
+    "createdAt": "2026-09-23T06:03:19.224Z"
+  },
+  "visit_sample_enterprise_01": {
+    "id": "visit_sample_enterprise_01",
+    "visitCode": "RS-AUD-2026-0891",
+    "brandName": "ZARA",
+    "branchName": "مرکز خرید ونک",
+    "assessmentType": "STORE",
+    "businessType": "Fashion",
+    "locationContext": "MALL_STORE",
+    "storeFormat": "FLAGSHIP",
+    "attributes": {
+      "has_fitting_room": true,
+      "has_window_display": true,
+      "has_mannequins": true,
+      "has_anti_theft_gate": true,
+      "has_customer_toilet": true,
+      "has_elevator": false,
+      "has_stairs": true
+    },
+    "auditorName": "مهندس علیرضا رادپور",
+    "supervisorName": "دکتر حمیدرضا مقصودی",
+    "startedAt": "2026-09-20T10:30:00.000Z",
+    "completedAt": "2026-09-20T13:45:00.000Z",
+    "status": "APPROVED",
+    "indicators": [
+      {
+        "id": "IND_S_0002",
+        "code": "FS01",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "تابلوی سر در",
+        "journeyStage": "APPROACH",
+        "reportingDimension": "ACCESS",
+        "originalText": "تابلو وجود ندارد یا دچار نقص و خدشه است.",
+        "statement": "تابلو وجود ندارد یا دچار نقص و خدشه است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 2,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0003",
+        "code": "FS02",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "تابلوی سر در",
+        "journeyStage": "APPROACH",
+        "reportingDimension": "ACCESS",
+        "originalText": "روشنایی مناسب ندارد یا چراغ‌های تابلو دچار نقص هستند.",
+        "statement": "روشنایی مناسب ندارد یا چراغ های تابلو دچار نقص هستند.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 3,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0004",
+        "code": "FS03",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "تابلوی سر در",
+        "journeyStage": "APPROACH",
+        "reportingDimension": "ACCESS",
+        "originalText": "تابلوی سر در دارای فونت واضح و خوانا نیست.",
+        "statement": "تابلوی سر در دارای فونت واضح و خوانا نیست.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 4,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0005",
+        "code": "FS04",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "تابلوی سر در",
+        "journeyStage": "APPROACH",
+        "reportingDimension": "ACCESS",
+        "originalText": "تابلوی سر در تمیز نیست و گرد و غبار دارد.",
+        "statement": "تابلوی سر در تمیز نیست و گرد و غبار دارد.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 5,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0006",
+        "code": "FS05",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "تابلوی سر در",
+        "journeyStage": "APPROACH",
+        "reportingDimension": "ACCESS",
+        "originalText": "اندازه تابلو متناسب با اندازه درب ورودی فروشگاه نیست.",
+        "statement": "اندازه تابلو متناسب با اندازه درب ورودی فروشگاه نیست.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 6,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0007",
+        "code": "FS06",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "تابلوی سر در",
+        "journeyStage": "APPROACH",
+        "reportingDimension": "ACCESS",
+        "originalText": "لوگوی رسمی برند روی تابلو دچار دفرمگی یا عدم همخوانی رنگ است.",
+        "statement": "لوگوی رسمی برند روی تابلو دچار دفرمگی یا عدم همخوانی رنگ است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 7,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0008",
+        "code": "FS07",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "تابلوی سر در",
+        "journeyStage": "APPROACH",
+        "reportingDimension": "ACCESS",
+        "originalText": "کابل‌ها یا سیم‌کشی پشت تابلو نمایان و نامرتب است.",
+        "statement": "کابل ها یا سیم کشی پشت تابلو نمایان و نامرتب است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 8,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0009",
+        "code": "FS08",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "تابلوی سر در",
+        "journeyStage": "APPROACH",
+        "reportingDimension": "ACCESS",
+        "originalText": "تابلو از فاصله حدود 15 تا 20 متری معبر قابل رؤیت نیست.",
+        "statement": "تابلو از فاصله حدود 15 تا 20 متری معبر قابل رؤیت نیست.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 9,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0013",
+        "code": "FAFE01",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "پله و آسانسور",
+        "journeyStage": "NAVIGATION",
+        "reportingDimension": "NAVIGATION",
+        "originalText": "پله‌ها یا آسانسور ارتباطی طبقات سالم نیستند یا دارای لرزش و صدا هستند.",
+        "statement": "پله ها یا آسانسور ارتباطی طبقات سالم نیستند یا دارای لرزش و صدا هستند.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 13,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "F_B",
+          "Homeware",
+          "Entertainment",
+          "Sports"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0014",
+        "code": "FAFE02",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "پله و آسانسور",
+        "journeyStage": "NAVIGATION",
+        "reportingDimension": "NAVIGATION",
+        "originalText": "روشنایی راه پله و پاگردها کافی نیست.",
+        "statement": "روشنایی راه پله و پاگردها کافی نیست.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 14,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "F_B",
+          "Homeware",
+          "Entertainment",
+          "Sports"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0015",
+        "code": "FAFE03",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "پله و آسانسور",
+        "journeyStage": "NAVIGATION",
+        "reportingDimension": "NAVIGATION",
+        "originalText": "پله‌برقی‌ها تمیز نیستند و روی نرده‌ها لکه روغن وجود دارد.",
+        "statement": "پله برقی ها تمیز نیستند و روی نرده ها لکه روغن وجود دارد.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1.5,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 15,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "F_B",
+          "Homeware",
+          "Entertainment",
+          "Sports"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0016",
+        "code": "FAFE04",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "پله و آسانسور",
+        "journeyStage": "NAVIGATION",
+        "reportingDimension": "NAVIGATION",
+        "originalText": "پله ایمن نیست و دو طرف آن دستگیره و نرده محافظ استاندارد ندارد.",
+        "statement": "پله ایمن نیست و دو طرف آن دستگیره و نرده محافظ استاندارد ندارد.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 16,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "F_B",
+          "Homeware",
+          "Entertainment",
+          "Sports"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0038",
+        "code": "FC01",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "سقف",
+        "journeyStage": "NAVIGATION",
+        "reportingDimension": "NAVIGATION",
+        "originalText": "سقف سالم نیست یا کیفیت ظاهری مطلوب ندارد (لک رطوبت، ترک، دریچه معیوب).",
+        "statement": "سقف سالم نیست یا کیفیت ظاهری مطلوب ندارد (لک رطوبت، ترک، دریچه معیوب).",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 38,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0039",
+        "code": "FC02",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "سقف",
+        "journeyStage": "NAVIGATION",
+        "reportingDimension": "NAVIGATION",
+        "originalText": "سیم‌کشی‌ها و لوله‌های تأسیساتی سقف بدون پوشش و نامرتب رها شده‌اند.",
+        "statement": "سیم کشی ها و لوله های تأسیساتی سقف بدون پوشش و نامرتب رها شده اند.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 39,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0040",
+        "code": "FF01",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "کف",
+        "journeyStage": "NAVIGATION",
+        "reportingDimension": "NAVIGATION",
+        "originalText": "کف سالم نیست یا دارای شکستگی، برآمدگی سرامیک و لق‌شدگی سنگ است.",
+        "statement": "کف سالم نیست یا دارای شکستگی، برآمدگی سرامیک و لق شدگی سنگ است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1.5,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 40,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0041",
+        "code": "FF02",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "کف",
+        "journeyStage": "NAVIGATION",
+        "reportingDimension": "NAVIGATION",
+        "originalText": "کف خشک و تمیز نیست و لکه‌ها یا آشغال کف مغازه دیده می‌شود.",
+        "statement": "کف خشک و تمیز نیست و لکه ها یا آشغال کف مغازه دیده می شود.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 41,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0027",
+        "code": "FR01",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "قفسه ها",
+        "journeyStage": "NAVIGATION",
+        "reportingDimension": "ENVIRONMENT",
+        "originalText": "نظافت و ظاهر قفسه‌ها مناسب نیست یا دچار شکستگی و رنگ‌پریدگی است.",
+        "statement": "نظافت و ظاهر قفسه ها مناسب نیست یا دچار شکستگی و رنگ پریدگی است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1.5,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 27,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0028",
+        "code": "FR02",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "قفسه ها",
+        "journeyStage": "NAVIGATION",
+        "reportingDimension": "ENVIRONMENT",
+        "originalText": "ارتفاع قفسه برای دسترسی راحت مشتری متناسب نیست (خیلی بلند یا خیلی پایین).",
+        "statement": "ارتفاع قفسه برای دسترسی راحت مشتری متناسب نیست (خیلی بلند یا خیلی پایین).",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 28,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0029",
+        "code": "FR03",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "قفسه ها",
+        "journeyStage": "NAVIGATION",
+        "reportingDimension": "ENVIRONMENT",
+        "originalText": "ارتفاع قفسه‌های وسط فروشگاه دید سایر قسمت‌ها را محدود می‌کند.",
+        "statement": "ارتفاع قفسه های وسط فروشگاه دید سایر قسمت ها را محدود می کند.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 29,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0030",
+        "code": "FR04",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "قفسه ها",
+        "journeyStage": "NAVIGATION",
+        "reportingDimension": "ENVIRONMENT",
+        "originalText": "اتیکت مشخصات و قیمت روی قفسه‌ها ناخوانا یا مخدوش است.",
+        "statement": "اتیکت مشخصات و قیمت روی قفسه ها ناخوانا یا مخدوش است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 30,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0031",
+        "code": "FR05",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "قفسه ها",
+        "journeyStage": "NAVIGATION",
+        "reportingDimension": "ENVIRONMENT",
+        "originalText": "چیدمان و تراکم قفسه‌ها بیش از حد شلوغ و متراکم است.",
+        "statement": "چیدمان و تراکم قفسه ها بیش از حد شلوغ و متراکم است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 31,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0032",
+        "code": "FR06",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "قفسه ها",
+        "journeyStage": "NAVIGATION",
+        "reportingDimension": "ENVIRONMENT",
+        "originalText": "قفسه‌ها فضای کافی برای گردش و توقف کالسکه یا چرخ خرید ایجاد نمی‌کنند.",
+        "statement": "قفسه ها فضای کافی برای گردش و توقف کالسکه یا چرخ خرید ایجاد نمی کنند.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 32,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0033",
+        "code": "FR07",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "قفسه ها",
+        "journeyStage": "NAVIGATION",
+        "reportingDimension": "ENVIRONMENT",
+        "originalText": "چیدمان قفسه‌ها براساس Layout فروشگاه نیست و مشتری در مسیر هدایت نمی‌شود.",
+        "statement": "چیدمان قفسه ها براساس Layout فروشگاه نیست و مشتری در مسیر هدایت نمی شود.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 33,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0034",
+        "code": "FR08",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "قفسه ها",
+        "journeyStage": "NAVIGATION",
+        "reportingDimension": "ENVIRONMENT",
+        "originalText": "پایداری فیزیکی قفسه‌ها ضعیف است و احساس ناامنی و واژگونی ایجاد می‌کند.",
+        "statement": "پایداری فیزیکی قفسه ها ضعیف است و احساس ناامنی و واژگونی ایجاد می کند.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 34,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0035",
+        "code": "FR09",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "قفسه ها",
+        "journeyStage": "NAVIGATION",
+        "reportingDimension": "ENVIRONMENT",
+        "originalText": "تقسیم‌بندی قفسه‌ها بر اساس کالاهای پرفروش رعایت نشده است.",
+        "statement": "تقسیم بندی قفسه ها بر اساس کالاهای پرفروش رعایت نشده است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 35,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0036",
+        "code": "FR10",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "قفسه ها",
+        "journeyStage": "NAVIGATION",
+        "reportingDimension": "ENVIRONMENT",
+        "originalText": "قفسه‌های خالی و بدون کالا در معرض دید مشتری قرار دارند.",
+        "statement": "قفسه های خالی و بدون کالا در معرض دید مشتری قرار دارند.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 36,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0037",
+        "code": "FR11",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "قفسه ها",
+        "journeyStage": "NAVIGATION",
+        "reportingDimension": "ENVIRONMENT",
+        "originalText": "فاصله بین قفسه‌ها کمتر از حد مجاز است و راهروها تنگ هستند.",
+        "statement": "فاصله بین قفسه ها کمتر از حد مجاز است و راهروها تنگ هستند.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 37,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0061",
+        "code": "FCL01",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "نظافت کلی فروشگاه",
+        "journeyStage": "NAVIGATION",
+        "reportingDimension": "ENVIRONMENT",
+        "originalText": "بوی نامطبوع در فضای فروشگاه حس می‌شود یا تهویه هوا کارایی ندارد.",
+        "statement": "بوی نامطبوع در فضای فروشگاه حس می شود یا تهویه هوا کارایی ندارد.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 61,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0017",
+        "code": "FW01",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "ویترین",
+        "journeyStage": "EXPLORATION",
+        "reportingDimension": "PRODUCT",
+        "originalText": "ویترین وجود ندارد یا مسدود شده است.",
+        "statement": "ویترین وجود ندارد یا مسدود شده است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 17,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0018",
+        "code": "FW02",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "ویترین",
+        "journeyStage": "EXPLORATION",
+        "reportingDimension": "PRODUCT",
+        "originalText": "ویترین تمیز و مرتب نیست و اثر انگشت روی شیشه باقی است.",
+        "statement": "ویترین تمیز و مرتب نیست و اثر انگشت روی شیشه باقی است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 18,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0019",
+        "code": "FW03",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "ویترین",
+        "journeyStage": "EXPLORATION",
+        "reportingDimension": "PRODUCT",
+        "originalText": "ویترین چیدمان جذاب و تراکم مناسب ندارد و کالاها نامنظم رها شده‌اند.",
+        "statement": "ویترین چیدمان جذاب و تراکم مناسب ندارد و کالاها نامنظم رها شده اند.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 19,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0020",
+        "code": "FW04",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "ویترین",
+        "journeyStage": "EXPLORATION",
+        "reportingDimension": "PRODUCT",
+        "originalText": "کالاهای نمایش داده شده در ویترین فاقد اتیکت قیمت یا شناسه مشخص هستند.",
+        "statement": "کالاهای نمایش داده شده در ویترین فاقد اتیکت قیمت یا شناسه مشخص هستند.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 20,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0021",
+        "code": "FW05",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "ویترین",
+        "journeyStage": "EXPLORATION",
+        "reportingDimension": "PRODUCT",
+        "originalText": "ویترین نور کافی ندارد یا برخی پروژکتورهای تاکیدی سوخته‌اند.",
+        "statement": "ویترین نور کافی ندارد یا برخی پروژکتورهای تاکیدی سوخته اند.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 21,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0022",
+        "code": "FW06",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "ویترین",
+        "journeyStage": "EXPLORATION",
+        "reportingDimension": "PRODUCT",
+        "originalText": "ویترین به دلیل وجود ستون یا مانع فیزیکی به طور کامل در دید مشتری نیست.",
+        "statement": "ویترین به دلیل وجود ستون یا مانع فیزیکی به طور کامل در دید مشتری نیست.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 22,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0047",
+        "code": "FMA01",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "مانکن ها",
+        "journeyStage": "EXPLORATION",
+        "reportingDimension": "PRODUCT",
+        "originalText": "مانکن تمیز یا سالم نیست (شکستگی، خراش، رنگ‌پریدگی، کثیفی لباس).",
+        "statement": "مانکن تمیز یا سالم نیست (شکستگی، خراش، رنگ پریدگی، کثیفی لباس).",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1.5,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 47,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0048",
+        "code": "FMA02",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "مانکن ها",
+        "journeyStage": "EXPLORATION",
+        "reportingDimension": "PRODUCT",
+        "originalText": "لباس مانکن مرتب نیست و سنجاق‌ها یا تگ‌های قیمت از پشت نمایان است.",
+        "statement": "لباس مانکن مرتب نیست و سنجاق ها یا تگ های قیمت از پشت نمایان است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 48,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0049",
+        "code": "FMA03",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "مانکن ها",
+        "journeyStage": "EXPLORATION",
+        "reportingDimension": "PRODUCT",
+        "originalText": "ژست یا ترکیب مانکن‌ها فاقد جذابیت بصری و داستان‌پردازی است.",
+        "statement": "ژست یا ترکیب مانکن ها فاقد جذابیت بصری و داستان پردازی است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 49,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0050",
+        "code": "FMA04",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "مانکن ها",
+        "journeyStage": "EXPLORATION",
+        "reportingDimension": "PRODUCT",
+        "originalText": "مانکن در محل نامناسب قرار گرفته و مانع عبور و مرور مشتری می‌شود.",
+        "statement": "مانکن در محل نامناسب قرار گرفته و مانع عبور و مرور مشتری می شود.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 50,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0051",
+        "code": "FFR01",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "اتاق پرو",
+        "journeyStage": "EVALUATION",
+        "reportingDimension": "PRODUCT",
+        "originalText": "اتاق پرو وجود ندارد در حالی که نوع کالا به پرو نیاز دارد.",
+        "statement": "اتاق پرو وجود ندارد در حالی که نوع کالا به پرو نیاز دارد.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 51,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0052",
+        "code": "FFR02",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "اتاق پرو",
+        "journeyStage": "EVALUATION",
+        "reportingDimension": "PRODUCT",
+        "originalText": "تعداد اتاق‌های پرو کافی نیست و صف طولانی ایجاد می‌شود.",
+        "statement": "تعداد اتاق های پرو کافی نیست و صف طولانی ایجاد می شود.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 52,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0053",
+        "code": "FFR03",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "اتاق پرو",
+        "journeyStage": "EVALUATION",
+        "reportingDimension": "PRODUCT",
+        "originalText": "نظافت داخل اتاق پرو مطلوب نیست و کرک و گرد و غبار کف دیده می‌شود.",
+        "statement": "نظافت داخل اتاق پرو مطلوب نیست و کرک و گرد و غبار کف دیده می شود.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 53,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0054",
+        "code": "FFR04",
+        "template": "STORE",
+        "group": "FLOOR",
+        "subject": "اتاق پرو",
+        "journeyStage": "EVALUATION",
+        "reportingDimension": "PRODUCT",
+        "originalText": "نور داخل اتاق پرو نامناسب است و سایه‌های زشت روی لباس ایجاد می‌کند.",
+        "statement": "نور داخل اتاق پرو نامناسب است و سایه های زشت روی لباس ایجاد می کند.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": true,
+        "requiresComment": true,
+        "displayOrder": 54,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0071",
+        "code": "FST01",
+        "template": "STORE",
+        "group": "TEAM",
+        "subject": "در دسترس بودن کارکنان",
+        "journeyStage": "STAFF_INTERACTION",
+        "reportingDimension": "PEOPLE",
+        "originalText": "تعداد پرسنل فروشگاه در ساعات شلوغی برای پاسخگویی کافی نیست.",
+        "statement": "تعداد پرسنل فروشگاه در ساعات شلوغی برای پاسخگویی کافی نیست.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 71,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0072",
+        "code": "FST02",
+        "template": "STORE",
+        "group": "TEAM",
+        "subject": "در دسترس بودن کارکنان",
+        "journeyStage": "STAFF_INTERACTION",
+        "reportingDimension": "PEOPLE",
+        "originalText": "پرسنل در زمان مراجعه مشتری پشت کانتر مخفی شده یا سرگرم موبایل هستند.",
+        "statement": "پرسنل در زمان مراجعه مشتری پشت کانتر مخفی شده یا سرگرم موبایل هستند.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 72,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0073",
+        "code": "FST03",
+        "template": "STORE",
+        "group": "TEAM",
+        "subject": "آراستگی ظاهری پرسنل",
+        "journeyStage": "STAFF_INTERACTION",
+        "reportingDimension": "PEOPLE",
+        "originalText": "پرسنل لباس فرم یکدست، اتوکشیده و تمیز بر تن ندارند.",
+        "statement": "پرسنل لباس فرم یکدست، اتوکشیده و تمیز بر تن ندارند.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 73,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0074",
+        "code": "FST04",
+        "template": "STORE",
+        "group": "TEAM",
+        "subject": "آراستگی ظاهری پرسنل",
+        "journeyStage": "STAFF_INTERACTION",
+        "reportingDimension": "PEOPLE",
+        "originalText": "نشان سینه (Badge) حاوی نام پرسنل بر روی لباس نصب نشده است.",
+        "statement": "نشان سینه (Badge) حاوی نام پرسنل بر روی لباس نصب نشده است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 74,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0075",
+        "code": "FST05",
+        "template": "STORE",
+        "group": "TEAM",
+        "subject": "رفتار پرسنل",
+        "journeyStage": "STAFF_INTERACTION",
+        "reportingDimension": "PEOPLE",
+        "originalText": "لحن پرسنل سرد، غیرمحترمانه یا توأم با بی‌تفاوتی است.",
+        "statement": "لحن پرسنل سرد، غیرمحترمانه یا توأم با بی تفاوتی است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 75,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0089",
+        "code": "FCP03",
+        "template": "STORE",
+        "group": "CASH",
+        "subject": "رفتار صندوقدار",
+        "journeyStage": "STAFF_INTERACTION",
+        "reportingDimension": "PEOPLE",
+        "originalText": "صندوقدار بدون سلام، لبخند یا تماس چشمی پرداخت را انجام می‌دهد.",
+        "statement": "صندوقدار بدون سلام، لبخند یا تماس چشمی پرداخت را انجام می دهد.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 89,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0105",
+        "code": "F_EXT_011",
+        "template": "STORE",
+        "group": "SERVICES",
+        "subject": "در دسترس بودن کارکنان",
+        "journeyStage": "STAFF_INTERACTION",
+        "reportingDimension": "PEOPLE",
+        "originalText": "استاندارد عملیاتی و کیفی در دسترس بودن کارکنان دچار نقص است یا مغایر با رویه مصوب برند اجرا شده است.",
+        "statement": "استاندارد عملیاتی و کیفی در دسترس بودن کارکنان دچار نقص است یا مغایر با رویه مصوب برند اجرا شده است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 105,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0106",
+        "code": "F_EXT_012",
+        "template": "STORE",
+        "group": "TEAM",
+        "subject": "آراستگی ظاهری پرسنل",
+        "journeyStage": "STAFF_INTERACTION",
+        "reportingDimension": "PEOPLE",
+        "originalText": "استاندارد عملیاتی و کیفی آراستگی ظاهری پرسنل دچار نقص است یا مغایر با رویه مصوب برند اجرا شده است.",
+        "statement": "استاندارد عملیاتی و کیفی آراستگی ظاهری پرسنل دچار نقص است یا مغایر با رویه مصوب برند اجرا شده است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 106,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0107",
+        "code": "F_EXT_013",
+        "template": "STORE",
+        "group": "PRODUCT",
+        "subject": "رفتار پرسنل",
+        "journeyStage": "STAFF_INTERACTION",
+        "reportingDimension": "PEOPLE",
+        "originalText": "استاندارد عملیاتی و کیفی رفتار پرسنل دچار نقص است یا مغایر با رویه مصوب برند اجرا شده است.",
+        "statement": "استاندارد عملیاتی و کیفی رفتار پرسنل دچار نقص است یا مغایر با رویه مصوب برند اجرا شده است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 107,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0085",
+        "code": "FPR07",
+        "template": "STORE",
+        "group": "PRODUCT",
+        "subject": "بسته بندی کالا",
+        "journeyStage": "EXIT",
+        "reportingDimension": "CHECKOUT",
+        "originalText": "بسته‌بندی اورجینال کالا پاره، کثیف یا مستعمل است.",
+        "statement": "بسته بندی اورجینال کالا پاره، کثیف یا مستعمل است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 85,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0087",
+        "code": "FCP01",
+        "template": "STORE",
+        "group": "CASH",
+        "subject": "صف صندوق",
+        "journeyStage": "PURCHASE",
+        "reportingDimension": "CHECKOUT",
+        "originalText": "طول صف صندوق بیش از ۳ نفر است و باجه کمکی باز نمی‌شود.",
+        "statement": "طول صف صندوق بیش از ۳ نفر است و باجه کمکی باز نمی شود.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 87,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0088",
+        "code": "FCP02",
+        "template": "STORE",
+        "group": "CASH",
+        "subject": "تعداد صندوق ها",
+        "journeyStage": "PURCHASE",
+        "reportingDimension": "CHECKOUT",
+        "originalText": "صندوق‌های موجود متناسب با ترافیک مراجعه فروشگاه در زمان اوج نیست.",
+        "statement": "صندوق های موجود متناسب با ترافیک مراجعه فروشگاه در زمان اوج نیست.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 88,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0090",
+        "code": "FCP04",
+        "template": "STORE",
+        "group": "CASH",
+        "subject": "سرعت عمل صندوقدار",
+        "journeyStage": "PURCHASE",
+        "reportingDimension": "CHECKOUT",
+        "originalText": "صندوقدار در اسکن بارکد، ثبت یا بسته‌بندی کند عمل می‌کند.",
+        "statement": "صندوقدار در اسکن بارکد، ثبت یا بسته بندی کند عمل می کند.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 90,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0092",
+        "code": "FCP06",
+        "template": "STORE",
+        "group": "CASH",
+        "subject": "فاکتور",
+        "journeyStage": "PURCHASE",
+        "reportingDimension": "CHECKOUT",
+        "originalText": "فاکتور صادر شده فاقد جزییات کامل، قیمت اقلام، تخفیف یا شرایط تعویض است.",
+        "statement": "فاکتور صادر شده فاقد جزییات کامل، قیمت اقلام، تخفیف یا شرایط تعویض است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 92,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0093",
+        "code": "FCP07",
+        "template": "STORE",
+        "group": "CASH",
+        "subject": "فضای بسته بندی خرید",
+        "journeyStage": "EXIT",
+        "reportingDimension": "CHECKOUT",
+        "originalText": "میز بسته بندی کوچک و شلوغ است و کیسه خرید با کیفیت مناسب ارائه نمی‌شود.",
+        "statement": "میز بسته بندی کوچک و شلوغ است و کیسه خرید با کیفیت مناسب ارائه نمی شود.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 93,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0094",
+        "code": "FCP08",
+        "template": "STORE",
+        "group": "CASH",
+        "subject": "جداکننده تگ و پیجر",
+        "journeyStage": "EXIT",
+        "reportingDimension": "CHECKOUT",
+        "originalText": "دستگاه تگ‌خوان یا پیجر قطع است و معطلی جهت باز کردن تگ دزدگیر ایجاد می‌شود.",
+        "statement": "دستگاه تگ خوان یا پیجر قطع است و معطلی جهت باز کردن تگ دزدگیر ایجاد می شود.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 94,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0122",
+        "code": "F_EXT_028",
+        "template": "STORE",
+        "group": "PRODUCT",
+        "subject": "بسته بندی کالا",
+        "journeyStage": "EXIT",
+        "reportingDimension": "CHECKOUT",
+        "originalText": "استاندارد عملیاتی و کیفی بسته‌بندی کالا دچار نقص است یا مغایر با رویه مصوب برند اجرا شده است.",
+        "statement": "استاندارد عملیاتی و کیفی بسته بندی کالا دچار نقص است یا مغایر با رویه مصوب برند اجرا شده است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 122,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0067",
+        "code": "FAS01",
+        "template": "STORE",
+        "group": "SERVICES",
+        "subject": "تعویض و مرجوعی کالا",
+        "journeyStage": "AFTER_SALES",
+        "reportingDimension": "AFTER_SALES",
+        "originalText": "قوانین تعویض و مرجوعی کالا شفاف نیست و به اطلاع مشتری نرسیده است.",
+        "statement": "قوانین تعویض و مرجوعی کالا شفاف نیست و به اطلاع مشتری نرسیده است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 67,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0068",
+        "code": "FAS02",
+        "template": "STORE",
+        "group": "SERVICES",
+        "subject": "تعویض و مرجوعی کالا",
+        "journeyStage": "AFTER_SALES",
+        "reportingDimension": "AFTER_SALES",
+        "originalText": "فرآیند مرجوعی پیچیده و توأم با مقاومت و برخورد ناخوشایند است.",
+        "statement": "فرآیند مرجوعی پیچیده و توأم با مقاومت و برخورد ناخوشایند است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 68,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Sports",
+          "Specialty"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0069",
+        "code": "FAS03",
+        "template": "STORE",
+        "group": "SERVICES",
+        "subject": "خدمات پس از فروش",
+        "journeyStage": "AFTER_SALES",
+        "reportingDimension": "AFTER_SALES",
+        "originalText": "تعهدات گارانتی یا تعمیرات به صورت مشخص در فاکتور قید نشده است.",
+        "statement": "تعهدات گارانتی یا تعمیرات به صورت مشخص در فاکتور قید نشده است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 69,
+        "applicableBusinessTypes": [
+          "Watch_Jewelry",
+          "Hardware",
+          "Homeware",
+          "Electronics",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0100",
+        "code": "F_EXT_006",
+        "template": "STORE",
+        "group": "SERVICES",
+        "subject": "خدمات",
+        "journeyStage": "AFTER_SALES",
+        "reportingDimension": "AFTER_SALES",
+        "originalText": "استاندارد عملیاتی و کیفی خدمات دچار نقص است یا مغایر با رویه مصوب برند اجرا شده است.",
+        "statement": "استاندارد عملیاتی و کیفی خدمات دچار نقص است یا مغایر با رویه مصوب برند اجرا شده است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 100,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "FMCG",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0102",
+        "code": "F_EXT_008",
+        "template": "STORE",
+        "group": "PRODUCT",
+        "subject": "تعویض و مرجوعی کالا",
+        "journeyStage": "AFTER_SALES",
+        "reportingDimension": "AFTER_SALES",
+        "originalText": "استاندارد عملیاتی و کیفی تعویض و مرجوعی کالا دچار نقص است یا مغایر با رویه مصوب برند اجرا شده است.",
+        "statement": "استاندارد عملیاتی و کیفی تعویض و مرجوعی کالا دچار نقص است یا مغایر با رویه مصوب برند اجرا شده است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 102,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "Watch_Jewelry",
+          "F_B",
+          "Hardware",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Electronics",
+          "Entertainment",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      },
+      {
+        "id": "IND_S_0103",
+        "code": "F_EXT_009",
+        "template": "STORE",
+        "group": "CASH",
+        "subject": "خدمات پس از فروش",
+        "journeyStage": "AFTER_SALES",
+        "reportingDimension": "AFTER_SALES",
+        "originalText": "استاندارد عملیاتی و کیفی خدمات پس از فروش دچار نقص است یا مغایر با رویه مصوب برند اجرا شده است.",
+        "statement": "استاندارد عملیاتی و کیفی خدمات پس از فروش دچار نقص است یا مغایر با رویه مصوب برند اجرا شده است.",
+        "status": "ACTIVE",
+        "version": 1,
+        "weight": 1,
+        "requiresPhoto": false,
+        "requiresComment": true,
+        "displayOrder": 103,
+        "applicableBusinessTypes": [
+          "Fashion",
+          "Shoe_Bag",
+          "FMCG",
+          "Homeware",
+          "Beauty_Cosmetics",
+          "Sports",
+          "Specialty",
+          "Services"
+        ],
+        "applicableMallTypes": []
+      }
+    ],
+    "responses": {
+      "IND_S_0002": {
+        "indicatorId": "IND_S_0002",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0003": {
+        "indicatorId": "IND_S_0003",
+        "answerState": "FRICTION",
+        "observationType": "FRICTION",
+        "severity": "CRITICAL",
+        "comment": "نیمی از حروف نئونی تابلوی بیرونی در شب خاموش است.",
+        "recommendation": "تعویض فوری ترانس و ال‌ای‌دی تابلو",
+        "photos": [
+          {
+            "id": "photo_FS02_1",
+            "url": "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?auto=format&fit=crop&w=400&q=80",
+            "caption": "مدرک مستند FS02: نیمی از حروف نئونی تابلوی بیرونی در...",
+            "timestamp": "2026-09-20T11:20:00.000Z"
+          },
+          {
+            "id": "photo_FS02_2",
+            "url": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=400&q=80",
+            "caption": "مدرک مستند FS02: نیمی از حروف نئونی تابلوی بیرونی در...",
+            "timestamp": "2026-09-20T11:20:00.000Z"
+          }
+        ],
+        "isFlagged": true,
+        "answeredAt": "2026-09-20T11:25:00.000Z"
+      },
+      "IND_S_0004": {
+        "indicatorId": "IND_S_0004",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0005": {
+        "indicatorId": "IND_S_0005",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0006": {
+        "indicatorId": "IND_S_0006",
+        "answerState": "FRICTION",
+        "observationType": "FRICTION",
+        "severity": "MEDIUM",
+        "comment": "شیشه سکوریت ورودی دارای لک دست و غبار است.",
+        "recommendation": "نظافت با مواد نانوشوینده در شیفت صبح و عصر",
+        "photos": [
+          {
+            "id": "photo_FS05_3",
+            "url": "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=400&q=80",
+            "caption": "مدرک مستند FS05: شیشه سکوریت ورودی دارای لک دست و غب...",
+            "timestamp": "2026-09-20T11:20:00.000Z"
+          }
+        ],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T11:25:00.000Z"
+      },
+      "IND_S_0007": {
+        "indicatorId": "IND_S_0007",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0008": {
+        "indicatorId": "IND_S_0008",
+        "answerState": "FRICTION",
+        "observationType": "FRICTION",
+        "severity": "LOW",
+        "comment": "استیکر ساعات کاری فروشگاه از لبه دچار فرسودگی شده است.",
+        "recommendation": "نصب استیکر شیشه‌ای مات جدید",
+        "photos": [
+          {
+            "id": "photo_FS07_4",
+            "url": "https://images.unsplash.com/photo-1472851294608-062f824d29cc?auto=format&fit=crop&w=400&q=80",
+            "caption": "مدرک مستند FS07: استیکر ساعات کاری فروشگاه از لبه دچ...",
+            "timestamp": "2026-09-20T11:20:00.000Z"
+          }
+        ],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T11:25:00.000Z"
+      },
+      "IND_S_0009": {
+        "indicatorId": "IND_S_0009",
+        "answerState": "NOT_APPLICABLE",
+        "comment": "این مورد طبق نوع و ساختار معماری شعبه غیرقابل اعمال است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:45:00.000Z"
+      },
+      "IND_S_0013": {
+        "indicatorId": "IND_S_0013",
+        "answerState": "FRICTION",
+        "observationType": "FRICTION",
+        "severity": "HIGH",
+        "comment": "پیچ نرده استیل پله داخلی شل شده و لرزش دارد.",
+        "recommendation": "سفت‌کاری و مهاربندی اتصالات شاسی پله",
+        "photos": [
+          {
+            "id": "photo_FAFE01_5",
+            "url": "https://images.unsplash.com/photo-1528698827591-e19ccd7bc23d?auto=format&fit=crop&w=400&q=80",
+            "caption": "مدرک مستند FAFE01: پیچ نرده استیل پله داخلی شل شده و ل...",
+            "timestamp": "2026-09-20T11:20:00.000Z"
+          }
+        ],
+        "isFlagged": true,
+        "answeredAt": "2026-09-20T11:25:00.000Z"
+      },
+      "IND_S_0014": {
+        "indicatorId": "IND_S_0014",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0015": {
+        "indicatorId": "IND_S_0015",
+        "answerState": "NOT_APPLICABLE",
+        "comment": "این مورد طبق نوع و ساختار معماری شعبه غیرقابل اعمال است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:45:00.000Z"
+      },
+      "IND_S_0016": {
+        "indicatorId": "IND_S_0016",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0038": {
+        "indicatorId": "IND_S_0038",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0039": {
+        "indicatorId": "IND_S_0039",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0040": {
+        "indicatorId": "IND_S_0040",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0041": {
+        "indicatorId": "IND_S_0041",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0027": {
+        "indicatorId": "IND_S_0027",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0028": {
+        "indicatorId": "IND_S_0028",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0029": {
+        "indicatorId": "IND_S_0029",
+        "answerState": "FRICTION",
+        "observationType": "FRICTION",
+        "severity": "CRITICAL",
+        "comment": "دمای محیط ۲۹ درجه و تهویه بوی رطوبت شدید می‌دهد.",
+        "recommendation": "سرویس چیلر و تعویض فیلترهای کربنی سیستم تهویه",
+        "photos": [
+          {
+            "id": "photo_FR03_6",
+            "url": "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?auto=format&fit=crop&w=400&q=80",
+            "caption": "مدرک مستند FR03: دمای محیط ۲۹ درجه و تهویه بوی رطوبت...",
+            "timestamp": "2026-09-20T11:20:00.000Z"
+          },
+          {
+            "id": "photo_FR03_7",
+            "url": "https://images.unsplash.com/photo-1481437156560-3205f6a55735?auto=format&fit=crop&w=400&q=80",
+            "caption": "مدرک مستند FR03: دمای محیط ۲۹ درجه و تهویه بوی رطوبت...",
+            "timestamp": "2026-09-20T11:20:00.000Z"
+          }
+        ],
+        "isFlagged": true,
+        "answeredAt": "2026-09-20T11:25:00.000Z"
+      },
+      "IND_S_0030": {
+        "indicatorId": "IND_S_0030",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0031": {
+        "indicatorId": "IND_S_0031",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0032": {
+        "indicatorId": "IND_S_0032",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0033": {
+        "indicatorId": "IND_S_0033",
+        "answerState": "FRICTION",
+        "observationType": "FRICTION",
+        "severity": "HIGH",
+        "comment": "لکه‌های مایعات و رد چرخ ترولی در راهروی اصلی پاک نشده است.",
+        "recommendation": "افزایش دوره نظافت کف به فواصل ۳۰ دقیقه‌ای",
+        "photos": [
+          {
+            "id": "photo_FR07_8",
+            "url": "https://images.unsplash.com/photo-1513094735237-8f2714d57c13?auto=format&fit=crop&w=400&q=80",
+            "caption": "مدرک مستند FR07: لکه‌های مایعات و رد چرخ ترولی در را...",
+            "timestamp": "2026-09-20T11:20:00.000Z"
+          }
+        ],
+        "isFlagged": true,
+        "answeredAt": "2026-09-20T11:25:00.000Z"
+      },
+      "IND_S_0034": {
+        "indicatorId": "IND_S_0034",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0035": {
+        "indicatorId": "IND_S_0035",
+        "answerState": "FRICTION",
+        "observationType": "FRICTION",
+        "severity": "MEDIUM",
+        "comment": "ولوم موسیقی در بخش انتهای سالن بیش از حد استاندارد (۷۲ دسی‌بل) است.",
+        "recommendation": "تنظیم زون‌بندی صدای بلندگوها روی حد استاندارد ۵۵ دسی‌بل",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T11:25:00.000Z"
+      },
+      "IND_S_0036": {
+        "indicatorId": "IND_S_0036",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0037": {
+        "indicatorId": "IND_S_0037",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0061": {
+        "indicatorId": "IND_S_0061",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0017": {
+        "indicatorId": "IND_S_0017",
+        "answerState": "FRICTION",
+        "observationType": "FRICTION",
+        "severity": "HIGH",
+        "comment": "۳ پروژکتور متمرکز ویترین اصلی سوخته است.",
+        "recommendation": "جایگزینی لامپ‌های هالوژن با مدل ۳۰۰۰ کلوین استاندارد",
+        "photos": [
+          {
+            "id": "photo_FW01_9",
+            "url": "https://images.unsplash.com/photo-1574634534894-89d7576c8259?auto=format&fit=crop&w=400&q=80",
+            "caption": "مدرک مستند FW01: ۳ پروژکتور متمرکز ویترین اصلی سوخته...",
+            "timestamp": "2026-09-20T11:20:00.000Z"
+          }
+        ],
+        "isFlagged": true,
+        "answeredAt": "2026-09-20T11:25:00.000Z"
+      },
+      "IND_S_0018": {
+        "indicatorId": "IND_S_0018",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0019": {
+        "indicatorId": "IND_S_0019",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0020": {
+        "indicatorId": "IND_S_0020",
+        "answerState": "FRICTION",
+        "observationType": "FRICTION",
+        "severity": "MEDIUM",
+        "comment": "لباس‌های مانکن ورودی دارای هارمونی رنگی فصل نیستند.",
+        "recommendation": "اصلاح ست‌بندی بر اساس گایدلاین visual merchandising",
+        "photos": [
+          {
+            "id": "photo_FW04_10",
+            "url": "https://images.unsplash.com/photo-1560243563-062bfc001d68?auto=format&fit=crop&w=400&q=80",
+            "caption": "مدرک مستند FW04: لباس‌های مانکن ورودی دارای هارمونی ...",
+            "timestamp": "2026-09-20T11:20:00.000Z"
+          }
+        ],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T11:25:00.000Z"
+      },
+      "IND_S_0021": {
+        "indicatorId": "IND_S_0021",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0022": {
+        "indicatorId": "IND_S_0022",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0047": {
+        "indicatorId": "IND_S_0047",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0048": {
+        "indicatorId": "IND_S_0048",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0049": {
+        "indicatorId": "IND_S_0049",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0050": {
+        "indicatorId": "IND_S_0050",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0051": {
+        "indicatorId": "IND_S_0051",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0052": {
+        "indicatorId": "IND_S_0052",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0053": {
+        "indicatorId": "IND_S_0053",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0054": {
+        "indicatorId": "IND_S_0054",
+        "answerState": "FRICTION",
+        "observationType": "FRICTION",
+        "severity": "CRITICAL",
+        "comment": "آینه اتاق پرو دچار موج بوده و قلاب آویز شکسته است.",
+        "recommendation": "نصب آینه کریستال سوپرکلیر و قلاب دوتایی استیل",
+        "photos": [
+          {
+            "id": "photo_FFR04_11",
+            "url": "https://images.unsplash.com/photo-1555529771-835f59fc5efe?auto=format&fit=crop&w=400&q=80",
+            "caption": "مدرک مستند FFR04: آینه اتاق پرو دچار موج بوده و قلاب ...",
+            "timestamp": "2026-09-20T11:20:00.000Z"
+          },
+          {
+            "id": "photo_FFR04_12",
+            "url": "https://images.unsplash.com/photo-1519748771451-a14ef5929ed0?auto=format&fit=crop&w=400&q=80",
+            "caption": "مدرک مستند FFR04: آینه اتاق پرو دچار موج بوده و قلاب ...",
+            "timestamp": "2026-09-20T11:20:00.000Z"
+          }
+        ],
+        "isFlagged": true,
+        "answeredAt": "2026-09-20T11:25:00.000Z"
+      },
+      "IND_S_0071": {
+        "indicatorId": "IND_S_0071",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0072": {
+        "indicatorId": "IND_S_0072",
+        "answerState": "FRICTION",
+        "observationType": "FRICTION",
+        "severity": "HIGH",
+        "comment": "پرسنل هنگام ورود مشتری در حال کار با موبایل بوده و سلام نکردند.",
+        "recommendation": "برگزاری دوره بازآموزی مهمان‌نوازی و تدوین آیین‌نامه انضباطی",
+        "photos": [],
+        "isFlagged": true,
+        "answeredAt": "2026-09-20T11:25:00.000Z"
+      },
+      "IND_S_0073": {
+        "indicatorId": "IND_S_0073",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0074": {
+        "indicatorId": "IND_S_0074",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0075": {
+        "indicatorId": "IND_S_0075",
+        "answerState": "FRICTION",
+        "observationType": "FRICTION",
+        "severity": "MEDIUM",
+        "comment": "دو نفر از فروشندگان فاقد اتیکت نام سازمانی بودند.",
+        "recommendation": "توزیع بج سینه مغناطیسی استاندارد برای تمامی پرسنل",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T11:25:00.000Z"
+      },
+      "IND_S_0089": {
+        "indicatorId": "IND_S_0089",
+        "answerState": "FRICTION",
+        "observationType": "FRICTION",
+        "severity": "MEDIUM",
+        "comment": "سایز بزرگ ساک‌های خرید مقوایی تمام شده و ساک پلاستیکی ارائه می‌شود.",
+        "recommendation": "تنظیم نقطه سفارش مجدد اقلام بسته‌بندی در انبار مرکزی",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T11:25:00.000Z"
+      },
+      "IND_S_0105": {
+        "indicatorId": "IND_S_0105",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0106": {
+        "indicatorId": "IND_S_0106",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0107": {
+        "indicatorId": "IND_S_0107",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0085": {
+        "indicatorId": "IND_S_0085",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0087": {
+        "indicatorId": "IND_S_0087",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0088": {
+        "indicatorId": "IND_S_0088",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0090": {
+        "indicatorId": "IND_S_0090",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0092": {
+        "indicatorId": "IND_S_0092",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0093": {
+        "indicatorId": "IND_S_0093",
+        "answerState": "NOT_APPLICABLE",
+        "comment": "این مورد طبق نوع و ساختار معماری شعبه غیرقابل اعمال است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:45:00.000Z"
+      },
+      "IND_S_0094": {
+        "indicatorId": "IND_S_0094",
+        "answerState": "FRICTION",
+        "observationType": "FRICTION",
+        "severity": "CRITICAL",
+        "comment": "دستگاه تگ‌بازکن مغناطیسی صندوق شماره ۲ از کار افتاده و صف ایجاد کرده است.",
+        "recommendation": "تعویض منبع تغذیه تگ‌بازکن با قطعه یدکی استاندارد",
+        "photos": [
+          {
+            "id": "photo_FCP08_13",
+            "url": "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?auto=format&fit=crop&w=400&q=80",
+            "caption": "مدرک مستند FCP08: دستگاه تگ‌بازکن مغناطیسی صندوق شمار...",
+            "timestamp": "2026-09-20T11:20:00.000Z"
+          }
+        ],
+        "isFlagged": true,
+        "answeredAt": "2026-09-20T11:25:00.000Z"
+      },
+      "IND_S_0122": {
+        "indicatorId": "IND_S_0122",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0067": {
+        "indicatorId": "IND_S_0067",
+        "answerState": "FRICTION",
+        "observationType": "FRICTION",
+        "severity": "HIGH",
+        "comment": "شرایط تعویض و مرجوعی کالا در دیدرس مشتری نصب نشده است.",
+        "recommendation": "چاپ و استقرار استند حقوق مشتری در بخش صندوق و خدمات",
+        "photos": [],
+        "isFlagged": true,
+        "answeredAt": "2026-09-20T11:25:00.000Z"
+      },
+      "IND_S_0068": {
+        "indicatorId": "IND_S_0068",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0069": {
+        "indicatorId": "IND_S_0069",
+        "answerState": "FRICTION",
+        "observationType": "FRICTION",
+        "severity": "LOW",
+        "comment": "فرم عضویت باشگاه مشتریان روی تبلت نیازمند ورود کدهای غیرضروری است.",
+        "recommendation": "ساده‌سازی فرم باشگاه فقط با شماره موبایل و نام",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T11:25:00.000Z"
+      },
+      "IND_S_0100": {
+        "indicatorId": "IND_S_0100",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0102": {
+        "indicatorId": "IND_S_0102",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      },
+      "IND_S_0103": {
+        "indicatorId": "IND_S_0103",
+        "answerState": "NO_FRICTION",
+        "comment": "وضعیت کاملاً منطبق با استانداردهای تعریف شده است.",
+        "photos": [],
+        "isFlagged": false,
+        "answeredAt": "2026-09-20T10:50:00.000Z"
+      }
+    },
+    "overallScore": 83,
+    "supervisorNotes": "ممیزی با دقت بالا و مستندات کافی انجام شد. ۴ مورد بحرانی به همراه ۱۲ تصویر مستند به کمیته عملیات جهت تعریف اقدام اصلاحی ارجاع گردید."
+  },
+  "visit_base_1790144648": {
+    "id": "visit_base_1790144648",
+    "visitCode": "VISIT-VNK-01",
+    "tenantId": "org_1790144648041",
+    "brandName": "ZARA",
+    "branchName": "شعبه ونک",
+    "assessmentType": "STORE",
+    "businessType": "Fashion",
+    "locationContext": "STREET_STORE",
+    "attributes": {
+      "has_fitting_room": true,
+      "has_window_display": true
+    },
+    "auditorName": "علی کاظمی",
+    "startedAt": "2026-09-09T09:54:08.045577",
+    "status": "SUBMITTED",
+    "indicators": [
+      {
+        "id": "ind_fs02",
+        "code": "FS02",
+        "subject": "دید تابلو در شب",
+        "statement": "روشنایی تابلوی اصلی فروشگاه در تاریکی شب کافی است",
+        "version": 1
+      },
+      {
+        "id": "ind_fs08",
+        "code": "FS08",
+        "subject": "دید تابلو از فاصله ۱۵ متری",
+        "statement": "تابلو از فاصله ۱۵ تا ۲۰ متری معبر پیاده قابل رؤیت است",
+        "version": 1
+      },
+      {
+        "id": "ind_fe01",
+        "code": "FE01",
+        "subject": "شفافیت درب ورودی",
+        "statement": "شیشه‌های درب ورودی تمیز و بدون ترک یا برچسب اضافی است",
+        "version": 1
+      }
+    ],
+    "responses": {
+      "ind_fs02": {
+        "indicatorId": "ind_fs02",
+        "answerState": "FRICTION",
+        "severity": "HIGH",
+        "comment": "حروف نئون تابلوی اصلی خاموش هستند.",
+        "photos": [
+          {
+            "id": "p1",
+            "url": "https://img.sample/before1.jpg",
+            "timestamp": "2026-09-23T09:54:08.045585"
+          }
+        ]
+      },
+      "ind_fs08": {
+        "indicatorId": "ind_fs08",
+        "answerState": "FRICTION",
+        "severity": "MEDIUM",
+        "comment": "دید تابلو توسط درخت بدون هرس مسدود شده است.",
+        "photos": []
+      },
+      "ind_fe01": {
+        "indicatorId": "ind_fe01",
+        "answerState": "NO_FRICTION"
+      }
+    },
+    "createdAt": "2026-09-23T06:24:08.049Z",
+    "completedAt": "2026-09-10T09:54:08.047896",
+    "overallScore": 68.5
+  },
+  "visit_revisit_1790144648": {
+    "id": "visit_revisit_1790144648",
+    "visitCode": "VISIT-VNK-02",
+    "tenantId": "org_1790144648041",
+    "brandName": "ZARA",
+    "branchName": "شعبه ونک",
+    "assessmentType": "STORE",
+    "businessType": "Fashion",
+    "locationContext": "STREET_STORE",
+    "attributes": {
+      "has_fitting_room": true,
+      "has_window_display": true
+    },
+    "auditorName": "علی کاظمی",
+    "startedAt": "2026-09-23T09:54:08.063248",
+    "completedAt": "2026-09-23T09:54:08.063250",
+    "status": "APPROVED",
+    "overallScore": 91,
+    "indicators": [
+      {
+        "id": "ind_fs02",
+        "code": "FS02",
+        "subject": "دید تابلو در شب",
+        "statement": "روشنایی تابلوی اصلی فروشگاه در تاریکی شب کافی است",
+        "version": 1
+      },
+      {
+        "id": "ind_fs08",
+        "code": "FS08",
+        "subject": "دید تابلو از فاصله ۱۵ متری",
+        "statement": "تابلو از فاصله ۱۵ تا ۲۰ متری معبر پیاده قابل رؤیت است",
+        "version": 1
+      },
+      {
+        "id": "ind_fe01",
+        "code": "FE01",
+        "subject": "شفافیت درب ورودی",
+        "statement": "شیشه‌های درب ورودی تمیز و بدون ترک یا برچسب اضافی است",
+        "version": 1
+      }
+    ],
+    "responses": {
+      "ind_fs02": {
+        "indicatorId": "ind_fs02",
+        "answerState": "NO_FRICTION",
+        "comment": "تابلو به طور یکدست در تاریکی شب می‌درخشد."
+      },
+      "ind_fs08": {
+        "indicatorId": "ind_fs08",
+        "answerState": "FRICTION",
+        "severity": "MEDIUM",
+        "comment": "درخت شهرداری همچنان هرس نشده و دید را مسدود کرده است."
+      },
+      "ind_fe01": {
+        "indicatorId": "ind_fe01",
+        "answerState": "NO_FRICTION"
+      }
+    },
+    "createdAt": "2026-09-23T06:24:08.064Z"
+  },
+  "visit_base_1790145072": {
+    "id": "visit_base_1790145072",
+    "visitCode": "VISIT-VNK-01",
+    "tenantId": "org_1790145072676",
+    "brandName": "ZARA",
+    "branchName": "شعبه ونک",
+    "assessmentType": "STORE",
+    "businessType": "Fashion",
+    "locationContext": "STREET_STORE",
+    "attributes": {
+      "has_fitting_room": true,
+      "has_window_display": true
+    },
+    "auditorName": "علی کاظمی",
+    "startedAt": "2026-09-09T10:01:12.677276",
+    "status": "SUBMITTED",
+    "indicators": [
+      {
+        "id": "ind_fs02",
+        "code": "FS02",
+        "subject": "دید تابلو در شب",
+        "statement": "روشنایی تابلوی اصلی فروشگاه در تاریکی شب کافی است",
+        "version": 1
+      },
+      {
+        "id": "ind_fs08",
+        "code": "FS08",
+        "subject": "دید تابلو از فاصله ۱۵ متری",
+        "statement": "تابلو از فاصله ۱۵ تا ۲۰ متری معبر پیاده قابل رؤیت است",
+        "version": 1
+      },
+      {
+        "id": "ind_fe01",
+        "code": "FE01",
+        "subject": "شفافیت درب ورودی",
+        "statement": "شیشه‌های درب ورودی تمیز و بدون ترک یا برچسب اضافی است",
+        "version": 1
+      }
+    ],
+    "responses": {
+      "ind_fs02": {
+        "indicatorId": "ind_fs02",
+        "answerState": "FRICTION",
+        "severity": "HIGH",
+        "comment": "حروف نئون تابلوی اصلی خاموش هستند.",
+        "photos": [
+          {
+            "id": "p1",
+            "url": "https://img.sample/before1.jpg",
+            "timestamp": "2026-09-23T10:01:12.677283"
+          }
+        ]
+      },
+      "ind_fs08": {
+        "indicatorId": "ind_fs08",
+        "answerState": "FRICTION",
+        "severity": "MEDIUM",
+        "comment": "دید تابلو توسط درخت بدون هرس مسدود شده است.",
+        "photos": []
+      },
+      "ind_fe01": {
+        "indicatorId": "ind_fe01",
+        "answerState": "NO_FRICTION"
+      }
+    },
+    "createdAt": "2026-09-23T06:31:12.680Z",
+    "completedAt": "2026-09-10T10:01:12.679741",
+    "overallScore": 68.5
+  },
+  "visit_revisit_1790145072": {
+    "id": "visit_revisit_1790145072",
+    "visitCode": "VISIT-VNK-02",
+    "tenantId": "org_1790145072676",
+    "brandName": "ZARA",
+    "branchName": "شعبه ونک",
+    "assessmentType": "STORE",
+    "businessType": "Fashion",
+    "locationContext": "STREET_STORE",
+    "attributes": {
+      "has_fitting_room": true,
+      "has_window_display": true
+    },
+    "auditorName": "علی کاظمی",
+    "startedAt": "2026-09-23T10:01:12.695257",
+    "completedAt": "2026-09-23T10:01:12.695258",
+    "status": "APPROVED",
+    "overallScore": 91,
+    "indicators": [
+      {
+        "id": "ind_fs02",
+        "code": "FS02",
+        "subject": "دید تابلو در شب",
+        "statement": "روشنایی تابلوی اصلی فروشگاه در تاریکی شب کافی است",
+        "version": 1
+      },
+      {
+        "id": "ind_fs08",
+        "code": "FS08",
+        "subject": "دید تابلو از فاصله ۱۵ متری",
+        "statement": "تابلو از فاصله ۱۵ تا ۲۰ متری معبر پیاده قابل رؤیت است",
+        "version": 1
+      },
+      {
+        "id": "ind_fe01",
+        "code": "FE01",
+        "subject": "شفافیت درب ورودی",
+        "statement": "شیشه‌های درب ورودی تمیز و بدون ترک یا برچسب اضافی است",
+        "version": 1
+      }
+    ],
+    "responses": {
+      "ind_fs02": {
+        "indicatorId": "ind_fs02",
+        "answerState": "NO_FRICTION",
+        "comment": "تابلو به طور یکدست در تاریکی شب می‌درخشد."
+      },
+      "ind_fs08": {
+        "indicatorId": "ind_fs08",
+        "answerState": "FRICTION",
+        "severity": "MEDIUM",
+        "comment": "درخت شهرداری همچنان هرس نشده و دید را مسدود کرده است."
+      },
+      "ind_fe01": {
+        "indicatorId": "ind_fe01",
+        "answerState": "NO_FRICTION"
+      }
+    },
+    "createdAt": "2026-09-23T06:31:12.695Z"
+  },
+  "visit_base_1790146067": {
+    "id": "visit_base_1790146067",
+    "visitCode": "VISIT-VNK-01",
+    "tenantId": "org_1790146067892",
+    "brandName": "ZARA",
+    "branchName": "شعبه ونک",
+    "assessmentType": "STORE",
+    "businessType": "Fashion",
+    "locationContext": "STREET_STORE",
+    "attributes": {
+      "has_fitting_room": true,
+      "has_window_display": true
+    },
+    "auditorName": "علی کاظمی",
+    "startedAt": "2026-09-09T10:17:47.893984",
+    "status": "SUBMITTED",
+    "indicators": [
+      {
+        "id": "ind_fs02",
+        "code": "FS02",
+        "subject": "دید تابلو در شب",
+        "statement": "روشنایی تابلوی اصلی فروشگاه در تاریکی شب کافی است",
+        "version": 1
+      },
+      {
+        "id": "ind_fs08",
+        "code": "FS08",
+        "subject": "دید تابلو از فاصله ۱۵ متری",
+        "statement": "تابلو از فاصله ۱۵ تا ۲۰ متری معبر پیاده قابل رؤیت است",
+        "version": 1
+      },
+      {
+        "id": "ind_fe01",
+        "code": "FE01",
+        "subject": "شفافیت درب ورودی",
+        "statement": "شیشه‌های درب ورودی تمیز و بدون ترک یا برچسب اضافی است",
+        "version": 1
+      }
+    ],
+    "responses": {
+      "ind_fs02": {
+        "indicatorId": "ind_fs02",
+        "answerState": "FRICTION",
+        "severity": "HIGH",
+        "comment": "حروف نئون تابلوی اصلی خاموش هستند.",
+        "photos": [
+          {
+            "id": "p1",
+            "url": "https://img.sample/before1.jpg",
+            "timestamp": "2026-09-23T10:17:47.893990"
+          }
+        ]
+      },
+      "ind_fs08": {
+        "indicatorId": "ind_fs08",
+        "answerState": "FRICTION",
+        "severity": "MEDIUM",
+        "comment": "دید تابلو توسط درخت بدون هرس مسدود شده است.",
+        "photos": []
+      },
+      "ind_fe01": {
+        "indicatorId": "ind_fe01",
+        "answerState": "NO_FRICTION"
+      }
+    },
+    "createdAt": "2026-09-23T06:47:47.900Z",
+    "completedAt": "2026-09-10T10:17:47.899171",
+    "overallScore": 68.5
+  },
+  "visit_revisit_1790146067": {
+    "id": "visit_revisit_1790146067",
+    "visitCode": "VISIT-VNK-02",
+    "tenantId": "org_1790146067892",
+    "brandName": "ZARA",
+    "branchName": "شعبه ونک",
+    "assessmentType": "STORE",
+    "businessType": "Fashion",
+    "locationContext": "STREET_STORE",
+    "attributes": {
+      "has_fitting_room": true,
+      "has_window_display": true
+    },
+    "auditorName": "علی کاظمی",
+    "startedAt": "2026-09-23T10:17:47.915282",
+    "completedAt": "2026-09-23T10:17:47.915284",
+    "status": "APPROVED",
+    "overallScore": 91,
+    "indicators": [
+      {
+        "id": "ind_fs02",
+        "code": "FS02",
+        "subject": "دید تابلو در شب",
+        "statement": "روشنایی تابلوی اصلی فروشگاه در تاریکی شب کافی است",
+        "version": 1
+      },
+      {
+        "id": "ind_fs08",
+        "code": "FS08",
+        "subject": "دید تابلو از فاصله ۱۵ متری",
+        "statement": "تابلو از فاصله ۱۵ تا ۲۰ متری معبر پیاده قابل رؤیت است",
+        "version": 1
+      },
+      {
+        "id": "ind_fe01",
+        "code": "FE01",
+        "subject": "شفافیت درب ورودی",
+        "statement": "شیشه‌های درب ورودی تمیز و بدون ترک یا برچسب اضافی است",
+        "version": 1
+      }
+    ],
+    "responses": {
+      "ind_fs02": {
+        "indicatorId": "ind_fs02",
+        "answerState": "NO_FRICTION",
+        "comment": "تابلو به طور یکدست در تاریکی شب می‌درخشد."
+      },
+      "ind_fs08": {
+        "indicatorId": "ind_fs08",
+        "answerState": "FRICTION",
+        "severity": "MEDIUM",
+        "comment": "درخت شهرداری همچنان هرس نشده و دید را مسدود کرده است."
+      },
+      "ind_fe01": {
+        "indicatorId": "ind_fe01",
+        "answerState": "NO_FRICTION"
+      }
+    },
+    "createdAt": "2026-09-23T06:47:47.915Z"
+  },
+  "visit_base_1790146441": {
+    "id": "visit_base_1790146441",
+    "visitCode": "VISIT-VNK-01",
+    "tenantId": "org_1790146441477",
+    "brandName": "ZARA",
+    "branchName": "شعبه ونک",
+    "assessmentType": "STORE",
+    "businessType": "Fashion",
+    "locationContext": "STREET_STORE",
+    "attributes": {
+      "has_fitting_room": true,
+      "has_window_display": true
+    },
+    "auditorName": "علی کاظمی",
+    "startedAt": "2026-09-09T10:24:01.478751",
+    "status": "SUBMITTED",
+    "indicators": [
+      {
+        "id": "ind_fs02",
+        "code": "FS02",
+        "subject": "دید تابلو در شب",
+        "statement": "روشنایی تابلوی اصلی فروشگاه در تاریکی شب کافی است",
+        "version": 1
+      },
+      {
+        "id": "ind_fs08",
+        "code": "FS08",
+        "subject": "دید تابلو از فاصله ۱۵ متری",
+        "statement": "تابلو از فاصله ۱۵ تا ۲۰ متری معبر پیاده قابل رؤیت است",
+        "version": 1
+      },
+      {
+        "id": "ind_fe01",
+        "code": "FE01",
+        "subject": "شفافیت درب ورودی",
+        "statement": "شیشه‌های درب ورودی تمیز و بدون ترک یا برچسب اضافی است",
+        "version": 1
+      }
+    ],
+    "responses": {
+      "ind_fs02": {
+        "indicatorId": "ind_fs02",
+        "answerState": "FRICTION",
+        "severity": "HIGH",
+        "comment": "حروف نئون تابلوی اصلی خاموش هستند.",
+        "photos": [
+          {
+            "id": "p1",
+            "url": "https://img.sample/before1.jpg",
+            "timestamp": "2026-09-23T10:24:01.478757"
+          }
+        ]
+      },
+      "ind_fs08": {
+        "indicatorId": "ind_fs08",
+        "answerState": "FRICTION",
+        "severity": "MEDIUM",
+        "comment": "دید تابلو توسط درخت بدون هرس مسدود شده است.",
+        "photos": []
+      },
+      "ind_fe01": {
+        "indicatorId": "ind_fe01",
+        "answerState": "NO_FRICTION"
+      }
+    },
+    "createdAt": "2026-09-23T06:54:01.490Z",
+    "completedAt": "2026-09-10T10:24:01.481804",
+    "overallScore": 68.5
+  },
+  "visit_revisit_1790146441": {
+    "id": "visit_revisit_1790146441",
+    "visitCode": "VISIT-VNK-02",
+    "tenantId": "org_1790146441477",
+    "brandName": "ZARA",
+    "branchName": "شعبه ونک",
+    "assessmentType": "STORE",
+    "businessType": "Fashion",
+    "locationContext": "STREET_STORE",
+    "attributes": {
+      "has_fitting_room": true,
+      "has_window_display": true
+    },
+    "auditorName": "علی کاظمی",
+    "startedAt": "2026-09-23T10:24:01.514890",
+    "completedAt": "2026-09-23T10:24:01.514892",
+    "status": "APPROVED",
+    "overallScore": 91,
+    "indicators": [
+      {
+        "id": "ind_fs02",
+        "code": "FS02",
+        "subject": "دید تابلو در شب",
+        "statement": "روشنایی تابلوی اصلی فروشگاه در تاریکی شب کافی است",
+        "version": 1
+      },
+      {
+        "id": "ind_fs08",
+        "code": "FS08",
+        "subject": "دید تابلو از فاصله ۱۵ متری",
+        "statement": "تابلو از فاصله ۱۵ تا ۲۰ متری معبر پیاده قابل رؤیت است",
+        "version": 1
+      },
+      {
+        "id": "ind_fe01",
+        "code": "FE01",
+        "subject": "شفافیت درب ورودی",
+        "statement": "شیشه‌های درب ورودی تمیز و بدون ترک یا برچسب اضافی است",
+        "version": 1
+      }
+    ],
+    "responses": {
+      "ind_fs02": {
+        "indicatorId": "ind_fs02",
+        "answerState": "NO_FRICTION",
+        "comment": "تابلو به طور یکدست در تاریکی شب می‌درخشد."
+      },
+      "ind_fs08": {
+        "indicatorId": "ind_fs08",
+        "answerState": "FRICTION",
+        "severity": "MEDIUM",
+        "comment": "درخت شهرداری همچنان هرس نشده و دید را مسدود کرده است."
+      },
+      "ind_fe01": {
+        "indicatorId": "ind_fe01",
+        "answerState": "NO_FRICTION"
+      }
+    },
+    "createdAt": "2026-09-23T06:54:01.518Z"
+  },
+  "visit_base_1790148335": {
+    "id": "visit_base_1790148335",
+    "visitCode": "VISIT-VNK-01",
+    "tenantId": "org_1790148335995",
+    "brandName": "ZARA",
+    "branchName": "شعبه ونک",
+    "assessmentType": "STORE",
+    "businessType": "Fashion",
+    "locationContext": "STREET_STORE",
+    "attributes": {
+      "has_fitting_room": true,
+      "has_window_display": true
+    },
+    "auditorName": "علی کاظمی",
+    "startedAt": "2026-09-09T10:55:35.999594",
+    "status": "SUBMITTED",
+    "indicators": [
+      {
+        "id": "ind_fs02",
+        "code": "FS02",
+        "subject": "دید تابلو در شب",
+        "statement": "روشنایی تابلوی اصلی فروشگاه در تاریکی شب کافی است",
+        "version": 1
+      },
+      {
+        "id": "ind_fs08",
+        "code": "FS08",
+        "subject": "دید تابلو از فاصله ۱۵ متری",
+        "statement": "تابلو از فاصله ۱۵ تا ۲۰ متری معبر پیاده قابل رؤیت است",
+        "version": 1
+      },
+      {
+        "id": "ind_fe01",
+        "code": "FE01",
+        "subject": "شفافیت درب ورودی",
+        "statement": "شیشه‌های درب ورودی تمیز و بدون ترک یا برچسب اضافی است",
+        "version": 1
+      }
+    ],
+    "responses": {
+      "ind_fs02": {
+        "indicatorId": "ind_fs02",
+        "answerState": "FRICTION",
+        "severity": "HIGH",
+        "comment": "حروف نئون تابلوی اصلی خاموش هستند.",
+        "photos": [
+          {
+            "id": "p1",
+            "url": "https://img.sample/before1.jpg",
+            "timestamp": "2026-09-23T10:55:35.999602"
+          }
+        ]
+      },
+      "ind_fs08": {
+        "indicatorId": "ind_fs08",
+        "answerState": "FRICTION",
+        "severity": "MEDIUM",
+        "comment": "دید تابلو توسط درخت بدون هرس مسدود شده است.",
+        "photos": []
+      },
+      "ind_fe01": {
+        "indicatorId": "ind_fe01",
+        "answerState": "NO_FRICTION"
+      }
+    },
+    "createdAt": "2026-09-23T07:25:36.015Z",
+    "completedAt": "2026-09-10T10:55:36.013473",
+    "overallScore": 68.5
+  },
+  "visit_revisit_1790148336": {
+    "id": "visit_revisit_1790148336",
+    "visitCode": "VISIT-VNK-02",
+    "tenantId": "org_1790148335995",
+    "brandName": "ZARA",
+    "branchName": "شعبه ونک",
+    "assessmentType": "STORE",
+    "businessType": "Fashion",
+    "locationContext": "STREET_STORE",
+    "attributes": {
+      "has_fitting_room": true,
+      "has_window_display": true
+    },
+    "auditorName": "علی کاظمی",
+    "startedAt": "2026-09-23T10:55:36.175043",
+    "completedAt": "2026-09-23T10:55:36.175049",
+    "status": "APPROVED",
+    "overallScore": 91,
+    "indicators": [
+      {
+        "id": "ind_fs02",
+        "code": "FS02",
+        "subject": "دید تابلو در شب",
+        "statement": "روشنایی تابلوی اصلی فروشگاه در تاریکی شب کافی است",
+        "version": 1
+      },
+      {
+        "id": "ind_fs08",
+        "code": "FS08",
+        "subject": "دید تابلو از فاصله ۱۵ متری",
+        "statement": "تابلو از فاصله ۱۵ تا ۲۰ متری معبر پیاده قابل رؤیت است",
+        "version": 1
+      },
+      {
+        "id": "ind_fe01",
+        "code": "FE01",
+        "subject": "شفافیت درب ورودی",
+        "statement": "شیشه‌های درب ورودی تمیز و بدون ترک یا برچسب اضافی است",
+        "version": 1
+      }
+    ],
+    "responses": {
+      "ind_fs02": {
+        "indicatorId": "ind_fs02",
+        "answerState": "NO_FRICTION",
+        "comment": "تابلو به طور یکدست در تاریکی شب می‌درخشد."
+      },
+      "ind_fs08": {
+        "indicatorId": "ind_fs08",
+        "answerState": "FRICTION",
+        "severity": "MEDIUM",
+        "comment": "درخت شهرداری همچنان هرس نشده و دید را مسدود کرده است."
+      },
+      "ind_fe01": {
+        "indicatorId": "ind_fe01",
+        "answerState": "NO_FRICTION"
+      }
+    },
+    "createdAt": "2026-09-23T07:25:36.176Z"
+  },
+  "visit_base_1790151702": {
+    "id": "visit_base_1790151702",
+    "visitCode": "VISIT-VNK-01",
+    "tenantId": "org_1790151702398",
+    "brandName": "ZARA",
+    "branchName": "شعبه ونک",
+    "assessmentType": "STORE",
+    "businessType": "Fashion",
+    "locationContext": "STREET_STORE",
+    "attributes": {
+      "has_fitting_room": true,
+      "has_window_display": true
+    },
+    "auditorName": "علی کاظمی",
+    "startedAt": "2026-09-09T11:51:42.401151",
+    "status": "SUBMITTED",
+    "indicators": [
+      {
+        "id": "ind_fs02",
+        "code": "FS02",
+        "subject": "دید تابلو در شب",
+        "statement": "روشنایی تابلوی اصلی فروشگاه در تاریکی شب کافی است",
+        "version": 1
+      },
+      {
+        "id": "ind_fs08",
+        "code": "FS08",
+        "subject": "دید تابلو از فاصله ۱۵ متری",
+        "statement": "تابلو از فاصله ۱۵ تا ۲۰ متری معبر پیاده قابل رؤیت است",
+        "version": 1
+      },
+      {
+        "id": "ind_fe01",
+        "code": "FE01",
+        "subject": "شفافیت درب ورودی",
+        "statement": "شیشه‌های درب ورودی تمیز و بدون ترک یا برچسب اضافی است",
+        "version": 1
+      }
+    ],
+    "responses": {
+      "ind_fs02": {
+        "indicatorId": "ind_fs02",
+        "answerState": "FRICTION",
+        "severity": "HIGH",
+        "comment": "حروف نئون تابلوی اصلی خاموش هستند.",
+        "photos": [
+          {
+            "id": "p1",
+            "url": "https://img.sample/before1.jpg",
+            "timestamp": "2026-09-23T11:51:42.401159"
+          }
+        ]
+      },
+      "ind_fs08": {
+        "indicatorId": "ind_fs08",
+        "answerState": "FRICTION",
+        "severity": "MEDIUM",
+        "comment": "دید تابلو توسط درخت بدون هرس مسدود شده است.",
+        "photos": []
+      },
+      "ind_fe01": {
+        "indicatorId": "ind_fe01",
+        "answerState": "NO_FRICTION"
+      }
+    },
+    "createdAt": "2026-09-23T08:21:42.407Z",
+    "completedAt": "2026-09-10T11:51:42.406385",
+    "overallScore": 68.5
+  },
+  "visit_revisit_1790151702": {
+    "id": "visit_revisit_1790151702",
+    "visitCode": "VISIT-VNK-02",
+    "tenantId": "org_1790151702398",
+    "brandName": "ZARA",
+    "branchName": "شعبه ونک",
+    "assessmentType": "STORE",
+    "businessType": "Fashion",
+    "locationContext": "STREET_STORE",
+    "attributes": {
+      "has_fitting_room": true,
+      "has_window_display": true
+    },
+    "auditorName": "علی کاظمی",
+    "startedAt": "2026-09-23T11:51:42.444086",
+    "completedAt": "2026-09-23T11:51:42.444090",
+    "status": "APPROVED",
+    "overallScore": 91,
+    "indicators": [
+      {
+        "id": "ind_fs02",
+        "code": "FS02",
+        "subject": "دید تابلو در شب",
+        "statement": "روشنایی تابلوی اصلی فروشگاه در تاریکی شب کافی است",
+        "version": 1
+      },
+      {
+        "id": "ind_fs08",
+        "code": "FS08",
+        "subject": "دید تابلو از فاصله ۱۵ متری",
+        "statement": "تابلو از فاصله ۱۵ تا ۲۰ متری معبر پیاده قابل رؤیت است",
+        "version": 1
+      },
+      {
+        "id": "ind_fe01",
+        "code": "FE01",
+        "subject": "شفافیت درب ورودی",
+        "statement": "شیشه‌های درب ورودی تمیز و بدون ترک یا برچسب اضافی است",
+        "version": 1
+      }
+    ],
+    "responses": {
+      "ind_fs02": {
+        "indicatorId": "ind_fs02",
+        "answerState": "NO_FRICTION",
+        "comment": "تابلو به طور یکدست در تاریکی شب می‌درخشد."
+      },
+      "ind_fs08": {
+        "indicatorId": "ind_fs08",
+        "answerState": "FRICTION",
+        "severity": "MEDIUM",
+        "comment": "درخت شهرداری همچنان هرس نشده و دید را مسدود کرده است."
+      },
+      "ind_fe01": {
+        "indicatorId": "ind_fe01",
+        "answerState": "NO_FRICTION"
+      }
+    },
+    "createdAt": "2026-09-23T08:21:42.444Z"
+  }
+}

@@ -1,0 +1,380 @@
+{
+  "act_1790143399199_t6sy": {
+    "id": "act_1790143399199_t6sy",
+    "tenantId": "org_1790143399146",
+    "findingId": "finding_fs02_v1",
+    "indicatorCode": "FS02",
+    "visitId": "visit_base_1790143399",
+    "branchId": "شعبه ونک",
+    "branchName": "شعبه ونک",
+    "brandName": "ZARA",
+    "title": "تعمیر روشنایی حروف نئونی تابلوی شعبه ونک",
+    "description": "نیمی از حروف نئونی خاموش است و دید شبانه مخدوش است.",
+    "priority": "HIGH",
+    "status": "VERIFIED",
+    "owner": "Eng. Goudarzi",
+    "department": "Maintenance",
+    "dueDate": "2026-09-21T09:33:19.181059",
+    "rootCause": "FACILITY",
+    "beforePhotos": [
+      {
+        "id": "p1",
+        "url": "https://img.sample/before1.jpg",
+        "timestamp": "2026-09-23T09:33:19.181069"
+      }
+    ],
+    "afterPhotos": [
+      {
+        "id": "p_after_1",
+        "url": "https://img.sample/after1.jpg",
+        "timestamp": "2026-09-23T09:33:19.211845"
+      },
+      {
+        "id": "p_after_2",
+        "url": "https://img.sample/after2.jpg",
+        "timestamp": "2026-09-23T09:33:19.219759"
+      }
+    ],
+    "reopenCount": 1,
+    "reopenComments": [
+      {
+        "id": "rc_1790143399219",
+        "comment": "روشنایی حرف R هنوز ضعیف است. لطفاً کابل تغذیه را بازبینی فرمایید.",
+        "reopenedBy": "Sara Amini (Supervisor)",
+        "timestamp": "2026-09-23T06:03:19.219Z"
+      }
+    ],
+    "createdBy": "Sara Amini (Supervisor)",
+    "createdAt": "2026-09-23T06:03:19.199Z",
+    "updatedAt": "2026-09-23T06:03:19.222Z",
+    "resolutionNote": "کابل تغذیه حرف R با نمونه سیلیکونی مقاوم تعویض و ولتاژ تنظیم شد.",
+    "completionDate": "2026-09-23T06:03:19.221Z",
+    "verifiedBy": "Sara Amini (Supervisor)",
+    "verifiedAt": "2026-09-23T06:03:19.222Z",
+    "verificationNote": "تابلو در شب ممیزی شد و عملکرد آن ۱۰۰٪ استاندارد است."
+  },
+  "act_1790144648050_lqfo": {
+    "id": "act_1790144648050_lqfo",
+    "tenantId": "org_1790144648041",
+    "findingId": "finding_fs02_v1",
+    "indicatorCode": "FS02",
+    "visitId": "visit_base_1790144648",
+    "branchId": "شعبه ونک",
+    "branchName": "شعبه ونک",
+    "brandName": "ZARA",
+    "title": "تعمیر روشنایی حروف نئونی تابلوی شعبه ونک",
+    "description": "نیمی از حروف نئونی خاموش است و دید شبانه مخدوش است.",
+    "priority": "HIGH",
+    "status": "VERIFIED",
+    "owner": "Eng. Goudarzi",
+    "department": "Maintenance",
+    "dueDate": "2026-09-21T09:54:08.049772",
+    "rootCause": "FACILITY",
+    "beforePhotos": [
+      {
+        "id": "p1",
+        "url": "https://img.sample/before1.jpg",
+        "timestamp": "2026-09-23T09:54:08.049778"
+      }
+    ],
+    "afterPhotos": [
+      {
+        "id": "p_after_1",
+        "url": "https://img.sample/after1.jpg",
+        "timestamp": "2026-09-23T09:54:08.054499"
+      },
+      {
+        "id": "p_after_2",
+        "url": "https://img.sample/after2.jpg",
+        "timestamp": "2026-09-23T09:54:08.059492"
+      }
+    ],
+    "reopenCount": 1,
+    "reopenComments": [
+      {
+        "id": "rc_1790144648059",
+        "comment": "روشنایی حرف R هنوز ضعیف است. لطفاً کابل تغذیه را بازبینی فرمایید.",
+        "reopenedBy": "Sara Amini (Supervisor)",
+        "timestamp": "2026-09-23T06:24:08.059Z"
+      }
+    ],
+    "createdBy": "Sara Amini (Supervisor)",
+    "createdAt": "2026-09-23T06:24:08.050Z",
+    "updatedAt": "2026-09-23T06:24:08.061Z",
+    "resolutionNote": "کابل تغذیه حرف R با نمونه سیلیکونی مقاوم تعویض و ولتاژ تنظیم شد.",
+    "completionDate": "2026-09-23T06:24:08.060Z",
+    "verifiedBy": "Sara Amini (Supervisor)",
+    "verifiedAt": "2026-09-23T06:24:08.061Z",
+    "verificationNote": "تابلو در شب ممیزی شد و عملکرد آن ۱۰۰٪ استاندارد است."
+  },
+  "act_1790145072682_wtvj": {
+    "id": "act_1790145072682_wtvj",
+    "tenantId": "org_1790145072676",
+    "findingId": "finding_fs02_v1",
+    "indicatorCode": "FS02",
+    "visitId": "visit_base_1790145072",
+    "branchId": "شعبه ونک",
+    "branchName": "شعبه ونک",
+    "brandName": "ZARA",
+    "title": "تعمیر روشنایی حروف نئونی تابلوی شعبه ونک",
+    "description": "نیمی از حروف نئونی خاموش است و دید شبانه مخدوش است.",
+    "priority": "HIGH",
+    "status": "VERIFIED",
+    "owner": "Eng. Goudarzi",
+    "department": "Maintenance",
+    "dueDate": "2026-09-21T10:01:12.681563",
+    "rootCause": "FACILITY",
+    "beforePhotos": [
+      {
+        "id": "p1",
+        "url": "https://img.sample/before1.jpg",
+        "timestamp": "2026-09-23T10:01:12.681569"
+      }
+    ],
+    "afterPhotos": [
+      {
+        "id": "p_after_1",
+        "url": "https://img.sample/after1.jpg",
+        "timestamp": "2026-09-23T10:01:12.684871"
+      },
+      {
+        "id": "p_after_2",
+        "url": "https://img.sample/after2.jpg",
+        "timestamp": "2026-09-23T10:01:12.692165"
+      }
+    ],
+    "reopenCount": 1,
+    "reopenComments": [
+      {
+        "id": "rc_1790145072690",
+        "comment": "روشنایی حرف R هنوز ضعیف است. لطفاً کابل تغذیه را بازبینی فرمایید.",
+        "reopenedBy": "Sara Amini (Supervisor)",
+        "timestamp": "2026-09-23T06:31:12.690Z"
+      }
+    ],
+    "createdBy": "Sara Amini (Supervisor)",
+    "createdAt": "2026-09-23T06:31:12.682Z",
+    "updatedAt": "2026-09-23T06:31:12.693Z",
+    "resolutionNote": "کابل تغذیه حرف R با نمونه سیلیکونی مقاوم تعویض و ولتاژ تنظیم شد.",
+    "completionDate": "2026-09-23T06:31:12.692Z",
+    "verifiedBy": "Sara Amini (Supervisor)",
+    "verifiedAt": "2026-09-23T06:31:12.693Z",
+    "verificationNote": "تابلو در شب ممیزی شد و عملکرد آن ۱۰۰٪ استاندارد است."
+  },
+  "act_1790146067903_5rs3": {
+    "id": "act_1790146067903_5rs3",
+    "tenantId": "org_1790146067892",
+    "findingId": "finding_fs02_v1",
+    "indicatorCode": "FS02",
+    "visitId": "visit_base_1790146067",
+    "branchId": "شعبه ونک",
+    "branchName": "شعبه ونک",
+    "brandName": "ZARA",
+    "title": "تعمیر روشنایی حروف نئونی تابلوی شعبه ونک",
+    "description": "نیمی از حروف نئونی خاموش است و دید شبانه مخدوش است.",
+    "priority": "HIGH",
+    "status": "VERIFIED",
+    "owner": "Eng. Goudarzi",
+    "department": "Maintenance",
+    "dueDate": "2026-09-21T10:17:47.902145",
+    "rootCause": "FACILITY",
+    "beforePhotos": [
+      {
+        "id": "p1",
+        "url": "https://img.sample/before1.jpg",
+        "timestamp": "2026-09-23T10:17:47.902153"
+      }
+    ],
+    "afterPhotos": [
+      {
+        "id": "p_after_1",
+        "url": "https://img.sample/after1.jpg",
+        "timestamp": "2026-09-23T10:17:47.906887"
+      },
+      {
+        "id": "p_after_2",
+        "url": "https://img.sample/after2.jpg",
+        "timestamp": "2026-09-23T10:17:47.912129"
+      }
+    ],
+    "reopenCount": 1,
+    "reopenComments": [
+      {
+        "id": "rc_1790146067911",
+        "comment": "روشنایی حرف R هنوز ضعیف است. لطفاً کابل تغذیه را بازبینی فرمایید.",
+        "reopenedBy": "Sara Amini (Supervisor)",
+        "timestamp": "2026-09-23T06:47:47.911Z"
+      }
+    ],
+    "createdBy": "Sara Amini (Supervisor)",
+    "createdAt": "2026-09-23T06:47:47.903Z",
+    "updatedAt": "2026-09-23T06:47:47.913Z",
+    "resolutionNote": "کابل تغذیه حرف R با نمونه سیلیکونی مقاوم تعویض و ولتاژ تنظیم شد.",
+    "completionDate": "2026-09-23T06:47:47.912Z",
+    "verifiedBy": "Sara Amini (Supervisor)",
+    "verifiedAt": "2026-09-23T06:47:47.913Z",
+    "verificationNote": "تابلو در شب ممیزی شد و عملکرد آن ۱۰۰٪ استاندارد است."
+  },
+  "act_1790146441495_1w40": {
+    "id": "act_1790146441495_1w40",
+    "tenantId": "org_1790146441477",
+    "findingId": "finding_fs02_v1",
+    "indicatorCode": "FS02",
+    "visitId": "visit_base_1790146441",
+    "branchId": "شعبه ونک",
+    "branchName": "شعبه ونک",
+    "brandName": "ZARA",
+    "title": "تعمیر روشنایی حروف نئونی تابلوی شعبه ونک",
+    "description": "نیمی از حروف نئونی خاموش است و دید شبانه مخدوش است.",
+    "priority": "HIGH",
+    "status": "VERIFIED",
+    "owner": "Eng. Goudarzi",
+    "department": "Maintenance",
+    "dueDate": "2026-09-21T10:24:01.491528",
+    "rootCause": "FACILITY",
+    "beforePhotos": [
+      {
+        "id": "p1",
+        "url": "https://img.sample/before1.jpg",
+        "timestamp": "2026-09-23T10:24:01.491537"
+      }
+    ],
+    "afterPhotos": [
+      {
+        "id": "p_after_1",
+        "url": "https://img.sample/after1.jpg",
+        "timestamp": "2026-09-23T10:24:01.500353"
+      },
+      {
+        "id": "p_after_2",
+        "url": "https://img.sample/after2.jpg",
+        "timestamp": "2026-09-23T10:24:01.507323"
+      }
+    ],
+    "reopenCount": 1,
+    "reopenComments": [
+      {
+        "id": "rc_1790146441504",
+        "comment": "روشنایی حرف R هنوز ضعیف است. لطفاً کابل تغذیه را بازبینی فرمایید.",
+        "reopenedBy": "Sara Amini (Supervisor)",
+        "timestamp": "2026-09-23T06:54:01.504Z"
+      }
+    ],
+    "createdBy": "Sara Amini (Supervisor)",
+    "createdAt": "2026-09-23T06:54:01.495Z",
+    "updatedAt": "2026-09-23T06:54:01.513Z",
+    "resolutionNote": "کابل تغذیه حرف R با نمونه سیلیکونی مقاوم تعویض و ولتاژ تنظیم شد.",
+    "completionDate": "2026-09-23T06:54:01.512Z",
+    "verifiedBy": "Sara Amini (Supervisor)",
+    "verifiedAt": "2026-09-23T06:54:01.513Z",
+    "verificationNote": "تابلو در شب ممیزی شد و عملکرد آن ۱۰۰٪ استاندارد است."
+  },
+  "act_1790148336041_y0w3": {
+    "id": "act_1790148336041_y0w3",
+    "tenantId": "org_1790148335995",
+    "findingId": "finding_fs02_v1",
+    "indicatorCode": "FS02",
+    "visitId": "visit_base_1790148335",
+    "branchId": "شعبه ونک",
+    "branchName": "شعبه ونک",
+    "brandName": "ZARA",
+    "title": "تعمیر روشنایی حروف نئونی تابلوی شعبه ونک",
+    "description": "نیمی از حروف نئونی خاموش است و دید شبانه مخدوش است.",
+    "priority": "HIGH",
+    "status": "VERIFIED",
+    "owner": "Eng. Goudarzi",
+    "department": "Maintenance",
+    "dueDate": "2026-09-21T10:55:36.018201",
+    "rootCause": "FACILITY",
+    "beforePhotos": [
+      {
+        "id": "p1",
+        "url": "https://img.sample/before1.jpg",
+        "timestamp": "2026-09-23T10:55:36.018275"
+      }
+    ],
+    "afterPhotos": [
+      {
+        "id": "p_after_1",
+        "url": "https://img.sample/after1.jpg",
+        "timestamp": "2026-09-23T10:55:36.061955"
+      },
+      {
+        "id": "p_after_2",
+        "url": "https://img.sample/after2.jpg",
+        "timestamp": "2026-09-23T10:55:36.081562"
+      }
+    ],
+    "reopenCount": 1,
+    "reopenComments": [
+      {
+        "id": "rc_1790148336074",
+        "comment": "روشنایی حرف R هنوز ضعیف است. لطفاً کابل تغذیه را بازبینی فرمایید.",
+        "reopenedBy": "Sara Amini (Supervisor)",
+        "timestamp": "2026-09-23T07:25:36.076Z"
+      }
+    ],
+    "createdBy": "Sara Amini (Supervisor)",
+    "createdAt": "2026-09-23T07:25:36.042Z",
+    "updatedAt": "2026-09-23T07:25:36.089Z",
+    "resolutionNote": "کابل تغذیه حرف R با نمونه سیلیکونی مقاوم تعویض و ولتاژ تنظیم شد.",
+    "completionDate": "2026-09-23T07:25:36.084Z",
+    "verifiedBy": "Sara Amini (Supervisor)",
+    "verifiedAt": "2026-09-23T07:25:36.089Z",
+    "verificationNote": "تابلو در شب ممیزی شد و عملکرد آن ۱۰۰٪ استاندارد است."
+  },
+  "act_1790151702410_elsa": {
+    "id": "act_1790151702410_elsa",
+    "tenantId": "org_1790151702398",
+    "findingId": "finding_fs02_v1",
+    "indicatorCode": "FS02",
+    "visitId": "visit_base_1790151702",
+    "branchId": "شعبه ونک",
+    "branchName": "شعبه ونک",
+    "brandName": "ZARA",
+    "title": "تعمیر روشنایی حروف نئونی تابلوی شعبه ونک",
+    "description": "نیمی از حروف نئونی خاموش است و دید شبانه مخدوش است.",
+    "priority": "HIGH",
+    "status": "VERIFIED",
+    "owner": "Eng. Goudarzi",
+    "department": "Maintenance",
+    "dueDate": "2026-09-21T11:51:42.408751",
+    "rootCause": "FACILITY",
+    "beforePhotos": [
+      {
+        "id": "p1",
+        "url": "https://img.sample/before1.jpg",
+        "timestamp": "2026-09-23T11:51:42.408758"
+      }
+    ],
+    "afterPhotos": [
+      {
+        "id": "p_after_1",
+        "url": "https://img.sample/after1.jpg",
+        "timestamp": "2026-09-23T11:51:42.415746"
+      },
+      {
+        "id": "p_after_2",
+        "url": "https://img.sample/after2.jpg",
+        "timestamp": "2026-09-23T11:51:42.432126"
+      }
+    ],
+    "reopenCount": 1,
+    "reopenComments": [
+      {
+        "id": "rc_1790151702428",
+        "comment": "روشنایی حرف R هنوز ضعیف است. لطفاً کابل تغذیه را بازبینی فرمایید.",
+        "reopenedBy": "Sara Amini (Supervisor)",
+        "timestamp": "2026-09-23T08:21:42.428Z"
+      }
+    ],
+    "createdBy": "Sara Amini (Supervisor)",
+    "createdAt": "2026-09-23T08:21:42.410Z",
+    "updatedAt": "2026-09-23T08:21:42.437Z",
+    "resolutionNote": "کابل تغذیه حرف R با نمونه سیلیکونی مقاوم تعویض و ولتاژ تنظیم شد.",
+    "completionDate": "2026-09-23T08:21:42.433Z",
+    "verifiedBy": "Sara Amini (Supervisor)",
+    "verifiedAt": "2026-09-23T08:21:42.437Z",
+    "verificationNote": "تابلو در شب ممیزی شد و عملکرد آن ۱۰۰٪ استاندارد است."
+  }
+}

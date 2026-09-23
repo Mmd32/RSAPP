@@ -1,0 +1,1638 @@
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import catalogData from './data/catalog.json';
+import {
+  Indicator,
+  VisitSession,
+  QuestionResponse,
+  AnswerState,
+  SeverityLevel,
+  EvidencePhoto,
+} from './types';
+import { StartVisitWizard } from './components/StartVisitWizard';
+import { FormOverview } from './components/FormOverview';
+import { QuestionCard } from './components/QuestionCard';
+import { FrictionSheet } from './components/FrictionSheet';
+import { ReviewScreen } from './components/ReviewScreen';
+import { ComparisonEngine } from './engine/comparisonEngine';
+import { RetailSolutionsLogo } from './components/brand/RetailSolutionsLogo';
+import { SAMPLE_REAL_VISIT } from './data/sampleRealVisit';
+import {
+  CorrectiveAction,
+  CorrectiveActionPriority,
+  CorrectiveActionStatus,
+  ActionDepartment,
+  RootCauseCategory,
+  UserRole,
+} from './types';
+import {
+  Sparkles,
+  Layers,
+  Sliders,
+  ShieldCheck,
+  FileSpreadsheet,
+  RotateCcw,
+  WifiOff,
+  AlertTriangle,
+  Monitor,
+  Smartphone,
+  CheckCircle2,
+  Trash2,
+  Bookmark,
+  Check,
+  X,
+  HelpCircle,
+  TrendingUp,
+  PlusCircle,
+  ClipboardCheck,
+  CheckCheck,
+  BarChart3,
+  Target,
+  GitCompare,
+  FlaskConical,
+  Database,
+  UserCheck,
+  Sun,
+  Moon,
+  ChevronDown,
+} from 'lucide-react';
+
+// Code Splitting for heavy secondary views (Audit Priority 3 / P2)
+const VisitReportView = React.lazy(() =>
+  import('./components/VisitReportView').then((m) => ({ default: m.VisitReportView }))
+);
+const CorrectiveActionsHub = React.lazy(() =>
+  import('./components/CorrectiveActionsHub').then((m) => ({ default: m.CorrectiveActionsHub }))
+);
+const RevisitComparisonView = React.lazy(() =>
+  import('./components/RevisitComparisonView').then((m) => ({ default: m.RevisitComparisonView }))
+);
+const SupervisorReview = React.lazy(() =>
+  import('./components/SupervisorReview').then((m) => ({ default: m.SupervisorReview }))
+);
+const AdminQuestionBank = React.lazy(() =>
+  import('./components/AdminQuestionBank').then((m) => ({ default: m.AdminQuestionBank }))
+);
+const ScenarioRunner = React.lazy(() =>
+  import('./components/ScenarioRunner').then((m) => ({ default: m.ScenarioRunner }))
+);
+
+const ViewLoadingFallback: React.FC = () => (
+  <div
+    style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 340,
+      gap: 14,
+    }}
+  >
+    <div
+      style={{
+        width: 36,
+        height: 36,
+        border: '3px solid var(--theme-card-border)',
+        borderTopColor: 'var(--rs-color-brand-cyan)',
+        borderRadius: '50%',
+        animation: 'spin 0.8s linear infinite',
+      }}
+    />
+    <span style={{ fontSize: 13, color: 'var(--theme-text-muted)', fontWeight: 600 }}>
+      در حال بارگذاری اطلاعات بخش...
+    </span>
+  </div>
+);
+
+type ViewMode =
+  | 'WIZARD'
+  | 'AUDIT'
+  | 'REVIEW'
+  | 'SUPERVISOR'
+  | 'REPORT'
+  | 'CATALOG'
+  | 'SCENARIOS'
+  | 'ACTIONS'
+  | 'REVISIT';
+
+const LOCAL_STORAGE_KEY = 'rsapp_active_visit_v1';
+
+// Seed actions for initial demonstration
+const INITIAL_DEMO_ACTIONS: CorrectiveAction[] = [
+  {
+    id: 'act_demo_01',
+    tenantId: 'org_retail_holding',
+    findingId: 'finding_01',
+    indicatorCode: 'FS02',
+    visitId: 'visit_baseline_demo',
+    branchId: 'شعبه ونک',
+    branchName: 'شعبه ونک',
+    brandName: 'ZARA',
+    title: 'تعمیر و تنظیم روشنایی موضعی تابلوی اصلی فروشگاه',
+    description: 'نیمی از حروف نئونی تابلوی بیرونی در تاریکی شب خاموش بوده و دید مستقیم از معبر را مختل می‌کند.',
+    priority: 'HIGH',
+    status: 'IN_PROGRESS',
+    owner: 'مهندس رضایی',
+    department: 'Maintenance',
+    dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // Overdue
+    rootCause: 'FACILITY',
+    beforePhotos: [
+      {
+        id: 'p_before_01',
+        url: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?auto=format&fit=crop&w=400&q=80',
+        timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+    ],
+    afterPhotos: [],
+    reopenCount: 0,
+    reopenComments: [],
+    createdBy: 'علی کاظمی (ارزیاب)',
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'act_demo_02',
+    tenantId: 'org_retail_holding',
+    findingId: 'finding_02',
+    indicatorCode: 'FFR04',
+    visitId: 'visit_baseline_demo',
+    branchId: 'شعبه ونک',
+    branchName: 'شعبه ونک',
+    brandName: 'ZARA',
+    title: 'تجهیز اتاق‌های پرو به آینه قدی ضد موج و قلاب آویز استاندارد',
+    description: 'در ۳ اتاق پرو انتهای سالن، آینه‌ها دچار اعوجاج بوده و قلاب نگهداری لباس‌ها شکسته است.',
+    priority: 'CRITICAL',
+    status: 'WAITING_REVIEW',
+    owner: 'مریم اکبری',
+    department: 'Operations',
+    dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+    rootCause: 'EQUIPMENT',
+    beforePhotos: [
+      {
+        id: 'p_before_02',
+        url: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=400&q=80',
+        timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+    ],
+    afterPhotos: [
+      {
+        id: 'p_after_02',
+        url: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=400&q=80',
+        timestamp: new Date().toISOString(),
+      },
+    ],
+    resolutionNote: 'آینه‌های جدید کریستال سوپرکلیر نصب و قلاب‌های دوتایی استیل در تمامی اتاق‌های پرو تعویض گردید.',
+    completionDate: new Date().toISOString(),
+    reopenCount: 0,
+    reopenComments: [],
+    createdBy: 'سارا امینی (سرپرست)',
+    createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'act_demo_03',
+    tenantId: 'org_retail_holding',
+    findingId: 'finding_03',
+    indicatorCode: 'FCP08',
+    visitId: 'visit_baseline_demo',
+    branchId: 'شعبه کوروش',
+    branchName: 'شعبه کوروش',
+    brandName: 'مانگو',
+    title: 'کالیبراسیون و تست سرعت دستگاه جداکننده تگ دزدگیر صندوق',
+    description: 'دستگاه مگنتیک تگ‌بازکن صندوق شماره ۲ کند بوده و منجر به تشکیل صف تسویه و نارضایتی شده است.',
+    priority: 'MEDIUM',
+    status: 'VERIFIED',
+    owner: 'حسین پناهی',
+    department: 'IT',
+    dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+    rootCause: 'TECHNOLOGY',
+    beforePhotos: [],
+    afterPhotos: [],
+    resolutionNote: 'دستگاه با مگنت قوی‌تر تعویض و تست سرعت خروج کالا با موفقیت انجام شد.',
+    completionDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    verifiedBy: 'سارا امینی',
+    verifiedAt: new Date().toISOString(),
+    verificationNote: 'تست میدانی انجام شد و صف تسویه به حالت روان بازگشت.',
+    reopenCount: 0,
+    reopenComments: [],
+    createdBy: 'مهندس رضوانی',
+    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
+export const App: React.FC = () => {
+  const allIndicators: Indicator[] = catalogData.indicators as any;
+
+  const [activeSession, setActiveSession] = useState<VisitSession | null>(null);
+
+  // Deep Linking & URL Routing via window.location.hash (Audit Priority 9 / N2)
+  const getInitialViewMode = (): ViewMode => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const hash = window.location.hash.replace('#', '').toUpperCase();
+      const validModes: ViewMode[] = [
+        'WIZARD',
+        'AUDIT',
+        'REVIEW',
+        'SUPERVISOR',
+        'REPORT',
+        'CATALOG',
+        'SCENARIOS',
+        'ACTIONS',
+        'REVISIT',
+      ];
+      if (validModes.includes(hash as ViewMode)) {
+        return hash as ViewMode;
+      }
+    }
+    return 'WIZARD';
+  };
+
+  const [viewMode, setViewModeState] = useState<ViewMode>(getInitialViewMode);
+  const [toolsDropdownOpen, setToolsDropdownOpen] = useState(false);
+
+  const setViewMode = (mode: ViewMode) => {
+    setViewModeState(mode);
+    setToolsDropdownOpen(false);
+    if (typeof window !== 'undefined') {
+      window.location.hash = mode.toLowerCase();
+    }
+  };
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '').toUpperCase();
+      const validModes: ViewMode[] = [
+        'WIZARD',
+        'AUDIT',
+        'REVIEW',
+        'SUPERVISOR',
+        'REPORT',
+        'CATALOG',
+        'SCENARIOS',
+        'ACTIONS',
+        'REVISIT',
+      ];
+      if (validModes.includes(hash as ViewMode)) {
+        setViewModeState(hash as ViewMode);
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  // Executive Light/Dark Theme Mode (defaults to Light Mode as requested by user)
+  const [themeMode, setThemeMode] = useState<'light' | 'dark'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('rsapp_theme_mode');
+      if (saved === 'light' || saved === 'dark') return saved;
+    }
+    return 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', themeMode);
+    localStorage.setItem('rsapp_theme_mode', themeMode);
+  }, [themeMode]);
+
+  const toggleTheme = () => {
+    setThemeMode((prev) => (prev === 'light' ? 'dark' : 'light'));
+  };
+  const [currentUserRole, setCurrentUserRole] = useState<UserRole>('Supervisor');
+  const [currentUserName, setCurrentUserName] = useState<string>('مهندس رضوانی');
+  const [currentTenantId, setCurrentTenantId] = useState<string>('org_retail_holding');
+
+  // Corrective Actions State
+  const [actions, setActions] = useState<CorrectiveAction[]>(INITIAL_DEMO_ACTIONS);
+
+  // Past Visits for Comparison & Historical tracking
+  const [pastVisits, setPastVisits] = useState<VisitSession[]>([]);
+
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
+  const [currentStage, setCurrentStage] = useState<string>('APPROACH');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [auditFilter, setAuditFilter] = useState<'ALL' | 'MISSING' | 'FRICTION' | 'FLAGGED'>('ALL');
+  const [quickMode, setQuickMode] = useState<boolean>(true);
+  const [isFrictionSheetOpen, setIsFrictionSheetOpen] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+  const [isDesktopSplitView, setIsDesktopSplitView] = useState<boolean>(
+    typeof window !== 'undefined' ? window.innerWidth >= 1024 : false
+  );
+
+  // Resume Visit Prompt Modal state
+  const [resumeCandidate, setResumeCandidate] = useState<VisitSession | null>(null);
+
+  // Prevent Data Loss Confirm Modal
+  const [showDiscardModal, setShowDiscardModal] = useState<boolean>(false);
+
+  // Undo Snackbar state (Section 14)
+  const [undoState, setUndoState] = useState<{
+    indicatorId: string;
+    previousIndex: number;
+    previousResponse: QuestionResponse;
+  } | null>(null);
+
+  const undoTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Listen for online / offline events (Section 20)
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => {
+      setIsOnline(false);
+      if (activeSession) {
+        setActiveSession((prev) => {
+          if (!prev) return prev;
+          const count = (prev.analytics?.offlineEventsCount || 0) + 1;
+          return {
+            ...prev,
+            analytics: {
+              ...(prev.analytics || {
+                startTime: prev.startedAt,
+                resumeCount: 0,
+                offlineEventsCount: 0,
+                numberOfChanges: 0,
+              }),
+              offlineEventsCount: count,
+            },
+          };
+        });
+      }
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [activeSession]);
+
+  // Check for saved visit on initial mount (Section 21: Resume)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (saved) {
+        const parsed: VisitSession = JSON.parse(saved);
+        if (parsed && parsed.indicators && parsed.indicators.length > 0) {
+          setResumeCandidate(parsed);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load session from localStorage', e);
+    }
+  }, []);
+
+  // Autosave to localStorage on response changes (Section 19: Autosave)
+  const saveVisitState = (session: VisitSession) => {
+    setIsSaving(true);
+    const updatedAnalytics = {
+      ...(session.analytics || {
+        startTime: session.startedAt,
+        resumeCount: 0,
+        offlineEventsCount: 0,
+        numberOfChanges: 0,
+      }),
+      lastActivityAt: new Date().toISOString(),
+      numberOfChanges: (session.analytics?.numberOfChanges || 0) + 1,
+    };
+
+    const sessionWithAnalytics = {
+      ...session,
+      analytics: updatedAnalytics,
+    };
+
+    setActiveSession({ ...sessionWithAnalytics });
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(sessionWithAnalytics));
+    } catch (e) {
+      console.error('Storage error', e);
+    }
+    setTimeout(() => {
+      setIsSaving(false);
+    }, 300);
+  };
+
+  const handleStartVisit = (newSession: VisitSession) => {
+    setActiveSession(newSession);
+    setCurrentQuestionIndex(0);
+    if (newSession.indicators.length > 0) {
+      setCurrentStage(newSession.indicators[0].journeyStage);
+    }
+    saveVisitState(newSession);
+    setViewMode('AUDIT');
+  };
+
+  const handleAcceptResume = () => {
+    if (!resumeCandidate) return;
+    const resumedSession: VisitSession = {
+      ...resumeCandidate,
+      analytics: {
+        ...(resumeCandidate.analytics || {
+          startTime: resumeCandidate.startedAt,
+          resumeCount: 0,
+          offlineEventsCount: 0,
+          numberOfChanges: 0,
+        }),
+        resumeCount: (resumeCandidate.analytics?.resumeCount || 0) + 1,
+        lastActivityAt: new Date().toISOString(),
+      },
+    };
+    setActiveSession(resumedSession);
+    setResumeCandidate(null);
+    if (resumedSession.indicators.length > 0) {
+      setCurrentStage(resumedSession.indicators[0].journeyStage);
+    }
+    setViewMode('AUDIT');
+  };
+
+  const handleDiscardResume = () => {
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    setResumeCandidate(null);
+    setActiveSession(null);
+    setViewMode('WIZARD');
+  };
+
+  // Filtered indicators based on search query AND quick filter (Section 16: Navigation)
+  const displayedIndicators = useMemo(() => {
+    if (!activeSession) return [];
+    let list = activeSession.indicators;
+
+    // Search query filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter((ind) => {
+        return (
+          ind.code.toLowerCase().includes(q) ||
+          ind.subject.toLowerCase().includes(q) ||
+          ind.statement.toLowerCase().includes(q)
+        );
+      });
+    }
+
+    // Quick filter (All, Missing, Friction, Flagged)
+    if (auditFilter === 'MISSING') {
+      list = list.filter((ind) => {
+        const r = activeSession.responses[ind.id];
+        return !r || r.answerState === 'UNANSWERED';
+      });
+    } else if (auditFilter === 'FRICTION') {
+      list = list.filter((ind) => {
+        const r = activeSession.responses[ind.id];
+        return r && r.answerState === 'FRICTION';
+      });
+    } else if (auditFilter === 'FLAGGED') {
+      list = list.filter((ind) => {
+        const r = activeSession.responses[ind.id];
+        return r && r.isFlagged;
+      });
+    }
+
+    return list;
+  }, [activeSession, searchQuery, auditFilter]);
+
+  const currentIndicator = displayedIndicators[currentQuestionIndex] || displayedIndicators[0] || activeSession?.indicators[0];
+
+  // Update current stage chip when moving through questions
+  useEffect(() => {
+    if (currentIndicator) {
+      setCurrentStage(currentIndicator.journeyStage);
+    }
+  }, [currentIndicator]);
+
+  // Answer handler with Quick Mode & Undo (Section 13, 14)
+  const handleAnswerState = (state: AnswerState) => {
+    if (!activeSession || !currentIndicator) return;
+
+    const existing = activeSession.responses[currentIndicator.id] || {
+      indicatorId: currentIndicator.id,
+      answerState: 'UNANSWERED',
+      photos: [],
+      isFlagged: false,
+    };
+
+    const updatedResponse: QuestionResponse = {
+      ...existing,
+      answerState: state,
+      answeredAt: new Date().toISOString(),
+    };
+
+    const updatedSession = {
+      ...activeSession,
+      responses: {
+        ...activeSession.responses,
+        [currentIndicator.id]: updatedResponse,
+      },
+    };
+
+    saveVisitState(updatedSession);
+
+    // Section 13 & 14: Quick Mode auto advance on No Friction + Undo Snackbar
+    if (state === 'NO_FRICTION' && quickMode) {
+      if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+
+      setUndoState({
+        indicatorId: currentIndicator.id,
+        previousIndex: currentQuestionIndex,
+        previousResponse: existing,
+      });
+
+      // Advance with short delay
+      setTimeout(() => {
+        if (currentQuestionIndex < displayedIndicators.length - 1) {
+          setCurrentQuestionIndex((prev) => prev + 1);
+        }
+      }, 350);
+
+      // Auto dismiss undo after 4 seconds
+      undoTimeoutRef.current = setTimeout(() => {
+        setUndoState(null);
+      }, 4000);
+    }
+  };
+
+  // Section 14: Undo Action
+  const handleUndoAutoAdvance = () => {
+    if (!undoState || !activeSession) return;
+    if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+
+    const revertedSession = {
+      ...activeSession,
+      responses: {
+        ...activeSession.responses,
+        [undoState.indicatorId]: undoState.previousResponse,
+      },
+    };
+
+    saveVisitState(revertedSession);
+    setCurrentQuestionIndex(undoState.previousIndex);
+    setUndoState(null);
+  };
+
+  const handleSaveFriction = (data: {
+    severity: SeverityLevel;
+    comment: string;
+    recommendation: string;
+    photos: EvidencePhoto[];
+  }) => {
+    if (!activeSession || !currentIndicator) return;
+
+    const existing = activeSession.responses[currentIndicator.id] || {
+      indicatorId: currentIndicator.id,
+      answerState: 'FRICTION',
+      photos: [],
+      isFlagged: false,
+    };
+
+    const updatedResponse: QuestionResponse = {
+      ...existing,
+      answerState: 'FRICTION',
+      severity: data.severity,
+      comment: data.comment,
+      recommendation: data.recommendation,
+      photos: data.photos,
+      answeredAt: new Date().toISOString(),
+    };
+
+    const updatedSession = {
+      ...activeSession,
+      responses: {
+        ...activeSession.responses,
+        [currentIndicator.id]: updatedResponse,
+      },
+    };
+
+    saveVisitState(updatedSession);
+  };
+
+  const handleToggleFlag = () => {
+    if (!activeSession || !currentIndicator) return;
+
+    const existing = activeSession.responses[currentIndicator.id] || {
+      indicatorId: currentIndicator.id,
+      answerState: 'UNANSWERED',
+      photos: [],
+      isFlagged: false,
+    };
+
+    const updatedResponse: QuestionResponse = {
+      ...existing,
+      isFlagged: !existing.isFlagged,
+    };
+
+    const updatedSession = {
+      ...activeSession,
+      responses: {
+        ...activeSession.responses,
+        [currentIndicator.id]: updatedResponse,
+      },
+    };
+
+    saveVisitState(updatedSession);
+  };
+
+  const handleSelectStage = (stageKey: string) => {
+    if (!activeSession) return;
+    setCurrentStage(stageKey);
+    const firstIdx = displayedIndicators.findIndex((i) => i.journeyStage === stageKey);
+    if (firstIdx !== -1) {
+      setCurrentQuestionIndex(firstIdx);
+    }
+  };
+
+  const handleJumpToQuestion = (index: number) => {
+    setCurrentQuestionIndex(index);
+    setViewMode('AUDIT');
+  };
+
+  const handleSubmitVisit = () => {
+    if (!activeSession) return;
+    const updated: VisitSession = {
+      ...activeSession,
+      status: 'SUBMITTED',
+      completedAt: new Date().toISOString(),
+    };
+    saveVisitState(updated);
+    setViewMode('SUPERVISOR');
+  };
+
+  const handleApproveVisit = (
+    notes: string,
+    decisions: Record<string, { status: 'APPROVED' | 'REJECTED' | 'REQUEST_CHANGE'; comment?: string }>
+  ) => {
+    if (!activeSession) return;
+    const updated: VisitSession = {
+      ...activeSession,
+      status: 'APPROVED',
+      supervisorNotes: notes,
+      findingDecisions: decisions,
+    };
+    saveVisitState(updated);
+    setViewMode('REPORT');
+  };
+
+  const handleRequestRevision = (
+    notes: string,
+    decisions: Record<string, { status: 'APPROVED' | 'REJECTED' | 'REQUEST_CHANGE'; comment?: string }>
+  ) => {
+    if (!activeSession) return;
+    const updated: VisitSession = {
+      ...activeSession,
+      status: 'REVISION_REQUESTED',
+      supervisorNotes: notes,
+      findingDecisions: decisions,
+    };
+    saveVisitState(updated);
+    setViewMode('AUDIT');
+  };
+
+  const handleConfirmDiscardSession = () => {
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    setActiveSession(null);
+    setShowDiscardModal(false);
+    setViewMode('WIZARD');
+  };
+
+  // Action Analytics & Handlers (Prompt 4)
+  const actionAnalytics = useMemo(() => {
+    return ComparisonEngine.computeActionAnalytics(actions);
+  }, [actions]);
+
+  const handleCreateCorrectiveAction = (actionData: Partial<CorrectiveAction>) => {
+    const newAction: CorrectiveAction = {
+      id: `act_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      tenantId: currentTenantId,
+      findingId: actionData.findingId || `finding_${Date.now()}`,
+      indicatorCode: actionData.indicatorCode || 'GEN01',
+      visitId: actionData.visitId || activeSession?.id || 'manual',
+      branchId: actionData.branchId || actionData.branchName || 'شعبه',
+      branchName: actionData.branchName || activeSession?.branchName || 'شعبه ونک',
+      brandName: actionData.brandName || activeSession?.brandName || 'ZARA',
+      title: actionData.title || 'اقدام اصلاحی جدید',
+      description: actionData.description || '',
+      priority: actionData.priority || 'MEDIUM',
+      status: actionData.owner ? 'ASSIGNED' : 'OPEN',
+      owner: actionData.owner,
+      department: actionData.department || 'Operations',
+      dueDate: actionData.dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      rootCause: actionData.rootCause,
+      beforePhotos: actionData.beforePhotos || [],
+      afterPhotos: actionData.afterPhotos || [],
+      reopenCount: 0,
+      reopenComments: [],
+      createdBy: currentUserName,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    setActions((prev) => [newAction, ...prev]);
+
+    fetch('http://localhost:3001/api/actions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-tenant-id': currentTenantId,
+        'x-user-role': currentUserRole,
+        'x-user-name': currentUserName,
+      },
+      body: JSON.stringify(newAction),
+    }).catch((e) => console.log('Backend sync offline:', e));
+
+    setViewMode('ACTIONS');
+  };
+
+  const handleUpdateCorrectiveAction = (id: string, updates: Partial<CorrectiveAction>) => {
+    setActions((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, ...updates, updatedAt: new Date().toISOString() } : a))
+    );
+
+    fetch(`http://localhost:3001/api/actions/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-role': currentUserRole,
+        'x-user-name': currentUserName,
+      },
+      body: JSON.stringify(updates),
+    }).catch((e) => console.log('Backend sync offline:', e));
+  };
+
+  const handleResolveCorrectiveAction = (
+    id: string,
+    resolutionNote: string,
+    afterPhotos: EvidencePhoto[],
+    rootCause?: RootCauseCategory
+  ) => {
+    setActions((prev) =>
+      prev.map((a) => {
+        if (a.id !== id) return a;
+        return {
+          ...a,
+          status: 'WAITING_REVIEW',
+          resolutionNote,
+          completionDate: new Date().toISOString(),
+          afterPhotos: [...a.afterPhotos, ...afterPhotos],
+          rootCause: rootCause || a.rootCause,
+          updatedAt: new Date().toISOString(),
+        };
+      })
+    );
+
+    fetch(`http://localhost:3001/api/actions/${id}/resolve`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-role': currentUserRole,
+        'x-user-name': currentUserName,
+      },
+      body: JSON.stringify({ resolutionNote, afterPhotos, rootCause }),
+    }).catch((e) => console.log('Backend sync offline:', e));
+  };
+
+  const handleVerifyCorrectiveAction = (id: string, verificationNote?: string) => {
+    setActions((prev) =>
+      prev.map((a) => {
+        if (a.id !== id) return a;
+        return {
+          ...a,
+          status: 'VERIFIED',
+          verifiedBy: currentUserName,
+          verifiedAt: new Date().toISOString(),
+          verificationNote: verificationNote || 'تایید شد',
+          updatedAt: new Date().toISOString(),
+        };
+      })
+    );
+
+    fetch(`http://localhost:3001/api/actions/${id}/verify`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-role': currentUserRole,
+        'x-user-name': currentUserName,
+      },
+      body: JSON.stringify({ verificationNote }),
+    }).catch((e) => console.log('Backend sync offline:', e));
+  };
+
+  const handleReopenCorrectiveAction = (id: string, comment: string) => {
+    setActions((prev) =>
+      prev.map((a) => {
+        if (a.id !== id) return a;
+        return {
+          ...a,
+          status: 'REOPENED',
+          reopenCount: (a.reopenCount || 0) + 1,
+          reopenComments: [
+            ...(a.reopenComments || []),
+            {
+              id: `rc_${Date.now()}`,
+              comment,
+              reopenedBy: currentUserName,
+              timestamp: new Date().toISOString(),
+            },
+          ],
+          updatedAt: new Date().toISOString(),
+        };
+      })
+    );
+
+    fetch(`http://localhost:3001/api/actions/${id}/reopen`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-role': currentUserRole,
+        'x-user-name': currentUserName,
+      },
+      body: JSON.stringify({ comment }),
+    }).catch((e) => console.log('Backend sync offline:', e));
+  };
+
+  const isVisitReadOnly = activeSession?.status === 'SUBMITTED' || activeSession?.status === 'APPROVED';
+
+  return (
+    <div>
+      {/* Top Application Bar */}
+      <header className="app-header">
+        {/* Semantic H1 for WCAG 2.1 Heading Hierarchy (Audit Priority 1 / A4) */}
+        <h1 className="visually-hidden">سامانه ارزیابی اصطکاک و پاداش خرده‌فروشی ریتیل سلوشنز (RSAPP)</h1>
+
+        <div className="brand-badge">
+          <RetailSolutionsLogo
+            variant={themeMode === 'dark' ? 'dark' : 'light'}
+            colorScheme={themeMode}
+            size="md"
+            showSubbrand={true}
+            subbrandText="FR™ Assessment Platform"
+          />
+        </div>
+
+        {/* Global Navigation Tabs (Organized to prevent overcrowding - Audit Priority 5 / L1) */}
+        <nav className="nav-tabs" aria-label="ناوبری اصلی سیستم">
+          <button
+            type="button"
+            className={`nav-tab-btn ${viewMode === 'WIZARD' ? 'active' : ''}`}
+            onClick={() => setViewMode('WIZARD')}
+            aria-label="شروع بازدید جدید"
+          >
+            <PlusCircle size={14} />
+            <span>بازدید جدید</span>
+          </button>
+
+          {activeSession && (
+            <button
+              type="button"
+              className={`nav-tab-btn ${viewMode === 'AUDIT' ? 'active' : ''}`}
+              onClick={() => setViewMode('AUDIT')}
+              aria-label="فرم ارزیابی جاری"
+            >
+              <ClipboardCheck size={14} />
+              <span>فرم ارزیابی</span>
+              <span className="ltr-num" style={{ fontSize: 12, opacity: 0.9, background: 'rgba(255,255,255,0.18)', padding: '1px 6px', borderRadius: 10, fontWeight: 700 }}>
+                {activeSession.indicators.length}
+              </span>
+            </button>
+          )}
+
+          {activeSession && (
+            <button
+              type="button"
+              className={`nav-tab-btn ${viewMode === 'REVIEW' ? 'active' : ''}`}
+              onClick={() => setViewMode('REVIEW')}
+              aria-label="کنترل کیفیت ارزیابی"
+            >
+              <CheckCheck size={14} />
+              <span>کنترل کیفیت</span>
+            </button>
+          )}
+
+          {activeSession && (
+            <button
+              type="button"
+              className={`nav-tab-btn ${viewMode === 'SUPERVISOR' ? 'active' : ''}`}
+              onClick={() => setViewMode('SUPERVISOR')}
+              aria-label="کارتابل سرپرست ارزیابی"
+            >
+              <ShieldCheck size={14} />
+              <span>کارتابل سرپرست</span>
+            </button>
+          )}
+
+          <div className="nav-tab-divider" aria-hidden="true" />
+
+          <button
+            type="button"
+            className={`nav-tab-btn ${viewMode === 'REPORT' ? 'active' : ''}`}
+            onClick={() => {
+              if (!activeSession) {
+                setActiveSession(SAMPLE_REAL_VISIT);
+              }
+              setViewMode('REPORT');
+            }}
+            aria-label="گزارش تحلیلی و نمودار رادار"
+          >
+            <BarChart3 size={14} />
+            <span>گزارش و رادار</span>
+            {!activeSession && (
+              <span style={{ fontSize: 12, background: 'rgba(0,176,240,0.2)', color: 'var(--rs-color-brand-cyan)', padding: '1px 6px', borderRadius: 8, fontWeight: 600 }}>
+                نمونه
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            className={`nav-tab-btn ${viewMode === 'ACTIONS' ? 'active' : ''}`}
+            onClick={() => setViewMode('ACTIONS')}
+            aria-label="اقدامات اصلاحی و بهبود"
+          >
+            <Target size={14} />
+            <span>اقدامات اصلاحی</span>
+            <span
+              className="ltr-num"
+              style={{
+                fontSize: 12,
+                background: actions.length > 0 ? 'rgba(217,74,86,0.25)' : 'var(--theme-badge-bg)',
+                color: actions.length > 0 ? 'var(--rs-color-error)' : 'inherit',
+                padding: '1px 6px',
+                borderRadius: 10,
+                fontWeight: 700,
+              }}
+            >
+              {actions.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            className={`nav-tab-btn ${viewMode === 'REVISIT' ? 'active' : ''}`}
+            onClick={() => setViewMode('REVISIT')}
+            aria-label="مقایسه و روند بهبود"
+          >
+            <GitCompare size={14} />
+            <span>مقایسه و بهبود</span>
+          </button>
+
+          <div className="nav-tab-divider" aria-hidden="true" />
+
+          {/* Tools Dropdown to keep header clean (Audit Priority 5 / L1) */}
+          <div style={{ position: 'relative' }}>
+            <button
+              type="button"
+              className={`nav-tab-btn ${['SCENARIOS', 'CATALOG'].includes(viewMode) ? 'active' : ''}`}
+              onClick={() => setToolsDropdownOpen((prev) => !prev)}
+              aria-label="منوی ابزارهای پیشرفته سیستم"
+              aria-expanded={toolsDropdownOpen}
+            >
+              <Sliders size={14} />
+              <span>سایر ابزارها</span>
+              <ChevronDown size={13} style={{ transform: toolsDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 180ms ease' }} />
+            </button>
+
+            {toolsDropdownOpen && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 8px)',
+                  left: 0,
+                  background: 'var(--theme-card-bg)',
+                  border: '1px solid var(--theme-card-border)',
+                  borderRadius: 'var(--rs-radius-card)',
+                  boxShadow: 'var(--theme-card-shadow)',
+                  padding: 6,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 4,
+                  minWidth: 170,
+                  zIndex: 200,
+                }}
+              >
+                <button
+                  type="button"
+                  className={`nav-tab-btn ${viewMode === 'CATALOG' ? 'active' : ''}`}
+                  onClick={() => setViewMode('CATALOG')}
+                  style={{ width: '100%', justifyContent: 'flex-start', padding: '8px 12px' }}
+                  aria-label="بانک شاخص‌های استاندارد"
+                >
+                  <Database size={14} />
+                  <span>بانک شاخص‌ها</span>
+                </button>
+                <button
+                  type="button"
+                  className={`nav-tab-btn ${viewMode === 'SCENARIOS' ? 'active' : ''}`}
+                  onClick={() => setViewMode('SCENARIOS')}
+                  style={{ width: '100%', justifyContent: 'flex-start', padding: '8px 12px' }}
+                  aria-label="اجرای تست‌های سناریویی"
+                >
+                  <FlaskConical size={14} />
+                  <span>تست سناریوها</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </nav>
+
+        {/* Header Extra Controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* Theme Mode Toggle (Sun / Moon) */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="theme-toggle-btn"
+            title={themeMode === 'light' ? 'تغییر به حالت شب (Dark Mode)' : 'تغییر به حالت روز (Light Mode)'}
+            aria-label="Toggle theme mode"
+          >
+            {themeMode === 'light' ? <Moon size={15} /> : <Sun size={15} color="#FBBF24" />}
+            <span className="theme-toggle-label">{themeMode === 'light' ? 'حالت شب' : 'حالت روز'}</span>
+          </button>
+
+          {/* RBAC Role Selector (Requirement 22 & 24) */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'var(--theme-nav-btn-bg)',
+              padding: '4px 10px',
+              borderRadius: '20px',
+              border: '1px solid var(--theme-nav-btn-border)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+            }}
+          >
+            <UserCheck size={14} color="var(--rs-color-brand-cyan)" />
+            <span style={{ fontSize: 11, color: 'var(--theme-text-muted)', fontWeight: 600 }}>نقش:</span>
+            <select
+              value={currentUserRole}
+              onChange={(e) => setCurrentUserRole(e.target.value as UserRole)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--theme-text-primary)',
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: 'pointer',
+                outline: 'none',
+                fontFamily: 'var(--rs-font-fa)',
+              }}
+            >
+              <option value="Supervisor" style={{ color: '#16213E' }}>سرپرست (Supervisor)</option>
+              <option value="Evaluator" style={{ color: '#16213E' }}>ارزیاب (Evaluator)</option>
+              <option value="Manager" style={{ color: '#16213E' }}>مدیر (Manager)</option>
+              <option value="Owner" style={{ color: '#16213E' }}>مسئول رفع (Owner)</option>
+              <option value="Verifier" style={{ color: '#16213E' }}>تاییدکننده (Verifier)</option>
+              <option value="Admin" style={{ color: '#16213E' }}>مدیر سیستم (Admin)</option>
+            </select>
+          </div>
+          {viewMode === 'AUDIT' && (
+            <button
+              type="button"
+              onClick={() => setIsDesktopSplitView(!isDesktopSplitView)}
+              className="btn-secondary"
+              style={{ padding: '6px 10px', fontSize: 12, minHeight: 34 }}
+              title="تغییر نحوه نمایش دسکتاپ"
+              aria-label="تغییر نحوه نمایش دسکتاپ و موبایل"
+            >
+              {isDesktopSplitView ? <Smartphone size={14} /> : <Monitor size={14} />}
+              <span>{isDesktopSplitView ? 'نمای موبایل' : 'نمای Split دسکتاپ'}</span>
+            </button>
+          )}
+
+          {activeSession && (
+            <button
+              type="button"
+              onClick={() => setShowDiscardModal(true)}
+              style={{
+                background: 'rgba(217, 74, 86, 0.1)',
+                border: '1px solid rgba(217, 74, 86, 0.3)',
+                color: 'var(--rs-color-error)',
+                padding: '6px 10px',
+                borderRadius: 'var(--rs-radius-control)',
+                fontSize: 12,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                minHeight: 34,
+                transition: 'all var(--rs-duration-micro) var(--rs-ease-standard)',
+              }}
+              title="انصراف از بازدید و پاکسازی داده‌ها"
+              aria-label="انصراف از بازدید و پاکسازی داده‌ها"
+            >
+              <Trash2 size={13} />
+              <span>انصراف</span>
+            </button>
+          )}
+        </div>
+      </header>
+
+      {/* Section 20: Offline Warning Banner */}
+      {!isOnline && (
+        <div className="offline-banner">
+          <WifiOff size={16} />
+          <span>اتصال اینترنت قطع است؛ اطلاعات به‌صورت امن روی دستگاه ذخیره می‌شود.</span>
+        </div>
+      )}
+
+      {/* Section 28: Supervisor Return Notice */}
+      {viewMode === 'AUDIT' && activeSession?.status === 'REVISION_REQUESTED' && (
+        <div style={{ background: 'rgba(242, 181, 68, 0.15)', borderBottom: '1px solid var(--rs-color-warning)', color: 'var(--rs-color-warning)', padding: '10px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <AlertTriangle size={18} color="var(--rs-color-warning)" />
+            <span>
+              <strong>بازگردانده شده توسط سرپرست: </strong>
+              {activeSession.supervisorNotes || 'برخی اصطکاک‌ها نیازمند بازبینی یا تکمیل شواهد هستند.'}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setViewMode('REVIEW')}
+            className="btn-secondary"
+            style={{ padding: '4px 10px', fontSize: 11, minHeight: 28, borderColor: 'var(--rs-color-warning)', color: 'var(--rs-color-warning)' }}
+          >
+            مشاهده مغایرت‌ها
+          </button>
+        </div>
+      )}
+
+      {/* Section 25: Read-Only Warning Notice if Submitted/Approved */}
+      {viewMode === 'AUDIT' && isVisitReadOnly && (
+        <div style={{ background: 'rgba(0, 176, 240, 0.12)', borderBottom: '1px solid var(--rs-color-brand-cyan)', color: 'var(--rs-color-brand-cyan)', padding: '8px 18px', textAlign: 'center', fontSize: 12, fontWeight: 600 }}>
+          این ارزیابی به سرپرست ارسال شده و در حالت فقط‌خواندنی (Read-Only) قرار دارد.
+        </div>
+      )}
+
+      {/* Main View Router */}
+      <main>
+        {/* Section 21: Resume Visit Prompt Modal */}
+        {resumeCandidate && !activeSession && (
+          <div className="friction-sheet-backdrop" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <div className="glass-panel" style={{ maxWidth: 460, width: '100%', padding: 24 }}>
+              <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(0, 176, 240, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <RotateCcw size={26} color="var(--rs-color-brand-cyan)" />
+              </div>
+              <h3 style={{ fontSize: 18, fontWeight: 700, textAlign: 'center', marginBottom: 6, color: 'var(--theme-text-primary)' }}>
+                بازگشت به ارزیابی ذخیره‌شده
+              </h3>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', marginBottom: 20 }}>
+                یک پیش‌نویس ارزیابی فعال در حافظه دستگاه یافت شد:
+              </p>
+
+              <div style={{ background: 'var(--bg-input)', padding: 14, borderRadius: 'var(--rs-radius-card)', marginBottom: 20, border: '1px solid var(--border-subtle)', fontSize: 13 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <span style={{ color: 'var(--text-muted)' }}>محل ارزیابی:</span>
+                  <strong style={{ color: 'var(--theme-text-primary)' }}>{resumeCandidate.brandName} - {resumeCandidate.branchName}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <span style={{ color: 'var(--text-muted)' }}>درصد تکمیل:</span>
+                  <span className="ltr-num" style={{ color: 'var(--rs-color-success)', fontWeight: 700 }}>
+                    {Object.values(resumeCandidate.responses).filter((r) => r.answerState !== 'UNANSWERED').length} از {resumeCandidate.indicators.length} (
+                    {Math.round(
+                      (Object.values(resumeCandidate.responses).filter((r) => r.answerState !== 'UNANSWERED').length /
+                        resumeCandidate.indicators.length) *
+                        100
+                    )}%)
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <span style={{ color: 'var(--text-muted)' }}>اصطکاک‌های ثبت‌شده:</span>
+                  <span style={{ color: 'var(--rs-color-error)', fontWeight: 700 }}>
+                    {Object.values(resumeCandidate.responses).filter((r) => r.answerState === 'FRICTION').length} مورد
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>زمان شروع:</span>
+                  <span style={{ color: 'var(--text-main)', fontSize: 12 }}>
+                    {new Date(resumeCandidate.startedAt).toLocaleString('fa-IR')}
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{ flex: 1, justifyContent: 'center' }}
+                  onClick={handleDiscardResume}
+                >
+                  انصراف و شروع جدید
+                </button>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  style={{ flex: 1.3, justifyContent: 'center' }}
+                  onClick={handleAcceptResume}
+                >
+                  ادامه ارزیابی
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {viewMode === 'WIZARD' && (
+          <StartVisitWizard
+            allIndicators={allIndicators}
+            onStartVisit={handleStartVisit}
+          />
+        )}
+
+        {/* AUDIT VIEW (Section 6, 16, 29) */}
+        {viewMode === 'AUDIT' && activeSession && currentIndicator && (
+          <>
+            {/* Quick Navigation Filter Pills */}
+            <div style={{ maxWidth: isDesktopSplitView ? 1200 : 540, margin: '10px auto 0', padding: '0 8px', display: 'flex', gap: 8, alignItems: 'center' }}>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>نمایش:</span>
+              <button
+                type="button"
+                onClick={() => setAuditFilter('ALL')}
+                style={{
+                  background: auditFilter === 'ALL' ? 'var(--rs-color-action-primary)' : 'var(--bg-input)',
+                  color: auditFilter === 'ALL' ? '#fff' : 'var(--text-muted)',
+                  border: `1px solid ${auditFilter === 'ALL' ? 'var(--rs-color-action-primary)' : 'var(--border-subtle)'}`,
+                  borderRadius: 'var(--rs-radius-full)',
+                  padding: '3px 10px',
+                  fontSize: 11,
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  transition: 'all var(--rs-duration-micro) var(--rs-ease-standard)',
+                }}
+              >
+                همه ({activeSession.indicators.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setAuditFilter('MISSING')}
+                style={{
+                  background: auditFilter === 'MISSING' ? 'var(--rs-color-error)' : 'var(--bg-input)',
+                  color: auditFilter === 'MISSING' ? '#fff' : 'var(--text-muted)',
+                  border: `1px solid ${auditFilter === 'MISSING' ? 'var(--rs-color-error)' : 'var(--border-subtle)'}`,
+                  borderRadius: 'var(--rs-radius-full)',
+                  padding: '3px 10px',
+                  fontSize: 11,
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  transition: 'all var(--rs-duration-micro) var(--rs-ease-standard)',
+                }}
+              >
+                بدون پاسخ
+              </button>
+              <button
+                type="button"
+                onClick={() => setAuditFilter('FRICTION')}
+                style={{
+                  background: auditFilter === 'FRICTION' ? 'var(--rs-color-warning)' : 'var(--bg-input)',
+                  color: auditFilter === 'FRICTION' ? 'var(--rs-color-navy-900)' : 'var(--text-muted)',
+                  border: `1px solid ${auditFilter === 'FRICTION' ? 'var(--rs-color-warning)' : 'var(--border-subtle)'}`,
+                  borderRadius: 'var(--rs-radius-full)',
+                  padding: '3px 10px',
+                  fontSize: 11,
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  transition: 'all var(--rs-duration-micro) var(--rs-ease-standard)',
+                }}
+              >
+                اصطکاک‌ها
+              </button>
+              <button
+                type="button"
+                onClick={() => setAuditFilter('FLAGGED')}
+                style={{
+                  background: auditFilter === 'FLAGGED' ? 'var(--rs-color-success)' : 'var(--bg-input)',
+                  color: auditFilter === 'FLAGGED' ? '#fff' : 'var(--text-muted)',
+                  border: `1px solid ${auditFilter === 'FLAGGED' ? 'var(--rs-color-success)' : 'var(--border-subtle)'}`,
+                  borderRadius: 'var(--rs-radius-full)',
+                  padding: '3px 10px',
+                  fontSize: 11,
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  transition: 'all var(--rs-duration-micro) var(--rs-ease-standard)',
+                }}
+              >
+                نشانه‌دار
+              </button>
+            </div>
+
+            {/* Layout Switch: Desktop Split View vs Mobile Focus */}
+            {isDesktopSplitView ? (
+              <div className="desktop-split-view">
+                {/* Column 1: Sidebar (Sections & Progress) */}
+                <aside className="split-pane split-sidebar">
+                  <div style={{ marginBottom: 16 }}>
+                    <strong style={{ fontSize: 15, color: 'var(--theme-text-primary)', display: 'block' }}>{activeSession.brandName}</strong>
+                    <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{activeSession.branchName}</span>
+                  </div>
+
+                  <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 12 }}>
+                    مراحل ارزیابی (Sections)
+                  </h4>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {Array.from(new Set(activeSession.indicators.map((i) => i.journeyStage))).map((st) => {
+                      const isCurrent = currentStage === st;
+                      const countTotal = activeSession.indicators.filter((i) => i.journeyStage === st).length;
+                      const countAns = activeSession.indicators.filter(
+                        (i) => i.journeyStage === st && activeSession.responses[i.id]?.answerState !== 'UNANSWERED'
+                      ).length;
+
+                      return (
+                        <div
+                          key={st}
+                          onClick={() => handleSelectStage(st)}
+                          style={{
+                            padding: '10px 12px',
+                            borderRadius: 'var(--rs-radius-control)',
+                            border: `1px solid ${isCurrent ? 'var(--rs-color-brand-cyan)' : 'var(--border-subtle)'}`,
+                            background: isCurrent ? 'rgba(0, 176, 240, 0.14)' : 'var(--bg-input)',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            transition: 'all var(--rs-duration-micro) var(--rs-ease-standard)',
+                          }}
+                        >
+                          <span style={{ fontSize: 12, fontWeight: isCurrent ? 700 : 500, color: isCurrent ? 'var(--rs-color-brand-cyan)' : 'var(--text-main)' }}>
+                            {st}
+                          </span>
+                          <span className="ltr-num" style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                            {countAns}/{countTotal}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--border-subtle)' }}>
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      style={{ width: '100%', justifyContent: 'center' }}
+                      onClick={() => setViewMode('REVIEW')}
+                    >
+                      مرور و کنترل کیفیت
+                    </button>
+                  </div>
+                </aside>
+
+                {/* Column 2: Middle (Scrollable Question List) */}
+                <div className="split-pane split-middle">
+                  <div style={{ marginBottom: 12 }}>
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="جستجوی شاخص..."
+                      className="friction-textarea"
+                      style={{ minHeight: 36, padding: '6px 12px', fontSize: 12, margin: 0 }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {displayedIndicators.map((ind, idx) => {
+                      const resp = activeSession.responses[ind.id];
+                      const isSel = idx === currentQuestionIndex;
+                      const isClean = resp?.answerState === 'NO_FRICTION';
+                      const isFriction = resp?.answerState === 'FRICTION';
+                      const isNA = resp?.answerState === 'NOT_APPLICABLE';
+
+                      return (
+                        <div
+                          key={ind.id}
+                          onClick={() => setCurrentQuestionIndex(idx)}
+                          style={{
+                            padding: '8px 10px',
+                            borderRadius: 'var(--rs-radius-control)',
+                            border: `1px solid ${isSel ? 'var(--rs-color-brand-cyan)' : 'var(--border-subtle)'}`,
+                            background: isSel ? 'rgba(0, 176, 240, 0.14)' : 'var(--bg-input)',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            transition: 'all var(--rs-duration-micro) var(--rs-ease-standard)',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
+                            <span className="indicator-code-badge" style={{ fontSize: 10, padding: '2px 6px' }}>
+                              {ind.code}
+                            </span>
+                            <span style={{ fontSize: 12, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {ind.subject}
+                            </span>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                            {isClean && <CheckCircle2 size={14} color="var(--rs-color-success)" />}
+                            {isFriction && <AlertTriangle size={14} color="var(--rs-color-error)" />}
+                            {isNA && <HelpCircle size={14} color="#646E8C" />}
+                            {resp?.isFlagged && <Bookmark size={13} fill="var(--rs-color-warning)" color="var(--rs-color-warning)" />}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Column 3: Main (Focused Question Card & Details) */}
+                <div className="split-pane split-main">
+                  <QuestionCard
+                    indicator={currentIndicator}
+                    response={activeSession.responses[currentIndicator.id]}
+                    currentIndex={currentQuestionIndex}
+                    totalCount={displayedIndicators.length}
+                    sectionName={currentStage}
+                    onAnswer={handleAnswerState}
+                    onOpenFrictionSheet={() => setIsFrictionSheetOpen(true)}
+                    onToggleFlag={handleToggleFlag}
+                    onPrev={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}
+                    onNext={() =>
+                      setCurrentQuestionIndex((prev) =>
+                        Math.min(displayedIndicators.length - 1, prev + 1)
+                      )
+                    }
+                    quickMode={quickMode}
+                    onToggleQuickMode={() => setQuickMode(!quickMode)}
+                    supervisorNote={activeSession.findingDecisions?.[currentIndicator.id]?.comment}
+                  />
+                </div>
+              </div>
+            ) : (
+              /* Mobile First Single Focus Flow */
+              <>
+                <FormOverview
+                  indicators={activeSession.indicators}
+                  responses={activeSession.responses}
+                  currentStage={currentStage}
+                  onSelectStage={handleSelectStage}
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  brandName={activeSession.brandName}
+                  branchName={activeSession.branchName}
+                  startTime={activeSession.startedAt}
+                  autosaveState={!isOnline ? 'OFFLINE' : isSaving ? 'SAVING' : 'SAVED'}
+                  onOpenReview={() => setViewMode('REVIEW')}
+                  assessmentType={activeSession.assessmentType}
+                />
+
+                <QuestionCard
+                  indicator={currentIndicator}
+                  response={activeSession.responses[currentIndicator.id]}
+                  currentIndex={currentQuestionIndex}
+                  totalCount={displayedIndicators.length}
+                  sectionName={currentStage}
+                  onAnswer={handleAnswerState}
+                  onOpenFrictionSheet={() => setIsFrictionSheetOpen(true)}
+                  onToggleFlag={handleToggleFlag}
+                  onPrev={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}
+                  onNext={() =>
+                    setCurrentQuestionIndex((prev) =>
+                      Math.min(displayedIndicators.length - 1, prev + 1)
+                    )
+                  }
+                  quickMode={quickMode}
+                  onToggleQuickMode={() => setQuickMode(!quickMode)}
+                  supervisorNote={activeSession.findingDecisions?.[currentIndicator.id]?.comment}
+                />
+              </>
+            )}
+
+            {/* Friction Flow Bottom Sheet (Section 9) */}
+            <FrictionSheet
+              indicator={currentIndicator}
+              currentResponse={activeSession.responses[currentIndicator.id]}
+              isOpen={isFrictionSheetOpen}
+              onClose={() => setIsFrictionSheetOpen(false)}
+              onSave={handleSaveFriction}
+            />
+
+            {/* Section 14: Undo Snackbar */}
+            {undoState && (
+              <div className="undo-snackbar">
+                <span>وضعیت مناسب ثبت شد</span>
+                <button
+                  type="button"
+                  className="undo-btn"
+                  onClick={handleUndoAutoAdvance}
+                >
+                  بازگردانی
+                </button>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* REVIEW SCREEN (Section 23, 24, 25) */}
+        {viewMode === 'REVIEW' && activeSession && (
+          <ReviewScreen
+            indicators={activeSession.indicators}
+            responses={activeSession.responses}
+            onJumpToQuestion={handleJumpToQuestion}
+            onBackToAudit={() => setViewMode('AUDIT')}
+            onSubmitVisit={handleSubmitVisit}
+            assessmentType={activeSession.assessmentType}
+          />
+        )}
+
+        {/* Lazy Loaded Views with Suspense Boundary */}
+        <React.Suspense fallback={<ViewLoadingFallback />}>
+          {/* SUPERVISOR CARPET (Section 26, 27, 28) */}
+          {viewMode === 'SUPERVISOR' && activeSession && (
+            <SupervisorReview
+              visit={activeSession}
+              onApproveVisit={handleApproveVisit}
+              onRequestRevision={handleRequestRevision}
+              onBackToDashboard={() => setViewMode('AUDIT')}
+              onCreateCorrectiveAction={handleCreateCorrectiveAction}
+            />
+          )}
+
+          {/* OFFICIAL AUDIT REPORT (With Radar Chart) */}
+          {viewMode === 'REPORT' && (
+            <VisitReportView
+              visit={activeSession || SAMPLE_REAL_VISIT}
+              onBackToDashboard={() => setViewMode(activeSession ? 'AUDIT' : 'WIZARD')}
+              onCreateCorrectiveAction={handleCreateCorrectiveAction}
+            />
+          )}
+
+          {/* CORRECTIVE ACTIONS HUB (Prompt 4) */}
+          {viewMode === 'ACTIONS' && (
+            <CorrectiveActionsHub
+              actions={actions}
+              analytics={actionAnalytics}
+              currentUserRole={currentUserRole}
+              currentUserName={currentUserName}
+              onUpdateAction={handleUpdateCorrectiveAction}
+              onResolveAction={handleResolveCorrectiveAction}
+              onVerifyAction={handleVerifyCorrectiveAction}
+              onReopenAction={handleReopenCorrectiveAction}
+              onCreateAction={handleCreateCorrectiveAction}
+            />
+          )}
+
+          {/* REVISIT HISTORICAL COMPARISON VIEW (Prompt 4) */}
+          {viewMode === 'REVISIT' && (
+            <RevisitComparisonView
+              visits={
+                pastVisits.length > 0
+                  ? pastVisits
+                  : activeSession
+                  ? [activeSession]
+                  : []
+              }
+              actions={actions}
+              onNavigateToActions={() => setViewMode('ACTIONS')}
+            />
+          )}
+
+          {/* CATALOG / ADMIN QUESTION BANK */}
+          {viewMode === 'CATALOG' && (
+            <AdminQuestionBank indicators={allIndicators} />
+          )}
+
+          {/* SCENARIO RUNNER (Scenarios A-G) */}
+          {viewMode === 'SCENARIOS' && (
+            <ScenarioRunner indicators={allIndicators} />
+          )}
+        </React.Suspense>
+
+        {/* Section 22: Prevent Data Loss Confirm Dialog */}
+        {showDiscardModal && (
+          <div className="friction-sheet-backdrop" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <div className="glass-panel" style={{ maxWidth: 420, width: '100%', padding: 24, textAlign: 'center' }}>
+              <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(217, 74, 86, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <Trash2 size={26} color="var(--rs-color-error)" />
+              </div>
+              <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 8, color: 'var(--theme-text-primary)' }}>
+                تأیید انصراف و پاکسازی ارزیابی
+              </h3>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 20 }}>
+                آیا از خروج و حذف این ارزیابی اطمینان دارید؟
+                <br />
+                <strong style={{ color: 'var(--rs-color-error)' }}>تمامی پاسخ‌ها و تصاویر ذخیره‌شده از روی این دستگاه پاک خواهند شد.</strong>
+              </p>
+
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{ flex: 1, justifyContent: 'center' }}
+                  onClick={() => setShowDiscardModal(false)}
+                >
+                  انصراف و ادامه کار
+                </button>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  style={{ flex: 1.2, justifyContent: 'center', background: 'var(--rs-color-error)', boxShadow: '0 4px 16px rgba(217, 74, 86, 0.35)' }}
+                  onClick={handleConfirmDiscardSession}
+                >
+                  حذف پیش‌نویس
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+};
+
