@@ -27,6 +27,14 @@ export interface ApiFetchOptions extends RequestInit {
   userName?: string;
 }
 
+/**
+ * HTTP header values are Latin-1, so a Persian name would reach the server as
+ * mojibake. Percent-encoding keeps identities intact; the server decodes them.
+ */
+function encodeHeaderValue(value: string): string {
+  return encodeURIComponent(value);
+}
+
 export async function apiFetch(path: string, options: ApiFetchOptions = {}): Promise<Response> {
   const { tenantId, userRole, userName, headers, ...rest } = options;
 
@@ -34,9 +42,9 @@ export async function apiFetch(path: string, options: ApiFetchOptions = {}): Pro
     'Content-Type': 'application/json',
     ...((headers as Record<string, string>) || {}),
   };
-  if (tenantId) mergedHeaders['x-tenant-id'] = tenantId;
-  if (userRole) mergedHeaders['x-user-role'] = userRole;
-  if (userName) mergedHeaders['x-user-name'] = userName;
+  if (tenantId) mergedHeaders['x-tenant-id'] = encodeHeaderValue(tenantId);
+  if (userRole) mergedHeaders['x-user-role'] = encodeHeaderValue(userRole);
+  if (userName) mergedHeaders['x-user-name'] = encodeHeaderValue(userName);
 
   return fetch(apiUrl(path), { ...rest, headers: mergedHeaders });
 }

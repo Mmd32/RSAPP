@@ -11,6 +11,7 @@
     "server": "tsx server/src/index.ts",
     "server:dev": "tsx watch server/src/index.ts",
     "data:reset": "node scripts/reset-data.mjs",
+    "db:import": "tsx server/src/scripts/importJson.ts",
     "typecheck": "tsc --noEmit && tsc -p server/tsconfig.json",
     "test:scenarios": "python3 scripts/test_scenarios.py"
   },
@@ -21,6 +22,7 @@
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.475.0",
+    "pg": "^8.23.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tsx": "^4.19.2"
@@ -29,6 +31,7 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.25",
     "@types/node": "^22.13.4",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react": "^4.3.4",

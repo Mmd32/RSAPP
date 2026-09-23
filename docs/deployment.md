@@ -11,10 +11,26 @@ RBAC and the "the owner cannot verify their own action" rule, serves the scoring
 engine, and handles evidence photo uploads. If the backend is unreachable, the
 app keeps working on local data — nothing is lost, it just isn't shared.
 
-Data lives in JSON files under `DATA_DIR` (default `./data`). There is no
-database server to provision. A PostgreSQL migration is prepared for later at
-`scripts/migrations/002_corrective_actions_postgresql.sql`, but nothing in the
-running code uses it yet.
+## 1b. Where data is stored
+
+Two interchangeable backends, chosen at startup by a single variable:
+
+| | `DATABASE_URL` **not** set | `DATABASE_URL` set |
+| --- | --- | --- |
+| Backend | JSON files in `DATA_DIR` | PostgreSQL |
+| Setup | none | a free Neon/Supabase database |
+| Survives redeploy | only with a mounted volume | always |
+| Shared between users | yes, one process | yes |
+| Good for | local development, demos | anything you want to keep |
+
+`/api/health` reports which one is live, under `storage`. If `DATABASE_URL` is
+set but the database cannot be reached, the server **refuses to start** rather
+than quietly writing to a disk the next redeploy will wipe.
+
+The PostgreSQL schema is `scripts/migrations/003_document_store.sql`, applied
+automatically on every boot (it is idempotent). Each entity is stored as a JSONB
+document with the filterable fields lifted into indexed columns, so nothing the
+frontend sends is lost on a round trip.
 
 ## 2. Local development
 
@@ -42,6 +58,8 @@ Useful commands:
 | `npm run build` | Type-checks and builds the SPA into `dist/` |
 | `npm start` | Runs the backend; also serves `dist/` when it exists |
 | `npm run server:dev` | Backend with auto-restart on file change |
+| `npm run data:reset` | Empties the JSON stores (`-- --all` includes stores) |
+| `npm run db:import` | Copies the JSON stores into PostgreSQL |
 
 ## 3. Configuration
 
@@ -51,74 +69,97 @@ Copy `.env.example` to `.env` and adjust. The variables that matter:
 | --- | --- | --- |
 | `PORT` | `3001` | Managed hosts inject this — never hardcode it |
 | `HOST` | `0.0.0.0` | Keep as-is inside containers |
-| `DATA_DIR` | `data` | Point at a mounted volume to survive redeploys |
+| `DATABASE_URL` | *(unset)* | Set it to store everything in PostgreSQL |
+| `PGSSL` | *(unset)* | `disable` for a local database without TLS |
+| `DATA_DIR` | `data` | Only used without `DATABASE_URL` |
 | `SERVE_CLIENT` | `true` | `false` for an API-only service |
 | `ALLOWED_ORIGINS` | *(empty)* | Set only when the UI is on a different domain |
 | `STORAGE_SIGNING_SECRET` | dev placeholder | **Generate a real value before deploying** |
 | `VITE_API_BASE_URL` | `/api` | Build-time; set only for split hosting |
 
-## 4. Free hosting options for initial testing
+## 4. Free hosting for initial testing
 
-The app has no database and no build-time secrets, so the cheapest setup is
-**one free web service serving both the API and the UI on a single origin**.
-Nothing needs `VITE_API_BASE_URL` or `ALLOWED_ORIGINS` in that shape.
+The recommended setup is **one free web service serving both the API and the UI
+on a single origin, with a free PostgreSQL database behind it**. That way data
+survives even though the free web service has no disk of its own.
 
-### Recommended: Render free web service
+### Step 1 — create a free PostgreSQL database (about 3 minutes)
 
-`render.yaml` in the repository root is ready to use.
+Use **Neon** (neon.tech) or **Supabase** (supabase.com). Both have a genuinely
+free tier and need no card.
+
+1. Sign up and create a project.
+2. Copy the connection string. It looks like
+   `postgresql://user:password@ep-something.eu-central-1.aws.neon.tech/neondb?sslmode=require`.
+3. Keep it somewhere safe — it is a password. Never commit it.
+
+There is nothing to create by hand in the database: the server builds its own
+tables on first start.
+
+### Step 2 — move the existing data in (optional)
+
+Only if you want the current `data/*.json` content in the database:
+
+```bash
+DATABASE_URL="postgresql://..." npm run db:import
+```
+
+It is idempotent, so running it twice is harmless.
+
+### Step 3 — deploy the app to Render
+
+`render.yaml` is in the repository root and preconfigures everything.
 
 1. Push the repository to GitHub.
-2. On render.com: **New → Blueprint**, select the repo. Render reads
-   `render.yaml` and creates the service.
-3. Build command `npm ci && npm run build`, start command `npm start`, health
-   check `/api/health` — all preconfigured.
-4. Open the assigned `*.onrender.com` URL.
+2. On render.com: **New → Blueprint**, select the repo, apply.
+3. In the service's **Environment** tab, add one variable:
+   `DATABASE_URL` = the connection string from step 1.
+4. Deploy, then open the assigned `*.onrender.com` URL.
+5. Check `/api/health` — it should report `"storage":"postgres"`.
 
-Trade-offs: the free instance **sleeps after ~15 minutes idle** (first request
-after that takes 30–60s), and it has **no persistent disk** — `DATA_DIR` resets
-on every redeploy and restart. Fine for demos, not for real field data. A free
-uptime pinger (UptimeRobot, cron-job.org) hitting `/api/health` every 10 minutes
-keeps it awake.
+Remaining free-tier caveat: the instance **sleeps after ~15 minutes idle**, so
+the first request afterwards takes 30–60 seconds. The data is safe either way. A
+free pinger (UptimeRobot, cron-job.org) on `/api/health` every 10 minutes avoids
+the delay.
 
-### Alternative: Railway
+### Alternative: a persistent disk instead of a database
 
-Free trial credit rather than a permanent free tier, but it offers a **persistent
-volume**, which the JSON stores really want. Deploy from the repo (it picks up
-the `Dockerfile`), add a volume mounted at `/data`, and set `DATA_DIR=/data`.
-No sleeping.
+If you would rather keep the JSON files, use a host that offers a volume and
+skip `DATABASE_URL` entirely:
 
-### Alternative: Fly.io
+- **Railway** — deploy from the repo (it picks up the `Dockerfile`), add a
+  volume mounted at `/data`, set `DATA_DIR=/data`. No sleeping.
+- **Fly.io** — `fly.toml` is included. `fly launch --no-deploy`,
+  `fly volumes create rsapp_data --size 1`, then `fly deploy`.
 
-Small always-on VMs plus a cheap persistent volume. Use the included
-`Dockerfile`, then `fly launch`, `fly volumes create rsapp_data`, mount it at
-`/data`, and set `DATA_DIR=/data`. More setup than Render, better durability.
+Both ask for a card at sign-up. A volume also ties the app to a single machine,
+whereas a database does not.
 
 ### Split hosting (frontend on a CDN, API elsewhere)
 
 Only worth it if you want the UI to load instantly while the API sleeps: put
 `dist/` on Cloudflare Pages / Netlify / Vercel and keep the API on Render. Then
-you must set **both**:
+set **both**:
 
 - On the API service: `ALLOWED_ORIGINS=https://your-ui-domain`
 - At frontend build time: `VITE_API_BASE_URL=https://your-api-domain/api`
 
 ### Not suitable
 
-Vercel and Netlify serverless functions: the backend keeps all state in memory
-and in local JSON files, which serverless instances do not share or retain.
-Moving there means doing the PostgreSQL migration first.
+Vercel and Netlify **serverless functions**: the process is recreated per
+request, and the static-file serving and upload directory this server relies on
+do not survive that model.
 
 ## 5. Before you share the URL with anyone
 
 - [ ] Set `STORAGE_SIGNING_SECRET` to a random value (`openssl rand -hex 32`).
-- [ ] Decide what happens to data on restart — accept the reset (Render free)
-      or attach a volume and set `DATA_DIR` (Railway/Fly).
+- [ ] Set `DATABASE_URL` (or attach a volume and set `DATA_DIR`). Without one of
+      the two, everything is lost on the next restart. Confirm via `/api/health`.
 - [ ] **There is no authentication yet.** The API trusts the `x-user-role`,
       `x-user-name` and `x-tenant-id` request headers, which any client can set.
       RBAC and tenant isolation are therefore demo-grade: anyone with the URL can
       read and write everything. Keep the link private during testing, and add
       real auth before production.
-- [ ] Reset the demo data if you want a clean start. `data/actions.json` and
-      `data/visits.json` currently contain leftovers from end-to-end test runs
-      (actions under synthetic `org_*` tenant ids). Replace them with `{}` and
-      restart to clear.
+- [ ] Reset the demo data if you want a clean start: `npm run data:reset`
+      (add `-- --all` to clear the store directory too), then re-run
+      `npm run db:import` if you are on PostgreSQL.
