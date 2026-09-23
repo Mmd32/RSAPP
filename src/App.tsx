@@ -15,6 +15,7 @@ import { FrictionSheet } from './components/FrictionSheet';
 import { ReviewScreen } from './components/ReviewScreen';
 import { ComparisonEngine } from './engine/comparisonEngine';
 import { RetailSolutionsLogo } from './components/brand/RetailSolutionsLogo';
+import { AppSidebar } from './components/layout/AppSidebar';
 import { SAMPLE_REAL_VISIT } from './data/sampleRealVisit';
 import {
   CorrectiveAction,
@@ -54,6 +55,7 @@ import {
   Sun,
   Moon,
   ChevronDown,
+  Menu,
 } from 'lucide-react';
 
 // Code Splitting for heavy secondary views (Audit Priority 3 / P2)
@@ -249,6 +251,8 @@ export const App: React.FC = () => {
 
   const [viewMode, setViewModeState] = useState<ViewMode>(getInitialViewMode);
   const [toolsDropdownOpen, setToolsDropdownOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
 
   const setViewMode = (mode: ViewMode) => {
     setViewModeState(mode);
@@ -851,279 +855,120 @@ export const App: React.FC = () => {
   const isVisitReadOnly = activeSession?.status === 'SUBMITTED' || activeSession?.status === 'APPROVED';
 
   return (
-    <div>
-      {/* Top Application Bar */}
-      <header className="app-header">
-        {/* Semantic H1 for WCAG 2.1 Heading Hierarchy (Audit Priority 1 / A4) */}
+    <div className="app-shell">
+      {/* 1. Modern Collapsible Sidebar (Linear × Apple Style) */}
+      <AppSidebar
+        viewMode={viewMode}
+        onSelectViewMode={setViewMode}
+        activeSession={activeSession}
+        actionsCount={actions.length}
+        themeMode={themeMode}
+        onToggleTheme={toggleTheme}
+        currentUserRole={currentUserRole}
+        onChangeRole={setCurrentUserRole}
+        currentUserName={currentUserName}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
+        isMobileOpen={isMobileSidebarOpen}
+        onCloseMobile={() => setIsMobileSidebarOpen(false)}
+      />
+
+      {/* 2. Main Content Canvas */}
+      <div className="app-main-layout">
+        {/* Semantic H1 for WCAG 2.1 Heading Hierarchy */}
         <h1 className="visually-hidden">سامانه ارزیابی اصطکاک و پاداش خرده‌فروشی ریتیل سلوشنز (RSAPP)</h1>
 
-        <div className="brand-badge">
-          <RetailSolutionsLogo
-            variant={themeMode === 'dark' ? 'dark' : 'light'}
-            colorScheme={themeMode}
-            size="md"
-            showSubbrand={true}
-            subbrandText="FR™ Assessment Platform"
-          />
-        </div>
-
-        {/* Global Navigation Tabs (Organized to prevent overcrowding - Audit Priority 5 / L1) */}
-        <nav className="nav-tabs" aria-label="ناوبری اصلی سیستم">
-          <button
-            type="button"
-            className={`nav-tab-btn ${viewMode === 'WIZARD' ? 'active' : ''}`}
-            onClick={() => setViewMode('WIZARD')}
-            aria-label="شروع بازدید جدید"
-          >
-            <PlusCircle size={14} />
-            <span>بازدید جدید</span>
-          </button>
-
-          {activeSession && (
+        {/* Minimal High-End Top Navbar */}
+        <header className="app-top-navbar">
+          <div className="top-nav-title-wrap">
             <button
               type="button"
-              className={`nav-tab-btn ${viewMode === 'AUDIT' ? 'active' : ''}`}
-              onClick={() => setViewMode('AUDIT')}
-              aria-label="فرم ارزیابی جاری"
+              className="mobile-menu-btn"
+              onClick={() => setIsMobileSidebarOpen(true)}
+              aria-label="باز کردن منو"
             >
-              <ClipboardCheck size={14} />
-              <span>فرم ارزیابی</span>
-              <span className="ltr-num" style={{ fontSize: 12, opacity: 0.9, background: 'rgba(255,255,255,0.18)', padding: '1px 6px', borderRadius: 10, fontWeight: 700 }}>
-                {activeSession.indicators.length}
-              </span>
+              <Menu size={18} />
             </button>
-          )}
-
-          {activeSession && (
-            <button
-              type="button"
-              className={`nav-tab-btn ${viewMode === 'REVIEW' ? 'active' : ''}`}
-              onClick={() => setViewMode('REVIEW')}
-              aria-label="کنترل کیفیت ارزیابی"
-            >
-              <CheckCheck size={14} />
-              <span>کنترل کیفیت</span>
-            </button>
-          )}
-
-          {activeSession && (
-            <button
-              type="button"
-              className={`nav-tab-btn ${viewMode === 'SUPERVISOR' ? 'active' : ''}`}
-              onClick={() => setViewMode('SUPERVISOR')}
-              aria-label="کارتابل سرپرست ارزیابی"
-            >
-              <ShieldCheck size={14} />
-              <span>کارتابل سرپرست</span>
-            </button>
-          )}
-
-          <div className="nav-tab-divider" aria-hidden="true" />
-
-          <button
-            type="button"
-            className={`nav-tab-btn ${viewMode === 'REPORT' ? 'active' : ''}`}
-            onClick={() => {
-              if (!activeSession) {
-                setActiveSession(SAMPLE_REAL_VISIT);
-              }
-              setViewMode('REPORT');
-            }}
-            aria-label="گزارش تحلیلی و نمودار رادار"
-          >
-            <BarChart3 size={14} />
-            <span>گزارش و رادار</span>
-            {!activeSession && (
-              <span style={{ fontSize: 12, background: 'rgba(0,176,240,0.2)', color: 'var(--rs-color-brand-cyan)', padding: '1px 6px', borderRadius: 8, fontWeight: 600 }}>
-                نمونه
-              </span>
-            )}
-          </button>
-
-          <button
-            type="button"
-            className={`nav-tab-btn ${viewMode === 'ACTIONS' ? 'active' : ''}`}
-            onClick={() => setViewMode('ACTIONS')}
-            aria-label="اقدامات اصلاحی و بهبود"
-          >
-            <Target size={14} />
-            <span>اقدامات اصلاحی</span>
-            <span
-              className="ltr-num"
-              style={{
-                fontSize: 12,
-                background: actions.length > 0 ? 'rgba(217,74,86,0.25)' : 'var(--theme-badge-bg)',
-                color: actions.length > 0 ? 'var(--rs-color-error)' : 'inherit',
-                padding: '1px 6px',
-                borderRadius: 10,
-                fontWeight: 700,
-              }}
-            >
-              {actions.length}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            className={`nav-tab-btn ${viewMode === 'REVISIT' ? 'active' : ''}`}
-            onClick={() => setViewMode('REVISIT')}
-            aria-label="مقایسه و روند بهبود"
-          >
-            <GitCompare size={14} />
-            <span>مقایسه و بهبود</span>
-          </button>
-
-          <div className="nav-tab-divider" aria-hidden="true" />
-
-          {/* Tools Dropdown to keep header clean (Audit Priority 5 / L1) */}
-          <div style={{ position: 'relative' }}>
-            <button
-              type="button"
-              className={`nav-tab-btn ${['SCENARIOS', 'CATALOG'].includes(viewMode) ? 'active' : ''}`}
-              onClick={() => setToolsDropdownOpen((prev) => !prev)}
-              aria-label="منوی ابزارهای پیشرفته سیستم"
-              aria-expanded={toolsDropdownOpen}
-            >
-              <Sliders size={14} />
-              <span>سایر ابزارها</span>
-              <ChevronDown size={13} style={{ transform: toolsDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 180ms ease' }} />
-            </button>
-
-            {toolsDropdownOpen && (
-              <div
+            <h2 className="top-nav-page-title">
+              {viewMode === 'WIZARD' && 'ارزیابی جدید'}
+              {viewMode === 'AUDIT' &&
+                (activeSession
+                  ? `${activeSession.brandName} • ${activeSession.branchName}`
+                  : 'فرم ارزیابی میدانی')}
+              {viewMode === 'REVIEW' && 'کنترل کیفیت و مرور پاسخ‌ها'}
+              {viewMode === 'SUPERVISOR' && 'کارتابل سرپرست ارزیابی'}
+              {viewMode === 'REPORT' && 'گزارش تحلیلی و رادار ۳۶۰°'}
+              {viewMode === 'REVISIT' && 'تحلیل مقایسه‌ای و پایش بهبود'}
+              {viewMode === 'ACTIONS' && 'کارتابل پیگیری اقدامات اصلاحی'}
+              {viewMode === 'CATALOG' && 'بانک جامع شاخص‌های استاندارد'}
+              {viewMode === 'SCENARIOS' && 'محیط تست و اجرای سناریوها'}
+            </h2>
+            {viewMode === 'AUDIT' && activeSession && (
+              <span
                 style={{
-                  position: 'absolute',
-                  top: 'calc(100% + 8px)',
-                  left: 0,
-                  background: 'var(--theme-card-bg)',
-                  border: '1px solid var(--theme-card-border)',
-                  borderRadius: 'var(--rs-radius-card)',
-                  boxShadow: 'var(--theme-card-shadow)',
-                  padding: 6,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 4,
-                  minWidth: 170,
-                  zIndex: 200,
+                  fontSize: 12,
+                  background: 'rgba(0,176,240,0.12)',
+                  color: 'var(--rs-color-brand-cyan)',
+                  padding: '2px 8px',
+                  borderRadius: 12,
+                  fontWeight: 700,
                 }}
               >
-                <button
-                  type="button"
-                  className={`nav-tab-btn ${viewMode === 'CATALOG' ? 'active' : ''}`}
-                  onClick={() => setViewMode('CATALOG')}
-                  style={{ width: '100%', justifyContent: 'flex-start', padding: '8px 12px' }}
-                  aria-label="بانک شاخص‌های استاندارد"
-                >
-                  <Database size={14} />
-                  <span>بانک شاخص‌ها</span>
-                </button>
-                <button
-                  type="button"
-                  className={`nav-tab-btn ${viewMode === 'SCENARIOS' ? 'active' : ''}`}
-                  onClick={() => setViewMode('SCENARIOS')}
-                  style={{ width: '100%', justifyContent: 'flex-start', padding: '8px 12px' }}
-                  aria-label="اجرای تست‌های سناریویی"
-                >
-                  <FlaskConical size={14} />
-                  <span>تست سناریوها</span>
-                </button>
-              </div>
+                {activeSession.assessmentType === 'STORE'
+                  ? 'فروشگاهی'
+                  : 'مجتمع تجاری'}
+              </span>
             )}
           </div>
-        </nav>
 
-        {/* Header Extra Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {/* Theme Mode Toggle (Sun / Moon) */}
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="theme-toggle-btn"
-            title={themeMode === 'light' ? 'تغییر به حالت شب (Dark Mode)' : 'تغییر به حالت روز (Light Mode)'}
-            aria-label="Toggle theme mode"
-          >
-            {themeMode === 'light' ? <Moon size={15} /> : <Sun size={15} color="#FBBF24" />}
-            <span className="theme-toggle-label">{themeMode === 'light' ? 'حالت شب' : 'حالت روز'}</span>
-          </button>
+          {/* Top Navbar Action Controls */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {viewMode === 'AUDIT' && (
+              <button
+                type="button"
+                onClick={() => setIsDesktopSplitView(!isDesktopSplitView)}
+                className="btn-secondary"
+                style={{ padding: '6px 12px', fontSize: 12, minHeight: 34 }}
+                title="تغییر نحوه نمایش دسکتاپ"
+                aria-label="تغییر نحوه نمایش دسکتاپ و موبایل"
+              >
+                {isDesktopSplitView ? <Smartphone size={14} /> : <Monitor size={14} />}
+                <span>
+                  {isDesktopSplitView
+                    ? 'نمای متمرکز (Focus)'
+                    : 'نمای سه ستونه (Split)'}
+                </span>
+              </button>
+            )}
 
-          {/* RBAC Role Selector (Requirement 22 & 24) */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              background: 'var(--theme-nav-btn-bg)',
-              padding: '4px 10px',
-              borderRadius: '20px',
-              border: '1px solid var(--theme-nav-btn-border)',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-            }}
-          >
-            <UserCheck size={14} color="var(--rs-color-brand-cyan)" />
-            <span style={{ fontSize: 11, color: 'var(--theme-text-muted)', fontWeight: 600 }}>نقش:</span>
-            <select
-              value={currentUserRole}
-              onChange={(e) => setCurrentUserRole(e.target.value as UserRole)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--theme-text-primary)',
-                fontSize: 11,
-                fontWeight: 700,
-                cursor: 'pointer',
-                outline: 'none',
-                fontFamily: 'var(--rs-font-fa)',
-              }}
-            >
-              <option value="Supervisor" style={{ color: '#16213E' }}>سرپرست (Supervisor)</option>
-              <option value="Evaluator" style={{ color: '#16213E' }}>ارزیاب (Evaluator)</option>
-              <option value="Manager" style={{ color: '#16213E' }}>مدیر (Manager)</option>
-              <option value="Owner" style={{ color: '#16213E' }}>مسئول رفع (Owner)</option>
-              <option value="Verifier" style={{ color: '#16213E' }}>تاییدکننده (Verifier)</option>
-              <option value="Admin" style={{ color: '#16213E' }}>مدیر سیستم (Admin)</option>
-            </select>
+            {activeSession && (
+              <button
+                type="button"
+                onClick={() => setShowDiscardModal(true)}
+                style={{
+                  background: 'rgba(217, 74, 86, 0.1)',
+                  border: '1px solid rgba(217, 74, 86, 0.3)',
+                  color: 'var(--rs-color-error)',
+                  padding: '6px 12px',
+                  borderRadius: 'var(--rs-radius-control)',
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  minHeight: 34,
+                  fontWeight: 600,
+                  transition: 'all var(--rs-duration-micro) var(--rs-ease-standard)',
+                }}
+                title="انصراف از بازدید و پاکسازی داده‌ها"
+                aria-label="انصراف از بازدید و پاکسازی داده‌ها"
+              >
+                <Trash2 size={13} />
+                <span>انصراف</span>
+              </button>
+            )}
           </div>
-          {viewMode === 'AUDIT' && (
-            <button
-              type="button"
-              onClick={() => setIsDesktopSplitView(!isDesktopSplitView)}
-              className="btn-secondary"
-              style={{ padding: '6px 10px', fontSize: 12, minHeight: 34 }}
-              title="تغییر نحوه نمایش دسکتاپ"
-              aria-label="تغییر نحوه نمایش دسکتاپ و موبایل"
-            >
-              {isDesktopSplitView ? <Smartphone size={14} /> : <Monitor size={14} />}
-              <span>{isDesktopSplitView ? 'نمای موبایل' : 'نمای Split دسکتاپ'}</span>
-            </button>
-          )}
-
-          {activeSession && (
-            <button
-              type="button"
-              onClick={() => setShowDiscardModal(true)}
-              style={{
-                background: 'rgba(217, 74, 86, 0.1)',
-                border: '1px solid rgba(217, 74, 86, 0.3)',
-                color: 'var(--rs-color-error)',
-                padding: '6px 10px',
-                borderRadius: 'var(--rs-radius-control)',
-                fontSize: 12,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-                minHeight: 34,
-                transition: 'all var(--rs-duration-micro) var(--rs-ease-standard)',
-              }}
-              title="انصراف از بازدید و پاکسازی داده‌ها"
-              aria-label="انصراف از بازدید و پاکسازی داده‌ها"
-            >
-              <Trash2 size={13} />
-              <span>انصراف</span>
-            </button>
-          )}
-        </div>
-      </header>
+        </header>
 
       {/* Section 20: Offline Warning Banner */}
       {!isOnline && (
@@ -1632,6 +1477,7 @@ export const App: React.FC = () => {
           </div>
         )}
       </main>
+      </div>
     </div>
   );
 };

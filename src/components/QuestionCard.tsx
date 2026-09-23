@@ -200,15 +200,23 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           </h2>
         </div>
 
-        {/* Negative Statement Clarifier Prompt */}
-        <div className="kpi-clarifier-banner">
-          <div className="kpi-clarifier-title">
-            <Info size={15} />
-            <span>آیا این نقص یا مشکل در محیط مشاهده می‌شود؟</span>
-          </div>
-          <p className="kpi-clarifier-text">
-            اگر فضا استاندارد، تمیز و بدون نقص است گزینه <strong>«وضعیت مناسب»</strong>، و در صورت مشاهده هرگونه ایراد یا مغایرت گزینه <strong>«اصطکاک»</strong> را ثبت نمایید.
-          </p>
+        {/* Compact Guidance Pill */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            background: 'rgba(0, 176, 240, 0.06)',
+            border: '1px solid rgba(0, 176, 240, 0.16)',
+            borderRadius: '10px',
+            padding: '7px 12px',
+            marginBottom: 16,
+            fontSize: 12,
+            color: 'var(--theme-text-muted)',
+          }}
+        >
+          <Info size={14} color="var(--rs-color-brand-cyan)" style={{ flexShrink: 0 }} />
+          <span>در صورت انطباق فضا با استاندارد <strong>«وضعیت مناسب»</strong>، و در صورت هرگونه نقص <strong>«اصطکاک»</strong> را ثبت کنید.</span>
         </div>
 
         {/* Answer Buttons (3 Distinct Options) */}
