@@ -16,6 +16,7 @@ import { ReviewScreen } from './components/ReviewScreen';
 import { ComparisonEngine } from './engine/comparisonEngine';
 import { RetailSolutionsLogo } from './components/brand/RetailSolutionsLogo';
 import { AppSidebar } from './components/layout/AppSidebar';
+import { MobileTabBar } from './components/layout/MobileTabBar';
 import { SAMPLE_REAL_VISIT } from './data/sampleRealVisit';
 import {
   CorrectiveAction,
@@ -889,6 +890,13 @@ export const App: React.FC = () => {
             >
               <Menu size={18} />
             </button>
+            <div className="mobile-only" style={{ display: 'none' }}>
+              <RetailSolutionsLogo
+                variant="badge"
+                size="xs"
+                colorScheme={themeMode}
+              />
+            </div>
             <h2 className="top-nav-page-title">
               {viewMode === 'WIZARD' && 'ارزیابی جدید'}
               {viewMode === 'AUDIT' &&
@@ -1477,6 +1485,15 @@ export const App: React.FC = () => {
           </div>
         )}
       </main>
+
+        {/* Mobile Bottom Tab Bar */}
+        <MobileTabBar
+          viewMode={viewMode}
+          onSelectViewMode={setViewMode}
+          activeSession={activeSession}
+          actionsCount={actions.length}
+          onOpenMobileMenu={() => setIsMobileSidebarOpen(true)}
+        />
       </div>
     </div>
   );

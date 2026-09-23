@@ -79,6 +79,24 @@ export interface MallProfile {
 
 export type AssessmentProfile = StoreProfile | MallProfile;
 
+export interface SavedStoreDirectoryItem {
+  id: string;
+  brandName: string;
+  branchName: string;
+  assessmentType: AssessmentType;
+  businessType?: BusinessTypeCode;
+  locationContext: LocationContextCode;
+  storeFormat?: StoreFormatCode;
+  mallType?: MallTypeCode;
+  attributes: StoreAttributes;
+  auditorName?: string;
+  supervisorName?: string;
+  address?: string;
+  city?: string;
+  lastVisitedAt?: string;
+  createdAt: string;
+}
+
 export type IndicatorStatus = 'DRAFT' | 'NEEDS_REVIEW' | 'ACTIVE' | 'ARCHIVED';
 
 export interface Indicator {

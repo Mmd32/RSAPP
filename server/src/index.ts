@@ -59,10 +59,12 @@ const VISITS_STORE_PATH = path.resolve(__dirname, '../../data/visits.json');
 const ACTIONS_STORE_PATH = path.resolve(__dirname, '../../data/actions.json');
 const AUDIT_STORE_PATH = path.resolve(__dirname, '../../data/action_audit_logs.json');
 const ORGS_STORE_PATH = path.resolve(__dirname, '../../data/organizations.json');
+const STORES_STORE_PATH = path.resolve(__dirname, '../../data/stores.json');
 
 let visits: Record<string, any> = {};
 let actions: Record<string, CorrectiveAction> = {};
 let auditLogs: ActionAuditLog[] = [];
+let storeDirectory: any[] = [];
 let organizations: Record<string, any> = {
   org_retail_holding: {
     id: 'org_retail_holding',
@@ -95,6 +97,11 @@ function loadStores() {
       organizations = JSON.parse(fs.readFileSync(ORGS_STORE_PATH, 'utf-8'));
     } catch (e) {}
   }
+  if (fs.existsSync(STORES_STORE_PATH)) {
+    try {
+      storeDirectory = JSON.parse(fs.readFileSync(STORES_STORE_PATH, 'utf-8'));
+    } catch (e) {}
+  }
 }
 
 loadStores();
@@ -110,6 +117,9 @@ function persistAudit() {
 }
 function persistOrgs() {
   fs.writeFileSync(ORGS_STORE_PATH, JSON.stringify(organizations, null, 2), 'utf-8');
+}
+function persistStores() {
+  fs.writeFileSync(STORES_STORE_PATH, JSON.stringify(storeDirectory, null, 2), 'utf-8');
 }
 
 // ----------------------------------------------------------------------------
@@ -193,6 +203,83 @@ app.post('/api/organizations', (req: Request, res: Response) => {
 });
 
 // ----------------------------------------------------------------------------
+// STORES DIRECTORY PERSISTENCE ENDPOINTS
+// ----------------------------------------------------------------------------
+app.get('/api/stores', (req: Request, res: Response) => {
+  const { search, assessmentType, brandName } = req.query;
+  let list = [...storeDirectory];
+
+  if (assessmentType) {
+    list = list.filter((s) => s.assessmentType === assessmentType);
+  }
+  if (brandName) {
+    list = list.filter((s) => s.brandName === brandName);
+  }
+  if (search) {
+    const q = (search as string).toLowerCase();
+    list = list.filter(
+      (s) =>
+        (s.brandName && s.brandName.toLowerCase().includes(q)) ||
+        (s.branchName && s.branchName.toLowerCase().includes(q)) ||
+        (s.address && s.address.toLowerCase().includes(q)) ||
+        (s.businessType && s.businessType.toLowerCase().includes(q))
+    );
+  }
+
+  // Sort by last visited or created date
+  list.sort((a, b) => new Date(b.lastVisitedAt || b.createdAt).getTime() - new Date(a.lastVisitedAt || a.createdAt).getTime());
+  res.json(list);
+});
+
+app.post('/api/stores', (req: Request, res: Response) => {
+  const storeData = req.body;
+  if (!storeData.brandName || !storeData.branchName) {
+    return res.status(400).json({ error: 'brandName and branchName are required' });
+  }
+
+  const existingIdx = storeDirectory.findIndex(
+    (s) => s.brandName.trim().toLowerCase() === storeData.brandName.trim().toLowerCase() &&
+           s.branchName.trim().toLowerCase() === storeData.branchName.trim().toLowerCase()
+  );
+
+  const now = new Date().toISOString();
+  let savedStore;
+
+  if (existingIdx >= 0) {
+    storeDirectory[existingIdx] = {
+      ...storeDirectory[existingIdx],
+      ...storeData,
+      updatedAt: now,
+    };
+    savedStore = storeDirectory[existingIdx];
+  } else {
+    savedStore = {
+      id: storeData.id || `store_${Date.now()}`,
+      ...storeData,
+      createdAt: now,
+      updatedAt: now,
+    };
+    storeDirectory.unshift(savedStore);
+  }
+
+  persistStores();
+  res.status(201).json(savedStore);
+});
+
+app.delete('/api/stores/:id', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const initialLen = storeDirectory.length;
+  storeDirectory = storeDirectory.filter((s) => s.id !== id);
+
+  if (storeDirectory.length !== initialLen) {
+    persistStores();
+    res.json({ success: true, message: 'Store removed from directory' });
+  } else {
+    res.status(404).json({ error: 'Store not found' });
+  }
+});
+
+// ----------------------------------------------------------------------------
 // VISITS ENDPOINTS
 // ----------------------------------------------------------------------------
 app.get('/api/visits', (req: Request, res: Response) => {
@@ -214,6 +301,48 @@ app.post('/api/visits', (req: Request, res: Response) => {
     createdAt: new Date().toISOString(),
   };
   persistVisits();
+
+  // Auto-upsert into stores directory for instant future reuse
+  if (visitData.brandName && visitData.branchName) {
+    const existingIdx = storeDirectory.findIndex(
+      (s) => s.brandName.trim().toLowerCase() === visitData.brandName.trim().toLowerCase() &&
+             s.branchName.trim().toLowerCase() === visitData.branchName.trim().toLowerCase()
+    );
+
+    const now = new Date().toISOString();
+    if (existingIdx >= 0) {
+      storeDirectory[existingIdx] = {
+        ...storeDirectory[existingIdx],
+        assessmentType: visitData.assessmentType || storeDirectory[existingIdx].assessmentType,
+        businessType: visitData.businessType || storeDirectory[existingIdx].businessType,
+        locationContext: visitData.locationContext || storeDirectory[existingIdx].locationContext,
+        storeFormat: visitData.storeFormat || storeDirectory[existingIdx].storeFormat,
+        mallType: visitData.mallType || storeDirectory[existingIdx].mallType,
+        attributes: visitData.attributes || storeDirectory[existingIdx].attributes,
+        auditorName: visitData.auditorName || storeDirectory[existingIdx].auditorName,
+        supervisorName: visitData.supervisorName || storeDirectory[existingIdx].supervisorName,
+        lastVisitedAt: now,
+      };
+    } else {
+      storeDirectory.unshift({
+        id: `store_${Date.now()}`,
+        brandName: visitData.brandName,
+        branchName: visitData.branchName,
+        assessmentType: visitData.assessmentType || 'STORE',
+        businessType: visitData.businessType || 'Fashion',
+        locationContext: visitData.locationContext || 'STREET_STORE',
+        storeFormat: visitData.storeFormat || 'CHAIN',
+        mallType: visitData.mallType,
+        attributes: visitData.attributes || {},
+        auditorName: visitData.auditorName,
+        supervisorName: visitData.supervisorName,
+        lastVisitedAt: now,
+        createdAt: now,
+      });
+    }
+    persistStores();
+  }
+
   res.status(201).json(visits[id]);
 });
 
