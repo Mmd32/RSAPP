@@ -1,9 +1,19 @@
 import express, { Request, Response, NextFunction } from 'express';
-import cors from 'cors';
+import cors, { CorsOptions } from 'cors';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { logger } from './logger.js';
+import {
+  ALLOWED_ORIGINS,
+  CLIENT_DIST_DIR,
+  DATA_DIR,
+  HOST,
+  PORT,
+  SERVE_CLIENT,
+  dataPath,
+  ensureDir,
+  writeJsonAtomic,
+} from './config.js';
 import { defaultStorageProvider } from './storage/storageProvider.js';
 import {
   CorrectiveAction,
@@ -17,14 +27,30 @@ import {
   SCORING_PROFILES_REGISTRY,
 } from '../../src/engine/scoringEngine';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const CATALOG_PATH = path.resolve(__dirname, '../../data/catalog.json');
+const CATALOG_PATH = dataPath('catalog.json');
+
+ensureDir(DATA_DIR);
 
 const app = express();
-const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+// Same-origin deployments need no allowlist; set ALLOWED_ORIGINS once the
+// frontend is served from a different domain than the API.
+const corsOptions: CorsOptions =
+  ALLOWED_ORIGINS.length > 0
+    ? {
+        origin: (origin, callback) => {
+          // Non-browser callers (curl, health checks) send no Origin header.
+          if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+            return callback(null, true);
+          }
+          logger.security('Blocked cross-origin request', { origin });
+          return callback(new Error('Origin not allowed by CORS policy'));
+        },
+        credentials: true,
+      }
+    : {};
+
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '20mb' }));
 
 // Request logging middleware
@@ -55,11 +81,11 @@ try {
 // ----------------------------------------------------------------------------
 // PERSISTENT DATA STORES
 // ----------------------------------------------------------------------------
-const VISITS_STORE_PATH = path.resolve(__dirname, '../../data/visits.json');
-const ACTIONS_STORE_PATH = path.resolve(__dirname, '../../data/actions.json');
-const AUDIT_STORE_PATH = path.resolve(__dirname, '../../data/action_audit_logs.json');
-const ORGS_STORE_PATH = path.resolve(__dirname, '../../data/organizations.json');
-const STORES_STORE_PATH = path.resolve(__dirname, '../../data/stores.json');
+const VISITS_STORE_PATH = dataPath('visits.json');
+const ACTIONS_STORE_PATH = dataPath('actions.json');
+const AUDIT_STORE_PATH = dataPath('action_audit_logs.json');
+const ORGS_STORE_PATH = dataPath('organizations.json');
+const STORES_STORE_PATH = dataPath('stores.json');
 
 let visits: Record<string, any> = {};
 let actions: Record<string, CorrectiveAction> = {};
@@ -76,50 +102,50 @@ let organizations: Record<string, any> = {
   },
 };
 
+function readJsonStore<T>(filePath: string, fallback: T): T {
+  if (!fs.existsSync(filePath)) return fallback;
+  try {
+    return JSON.parse(fs.readFileSync(filePath, 'utf-8')) as T;
+  } catch (e) {
+    // A corrupt store must not take the API down; fall back and say so loudly.
+    logger.error(`Could not parse data store ${path.basename(filePath)}`, e);
+    return fallback;
+  }
+}
+
 function loadStores() {
-  if (fs.existsSync(VISITS_STORE_PATH)) {
-    try {
-      visits = JSON.parse(fs.readFileSync(VISITS_STORE_PATH, 'utf-8'));
-    } catch (e) {}
-  }
-  if (fs.existsSync(ACTIONS_STORE_PATH)) {
-    try {
-      actions = JSON.parse(fs.readFileSync(ACTIONS_STORE_PATH, 'utf-8'));
-    } catch (e) {}
-  }
-  if (fs.existsSync(AUDIT_STORE_PATH)) {
-    try {
-      auditLogs = JSON.parse(fs.readFileSync(AUDIT_STORE_PATH, 'utf-8'));
-    } catch (e) {}
-  }
-  if (fs.existsSync(ORGS_STORE_PATH)) {
-    try {
-      organizations = JSON.parse(fs.readFileSync(ORGS_STORE_PATH, 'utf-8'));
-    } catch (e) {}
-  }
-  if (fs.existsSync(STORES_STORE_PATH)) {
-    try {
-      storeDirectory = JSON.parse(fs.readFileSync(STORES_STORE_PATH, 'utf-8'));
-    } catch (e) {}
-  }
+  visits = readJsonStore(VISITS_STORE_PATH, visits);
+  actions = readJsonStore(ACTIONS_STORE_PATH, actions);
+  auditLogs = readJsonStore(AUDIT_STORE_PATH, auditLogs);
+  organizations = readJsonStore(ORGS_STORE_PATH, organizations);
+  storeDirectory = readJsonStore(STORES_STORE_PATH, storeDirectory);
 }
 
 loadStores();
 
+function persist(filePath: string, value: unknown) {
+  try {
+    writeJsonAtomic(filePath, value);
+  } catch (e) {
+    // Read-only or full disk: keep serving requests, but make it visible.
+    logger.error(`Failed to persist ${path.basename(filePath)}`, e);
+  }
+}
+
 function persistVisits() {
-  fs.writeFileSync(VISITS_STORE_PATH, JSON.stringify(visits, null, 2), 'utf-8');
+  persist(VISITS_STORE_PATH, visits);
 }
 function persistActions() {
-  fs.writeFileSync(ACTIONS_STORE_PATH, JSON.stringify(actions, null, 2), 'utf-8');
+  persist(ACTIONS_STORE_PATH, actions);
 }
 function persistAudit() {
-  fs.writeFileSync(AUDIT_STORE_PATH, JSON.stringify(auditLogs, null, 2), 'utf-8');
+  persist(AUDIT_STORE_PATH, auditLogs);
 }
 function persistOrgs() {
-  fs.writeFileSync(ORGS_STORE_PATH, JSON.stringify(organizations, null, 2), 'utf-8');
+  persist(ORGS_STORE_PATH, organizations);
 }
 function persistStores() {
-  fs.writeFileSync(STORES_STORE_PATH, JSON.stringify(storeDirectory, null, 2), 'utf-8');
+  persist(STORES_STORE_PATH, storeDirectory);
 }
 
 // ----------------------------------------------------------------------------
@@ -746,13 +772,9 @@ app.get('/api/actions-analytics', (req: Request, res: Response) => {
     medianResolutionHours: medianHours,
     overdueRate: open > 0 ? Math.round((overdue / open) * 100) : 0,
     recurrenceRate: 0,
-    criticalResolutionRate: critical > 0 ? Math.round((criticalResolvedCount(list) / critical) * 100) : 100,
+    criticalResolutionRate: critical > 0 ? Math.round((criticalResolved / critical) * 100) : 100,
   });
 });
-
-function criticalResolvedCount(list: CorrectiveAction[]) {
-  return list.filter((a) => a.priority === 'CRITICAL' && (a.status === 'RESOLVED' || a.status === 'VERIFIED')).length;
-}
 
 // ----------------------------------------------------------------------------
 // REVISIT & HISTORICAL COMPARISON (Requirements 13-17, 19)
@@ -765,7 +787,9 @@ app.get('/api/branches/:branchName/visits', (req: Request, res: Response) => {
   res.json(list);
 });
 
-// Storage upload verification endpoint
+// ----------------------------------------------------------------------------
+// FILE STORAGE
+// ----------------------------------------------------------------------------
 app.post('/api/storage/upload', (req: Request, res: Response) => {
   const { key, base64Data, mimeType } = req.body;
   if (!key || !base64Data) {
@@ -776,6 +800,22 @@ app.post('/api/storage/upload', (req: Request, res: Response) => {
     .saveBuffer(buffer, path.basename(key), mimeType || 'image/jpeg', 'default')
     .then((meta) => res.json(meta))
     .catch((err) => res.status(400).json({ error: err.message }));
+});
+
+// Serves an uploaded evidence file. Matches the download URLs the storage
+// provider hands out (`/api/storage/files/<tenant>/<uuid>.<ext>`).
+app.get('/api/storage/files/:storageKey(*)', (req: Request, res: Response) => {
+  const storageKey = decodeURIComponent(req.params.storageKey);
+  const filePath = defaultStorageProvider.resolveKey(storageKey);
+
+  if (!filePath) {
+    logger.security('Blocked path traversal attempt on storage', { storageKey });
+    return res.status(400).json({ error: 'Invalid storage key' });
+  }
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ error: 'File not found' });
+  }
+  res.sendFile(filePath);
 });
 
 // Scenarios evaluation endpoint (Unchanged)
@@ -792,6 +832,46 @@ app.get('/api/test-scenarios', (req: Request, res: Response) => {
   res.json(scenarios);
 });
 
-app.listen(PORT, () => {
-  console.log(`RSAPP Backend API Server running on port ${PORT}`);
+// Unknown API routes must return JSON, never the SPA shell below.
+app.use('/api', (req: Request, res: Response) => {
+  res.status(404).json({ error: `Unknown API endpoint: ${req.method} ${req.path}` });
 });
+
+// ----------------------------------------------------------------------------
+// STATIC FRONTEND (single-service deployment)
+// ----------------------------------------------------------------------------
+// When `npm run build` has produced `dist/`, the API also serves the SPA, so
+// one free-tier web service can host the whole app on a single origin.
+const clientAvailable = SERVE_CLIENT && fs.existsSync(path.join(CLIENT_DIST_DIR, 'index.html'));
+
+if (clientAvailable) {
+  app.use(express.static(CLIENT_DIST_DIR));
+  app.get('*', (req: Request, res: Response) => {
+    res.sendFile(path.join(CLIENT_DIST_DIR, 'index.html'));
+  });
+} else if (SERVE_CLIENT) {
+  console.log(`No frontend build found at ${CLIENT_DIST_DIR}; serving API only. Run "npm run build" to bundle the UI.`);
+}
+
+// ----------------------------------------------------------------------------
+// ERROR HANDLING & STARTUP
+// ----------------------------------------------------------------------------
+app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
+  logger.error('Unhandled request error', err, { method: req.method, path: req.path });
+  if (res.headersSent) return;
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+const server = app.listen(PORT, HOST, () => {
+  console.log(`RSAPP Backend API Server running on http://${HOST}:${PORT}`);
+  console.log(`Data directory: ${DATA_DIR}`);
+  console.log(`Frontend: ${clientAvailable ? CLIENT_DIST_DIR : 'not served (API only)'}`);
+});
+
+// Managed hosts send SIGTERM on redeploy; finish in-flight requests first.
+for (const signal of ['SIGTERM', 'SIGINT'] as const) {
+  process.on(signal, () => {
+    console.log(`${signal} received, shutting down.`);
+    server.close(() => process.exit(0));
+  });
+}

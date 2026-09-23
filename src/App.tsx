@@ -11,6 +11,7 @@ import {
 import { StartVisitWizard } from './components/StartVisitWizard';
 import { LandingPage } from './components/landing/LandingPage';
 import { StoreService } from './services/storeService';
+import { apiFetch, apiSync } from './services/apiClient';
 import { FormOverview } from './components/FormOverview';
 import { QuestionCard } from './components/QuestionCard';
 import { FrictionSheet } from './components/FrictionSheet';
@@ -396,6 +397,27 @@ export const App: React.FC = () => {
     }
   }, []);
 
+  // Hydrate corrective actions from the backend on mount. Demo seed data stays
+  // in place when the API is unreachable so the app remains usable offline.
+  useEffect(() => {
+    let cancelled = false;
+
+    apiFetch('/actions', { tenantId: currentTenantId, userRole: currentUserRole, userName: currentUserName })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((serverActions: CorrectiveAction[] | null) => {
+        if (cancelled || !Array.isArray(serverActions) || serverActions.length === 0) return;
+        setActions(serverActions);
+      })
+      .catch((err) => {
+        console.warn('Corrective actions could not be loaded from the backend; using local data.', err);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+    // Re-fetch when the active tenant changes.
+  }, [currentTenantId]);
+
   // Autosave to localStorage and background API sync (Dual Persistence for field durability)
   const saveVisitState = (session: VisitSession) => {
     setIsSaving(true);
@@ -425,18 +447,11 @@ export const App: React.FC = () => {
     }
 
     // 2. Dual Background API Sync (Persist to backend data/visits.json & auto-upsert store directory)
-    try {
-      fetch('/api/visits', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(sessionWithAnalytics),
-      }).catch((apiErr) => {
-        // Silent offline fallback - localStorage is already safe
-        console.warn('Backend background sync deferred (offline or server unreachable):', apiErr);
-      });
-    } catch (e) {
-      // Ignore background sync errors
-    }
+    apiSync('/visits', {
+      method: 'POST',
+      body: JSON.stringify(sessionWithAnalytics),
+      tenantId: currentTenantId,
+    });
 
     setTimeout(() => {
       setIsSaving(false);
@@ -757,16 +772,13 @@ export const App: React.FC = () => {
 
     setActions((prev) => [newAction, ...prev]);
 
-    fetch('http://localhost:3001/api/actions', {
+    apiSync('/actions', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-tenant-id': currentTenantId,
-        'x-user-role': currentUserRole,
-        'x-user-name': currentUserName,
-      },
       body: JSON.stringify(newAction),
-    }).catch((e) => console.log('Backend sync offline:', e));
+      tenantId: currentTenantId,
+      userRole: currentUserRole,
+      userName: currentUserName,
+    });
 
     setViewMode('ACTIONS');
   };
@@ -776,15 +788,13 @@ export const App: React.FC = () => {
       prev.map((a) => (a.id === id ? { ...a, ...updates, updatedAt: new Date().toISOString() } : a))
     );
 
-    fetch(`http://localhost:3001/api/actions/${id}`, {
+    apiSync(`/actions/${id}`, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-user-role': currentUserRole,
-        'x-user-name': currentUserName,
-      },
       body: JSON.stringify(updates),
-    }).catch((e) => console.log('Backend sync offline:', e));
+      tenantId: currentTenantId,
+      userRole: currentUserRole,
+      userName: currentUserName,
+    });
   };
 
   const handleResolveCorrectiveAction = (
@@ -808,15 +818,13 @@ export const App: React.FC = () => {
       })
     );
 
-    fetch(`http://localhost:3001/api/actions/${id}/resolve`, {
+    apiSync(`/actions/${id}/resolve`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-user-role': currentUserRole,
-        'x-user-name': currentUserName,
-      },
       body: JSON.stringify({ resolutionNote, afterPhotos, rootCause }),
-    }).catch((e) => console.log('Backend sync offline:', e));
+      tenantId: currentTenantId,
+      userRole: currentUserRole,
+      userName: currentUserName,
+    });
   };
 
   const handleVerifyCorrectiveAction = (id: string, verificationNote?: string) => {
@@ -834,15 +842,13 @@ export const App: React.FC = () => {
       })
     );
 
-    fetch(`http://localhost:3001/api/actions/${id}/verify`, {
+    apiSync(`/actions/${id}/verify`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-user-role': currentUserRole,
-        'x-user-name': currentUserName,
-      },
       body: JSON.stringify({ verificationNote }),
-    }).catch((e) => console.log('Backend sync offline:', e));
+      tenantId: currentTenantId,
+      userRole: currentUserRole,
+      userName: currentUserName,
+    });
   };
 
   const handleReopenCorrectiveAction = (id: string, comment: string) => {
@@ -867,15 +873,13 @@ export const App: React.FC = () => {
       })
     );
 
-    fetch(`http://localhost:3001/api/actions/${id}/reopen`, {
+    apiSync(`/actions/${id}/reopen`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-user-role': currentUserRole,
-        'x-user-name': currentUserName,
-      },
       body: JSON.stringify({ comment }),
-    }).catch((e) => console.log('Backend sync offline:', e));
+      tenantId: currentTenantId,
+      userRole: currentUserRole,
+      userName: currentUserName,
+    });
   };
 
   const isVisitReadOnly = activeSession?.status === 'SUBMITTED' || activeSession?.status === 'APPROVED';

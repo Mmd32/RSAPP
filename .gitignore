@@ -41,3 +41,7 @@ Thumbs.db
 # Temporary / Scratch
 *.tmp
 scratch_retail_solutions.css
+
+# Runtime-generated data
+data/logs/
+data/uploads/

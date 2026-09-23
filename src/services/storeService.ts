@@ -1,7 +1,8 @@
 import { SavedStoreDirectoryItem } from '../types';
+import { apiFetch } from './apiClient';
 
 const LOCAL_STORAGE_KEY = 'RSAPP_STORE_DIRECTORY_CACHE';
-const API_BASE_URL = 'http://localhost:3001/api/stores';
+const STORES_ENDPOINT = '/stores';
 
 // Default seed stores if offline or empty
 const SEED_STORES: SavedStoreDirectoryItem[] = [
@@ -183,9 +184,7 @@ export const StoreService = {
   async getAllStores(): Promise<SavedStoreDirectoryItem[]> {
     const local = this.getLocalStores();
     try {
-      const res = await fetch(API_BASE_URL, {
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const res = await apiFetch(STORES_ENDPOINT);
       if (res.ok) {
         const serverStores: SavedStoreDirectoryItem[] = await res.json();
         if (Array.isArray(serverStores) && serverStores.length > 0) {
@@ -249,9 +248,8 @@ export const StoreService = {
 
     // Sync with server if online
     try {
-      await fetch(API_BASE_URL, {
+      await apiFetch(STORES_ENDPOINT, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(saved),
       });
     } catch (e) {
@@ -267,7 +265,7 @@ export const StoreService = {
     this.setLocalStores(local);
 
     try {
-      await fetch(`${API_BASE_URL}/${id}`, {
+      await apiFetch(`${STORES_ENDPOINT}/${id}`, {
         method: 'DELETE',
       });
     } catch (e) {}
