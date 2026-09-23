@@ -12,6 +12,7 @@ import { StartVisitWizard } from './components/StartVisitWizard';
 import { LandingPage } from './components/landing/LandingPage';
 import { StoreService } from './services/storeService';
 import { apiFetch, apiSync } from './services/apiClient';
+import { VisitSync, fetchPastVisits } from './services/visitService';
 import { FormOverview } from './components/FormOverview';
 import { QuestionCard } from './components/QuestionCard';
 import { FrictionSheet } from './components/FrictionSheet';
@@ -69,6 +70,9 @@ const VisitReportView = React.lazy(() =>
 const CorrectiveActionsHub = React.lazy(() =>
   import('./components/CorrectiveActionsHub').then((m) => ({ default: m.CorrectiveActionsHub }))
 );
+const VisitArchive = React.lazy(() =>
+  import('./components/VisitArchive').then((m) => ({ default: m.VisitArchive }))
+);
 const RevisitComparisonView = React.lazy(() =>
   import('./components/RevisitComparisonView').then((m) => ({ default: m.RevisitComparisonView }))
 );
@@ -119,7 +123,8 @@ type ViewMode =
   | 'CATALOG'
   | 'SCENARIOS'
   | 'ACTIONS'
-  | 'REVISIT';
+  | 'REVISIT'
+  | 'ARCHIVE';
 
 const LOCAL_STORAGE_KEY = 'rsapp_active_visit_v1';
 
@@ -320,6 +325,8 @@ export const App: React.FC = () => {
 
   // Past Visits for Comparison & Historical tracking
   const [pastVisits, setPastVisits] = useState<VisitSession[]>([]);
+  const [isLoadingVisits, setIsLoadingVisits] = useState(false);
+  const [visitsLoadError, setVisitsLoadError] = useState<string | null>(null);
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [currentStage, setCurrentStage] = useState<string>('APPROACH');
@@ -418,6 +425,56 @@ export const App: React.FC = () => {
     // Re-fetch when the active tenant changes.
   }, [currentTenantId]);
 
+  // Load previously saved questionnaires so finished visits are reachable
+  // again. Without this they were written to the backend but never read back.
+  const loadPastVisits = React.useCallback(() => {
+    setIsLoadingVisits(true);
+    setVisitsLoadError(null);
+
+    return fetchPastVisits(currentTenantId)
+      .then((visits) => {
+        setPastVisits(visits);
+      })
+      .catch((err) => {
+        console.warn('Could not load saved visits from the backend.', err);
+        setVisitsLoadError(err instanceof Error ? err.message : String(err));
+      })
+      .finally(() => setIsLoadingVisits(false));
+  }, [currentTenantId]);
+
+  useEffect(() => {
+    loadPastVisits();
+  }, [loadPastVisits]);
+
+  // A field audit often ends by locking the phone or closing the tab, which is
+  // exactly when a debounced write would be lost. Flush on the way out.
+  useEffect(() => {
+    const handleHide = () => {
+      if (document.visibilityState === 'hidden') {
+        VisitSync.flushOnUnload(currentTenantId);
+      }
+    };
+    const handlePageHide = () => VisitSync.flushOnUnload(currentTenantId);
+
+    document.addEventListener('visibilitychange', handleHide);
+    window.addEventListener('pagehide', handlePageHide);
+    return () => {
+      document.removeEventListener('visibilitychange', handleHide);
+      window.removeEventListener('pagehide', handlePageHide);
+    };
+  }, [currentTenantId]);
+
+  // Retry a deferred sync as soon as connectivity returns.
+  useEffect(() => {
+    const handleBackOnline = () => {
+      if (VisitSync.hasPendingWork()) {
+        VisitSync.flush(currentTenantId);
+      }
+    };
+    window.addEventListener('online', handleBackOnline);
+    return () => window.removeEventListener('online', handleBackOnline);
+  }, [currentTenantId]);
+
   // Autosave to localStorage and background API sync (Dual Persistence for field durability)
   const saveVisitState = (session: VisitSession) => {
     setIsSaving(true);
@@ -447,11 +504,9 @@ export const App: React.FC = () => {
     }
 
     // 2. Dual Background API Sync (Persist to backend data/visits.json & auto-upsert store directory)
-    apiSync('/visits', {
-      method: 'POST',
-      body: JSON.stringify(sessionWithAnalytics),
-      tenantId: currentTenantId,
-    });
+    // Coalesced background sync. A session carries its whole indicator set, so
+    // posting on every answer would push hundreds of megabytes over one audit.
+    VisitSync.queue(sessionWithAnalytics, currentTenantId);
 
     setTimeout(() => {
       setIsSaving(false);
@@ -690,6 +745,30 @@ export const App: React.FC = () => {
     setViewMode('AUDIT');
   };
 
+  /**
+   * Reopens a saved questionnaire. An in-progress visit becomes the active
+   * session again; a submitted or approved one opens read-only, which the
+   * existing `isVisitReadOnly` check already enforces downstream.
+   */
+  const handleOpenArchivedVisit = (visit: VisitSession) => {
+    // Make sure any queued write for the current session lands first, so
+    // switching away from a half-finished audit cannot drop answers.
+    VisitSync.flush(currentTenantId);
+
+    setActiveSession(visit);
+    setCurrentQuestionIndex(0);
+    if (visit.indicators?.length > 0) {
+      setCurrentStage(visit.indicators[0].journeyStage);
+    }
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(visit));
+    } catch (e) {
+      console.error('Storage error', e);
+    }
+    setResumeCandidate(null);
+    setViewMode(visit.status === 'IN_PROGRESS' ? 'AUDIT' : 'REPORT');
+  };
+
   const handleSubmitVisit = () => {
     if (!activeSession) return;
     const updated: VisitSession = {
@@ -698,6 +777,8 @@ export const App: React.FC = () => {
       completedAt: new Date().toISOString(),
     };
     saveVisitState(updated);
+    // Submitting is a milestone: push it now rather than waiting for the debounce.
+    VisitSync.flush(currentTenantId).then(loadPastVisits);
     setViewMode('SUPERVISOR');
   };
 
@@ -713,6 +794,7 @@ export const App: React.FC = () => {
       findingDecisions: decisions,
     };
     saveVisitState(updated);
+    VisitSync.flush(currentTenantId).then(loadPastVisits);
     setViewMode('REPORT');
   };
 
@@ -728,6 +810,7 @@ export const App: React.FC = () => {
       findingDecisions: decisions,
     };
     saveVisitState(updated);
+    VisitSync.flush(currentTenantId).then(loadPastVisits);
     setViewMode('AUDIT');
   };
 
@@ -1467,6 +1550,17 @@ export const App: React.FC = () => {
             />
           )}
 
+          {/* SAVED QUESTIONNAIRES */}
+          {viewMode === 'ARCHIVE' && (
+            <VisitArchive
+              visits={pastVisits}
+              isLoading={isLoadingVisits}
+              loadError={visitsLoadError}
+              onRefresh={loadPastVisits}
+              onOpenVisit={handleOpenArchivedVisit}
+            />
+          )}
+
           {/* REVISIT HISTORICAL COMPARISON VIEW (Prompt 4) */}
           {viewMode === 'REVISIT' && (
             <RevisitComparisonView
@@ -1478,6 +1572,10 @@ export const App: React.FC = () => {
                   : []
               }
               actions={actions}
+              onSelectVisitForAudit={(visitId) => {
+                const visit = pastVisits.find((v) => v.id === visitId);
+                if (visit) handleOpenArchivedVisit(visit);
+              }}
               onNavigateToActions={() => setViewMode('ACTIONS')}
             />
           )}

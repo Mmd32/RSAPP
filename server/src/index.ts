@@ -338,12 +338,26 @@ app.post(
   '/api/visits',
   route(async (req, res) => {
     const visitData = req.body;
+    if (!visitData || typeof visitData !== 'object') {
+      return res.status(400).json({ error: 'A visit object is required.' });
+    }
+
     const id = visitData.id || `visit_${Date.now()}`;
+
+    // navigator.sendBeacon cannot set headers, so the unload path passes the
+    // tenant in the query string instead.
+    const tenantId =
+      visitData.tenantId || (req.query.tenantId as string) || tenantOf(req);
+
+    // Saves are repeated upserts of the same questionnaire as it is filled in,
+    // so the original creation time must not be rewritten on every save.
+    const existing = await store.getVisit(id);
     const visit = {
       ...visitData,
       id,
-      tenantId: visitData.tenantId || tenantOf(req),
-      createdAt: new Date().toISOString(),
+      tenantId,
+      createdAt: existing?.createdAt || visitData.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
     await store.saveVisit(visit);
 
