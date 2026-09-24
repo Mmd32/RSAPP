@@ -6,6 +6,29 @@
 
 /* Fonts loaded via <link> in index.html — do NOT duplicate with @import here */
 
+/* ===========================================================================
+   VAZIRMATN — self-hosted
+   ===========================================================================
+   The Persian face was previously fetched from Google Fonts with a jsDelivr
+   fallback. Both are routinely blocked or throttled from Iran, where this app
+   is used, and when they fail the browser silently falls back to a system font
+   -- so the interface renders in the wrong typeface with no error anywhere.
+   Serving the font from our own origin removes that dependency entirely.
+
+   One variable file covers weights 100-900 (111 KB), which is a single request
+   instead of the nine static weights the design uses.
+   =========================================================================== */
+@font-face {
+  font-family: 'Vazirmatn';
+  src: url('/fonts/Vazirmatn-Variable.woff2') format('woff2-variations'),
+       url('/fonts/Vazirmatn-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  /* Show fallback text immediately, swap when the face arrives: an auditor
+     should never wait on a font to read a question. */
+  font-display: swap;
+}
+
 :root {
   /* --- Brand Typography (Elevated for Executive Elegance) --- */
   --rs-font-fa: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
