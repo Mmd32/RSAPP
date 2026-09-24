@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import { logger } from '../logger.js';
-import { dataPath, writeJsonAtomic } from '../config.js';
+import { dataPath, ensureDir, writeJsonAtomic } from '../config.js';
 import { CorrectiveAction, ActionAuditLog } from '../types/actions.js';
-import { DataStore, VisitFilter } from './types.js';
+import { DataStore, VisitFilter, StoredPhoto, PhotoMetadata } from './types.js';
 
 const DEFAULT_TENANT = 'org_retail_holding';
 
@@ -37,6 +37,11 @@ export class JsonDataStore implements DataStore {
   private readonly auditPath = dataPath('action_audit_logs.json');
   private readonly orgsPath = dataPath('organizations.json');
   private readonly storesPath = dataPath('stores.json');
+  private readonly photosIndexPath = dataPath('photos.json');
+  private readonly photosDir = dataPath('uploads');
+
+  /** Photo bytes live as files; this index holds their metadata. */
+  private photoIndex: Record<string, PhotoMetadata> = {};
 
   async init(): Promise<void> {
     this.visits = this.read(this.visitsPath, this.visits);
@@ -44,6 +49,7 @@ export class JsonDataStore implements DataStore {
     this.auditLogs = this.read(this.auditPath, this.auditLogs);
     this.organizations = this.read(this.orgsPath, this.organizations);
     this.storeDirectory = this.read(this.storesPath, this.storeDirectory);
+    this.photoIndex = this.read(this.photosIndexPath, this.photoIndex);
   }
 
   async close(): Promise<void> {
@@ -150,5 +156,38 @@ export class JsonDataStore implements DataStore {
   async appendAuditLog(log: ActionAuditLog): Promise<void> {
     this.auditLogs.push(log);
     this.write(this.auditPath, this.auditLogs);
+  }
+
+  private photoFile(id: string): string {
+    return path.join(this.photosDir, id);
+  }
+
+  async savePhoto(photo: StoredPhoto): Promise<PhotoMetadata> {
+    ensureDir(this.photosDir);
+    fs.writeFileSync(this.photoFile(photo.id), photo.data);
+
+    const { data, ...meta } = photo;
+    this.photoIndex[photo.id] = meta;
+    this.write(this.photosIndexPath, this.photoIndex);
+    return meta;
+  }
+
+  async getPhoto(id: string): Promise<StoredPhoto | null> {
+    const meta = this.photoIndex[id];
+    const file = this.photoFile(id);
+    if (!meta || !fs.existsSync(file)) return null;
+    return { ...meta, data: fs.readFileSync(file) };
+  }
+
+  async deletePhoto(id: string): Promise<boolean> {
+    if (!this.photoIndex[id]) return false;
+    delete this.photoIndex[id];
+    this.write(this.photosIndexPath, this.photoIndex);
+    try {
+      fs.unlinkSync(this.photoFile(id));
+    } catch {
+      // The metadata is gone either way; a missing file is not an error.
+    }
+    return true;
   }
 }

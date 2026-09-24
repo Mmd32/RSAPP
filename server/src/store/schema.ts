@@ -81,4 +81,21 @@ CREATE TABLE IF NOT EXISTS action_audit_logs (
 
 CREATE INDEX IF NOT EXISTS idx_audit_action_id ON action_audit_logs (action_id);
 CREATE INDEX IF NOT EXISTS idx_audit_created_at ON action_audit_logs (created_at);
+
+
+-- Evidence photos. Kept out of the visit document so that a questionnaire
+-- sync, which re-sends the whole document, never re-uploads image data.
+CREATE TABLE IF NOT EXISTS evidence_photos (
+    id              TEXT PRIMARY KEY,
+    tenant_id       TEXT NOT NULL DEFAULT 'org_retail_holding',
+    visit_id        TEXT,
+    indicator_code  TEXT,
+    mime_type       TEXT NOT NULL,
+    size_bytes      INTEGER NOT NULL,
+    data            BYTEA NOT NULL,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_photos_visit ON evidence_photos (visit_id);
+CREATE INDEX IF NOT EXISTS idx_photos_tenant ON evidence_photos (tenant_id);
 `;

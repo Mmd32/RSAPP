@@ -1,5 +1,24 @@
 import { CorrectiveAction, ActionAuditLog } from '../types/actions.js';
 
+/**
+ * An evidence photo. Photos are stored separately from the questionnaire and
+ * referenced by URL: a visit document is re-sent on every sync, so embedding
+ * image data would re-upload every photo on each save.
+ */
+export interface StoredPhoto {
+  id: string;
+  tenantId: string;
+  visitId?: string;
+  indicatorCode?: string;
+  mimeType: string;
+  sizeBytes: number;
+  data: Buffer;
+  createdAt: string;
+}
+
+/** Photo metadata without the bytes, which is what the API returns. */
+export type PhotoMetadata = Omit<StoredPhoto, 'data'>;
+
 /** Query filters applied to a visit listing. */
 export interface VisitFilter {
   tenantId?: string;
@@ -41,4 +60,8 @@ export interface DataStore {
 
   listAuditLogs(actionId: string): Promise<ActionAuditLog[]>;
   appendAuditLog(log: ActionAuditLog): Promise<void>;
+
+  savePhoto(photo: StoredPhoto): Promise<PhotoMetadata>;
+  getPhoto(id: string): Promise<StoredPhoto | null>;
+  deletePhoto(id: string): Promise<boolean>;
 }
