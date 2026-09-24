@@ -8,7 +8,7 @@ import { apiFetch } from './apiClient';
  * decides whether an auditor on mobile data inside a store can work at all.
  */
 const MAX_EDGE_PX = 1600;
-const JPEG_QUALITY = 0.75;
+const ENCODE_QUALITY = 0.75;
 const PENDING_QUEUE_KEY = 'rsapp_pending_photos_v1';
 
 export type PhotoUploadState = 'compressing' | 'uploading' | 'uploaded' | 'pending' | 'failed';
@@ -59,15 +59,26 @@ export async function compressImage(file: File): Promise<{ blob: Blob; mimeType:
     ctx.drawImage(bitmap, 0, 0, width, height);
     bitmap.close?.();
 
-    const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, 'image/jpeg', JPEG_QUALITY)
-    );
+    // WebP is materially smaller than JPEG at the same visual quality, which
+    // matters most on the mobile connection an auditor is actually using.
+    // Older browsers silently hand back a PNG instead of the format asked for,
+    // so the result is checked rather than trusted.
+    const blob =
+      (await encodeCanvas(canvas, 'image/webp')) ?? (await encodeCanvas(canvas, 'image/jpeg'));
     if (!blob) throw new Error('encoding failed');
 
-    return { blob, mimeType: 'image/jpeg' };
+    return { blob, mimeType: blob.type };
   } catch {
     return { blob: file, mimeType: file.type || 'image/jpeg' };
   }
+}
+
+/** Encodes a canvas, returning null when the browser substituted another format. */
+async function encodeCanvas(canvas: HTMLCanvasElement, type: string): Promise<Blob | null> {
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, type, ENCODE_QUALITY)
+  );
+  return blob && blob.type === type ? blob : null;
 }
 
 function blobToBase64(blob: Blob): Promise<string> {
