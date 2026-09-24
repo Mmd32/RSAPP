@@ -23,8 +23,11 @@ export async function createDataStore(): Promise<DataStore> {
     } catch (e) {
       logger.error('Could not initialise PostgreSQL store', e);
       await store.close().catch(() => undefined);
+      // Keep the driver's error as the cause: its code (ENOTFOUND, 28P01,
+      // ETIMEDOUT...) is what actually identifies the misconfiguration.
       throw new Error(
-        'DATABASE_URL is set but the database is unreachable. Fix the connection or unset DATABASE_URL to fall back to JSON files.'
+        'DATABASE_URL is set but the database is unreachable. Fix the connection or unset DATABASE_URL to fall back to JSON files.',
+        { cause: e }
       );
     }
   }
