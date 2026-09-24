@@ -25,7 +25,7 @@ import {
   calculateVisitSummary,
   DEFAULT_CONSULTING_PROFILE,
   SCORING_PROFILES_REGISTRY,
-} from '../../src/engine/scoringEngine';
+} from '../../src/engine/scoringEngine.js';
 
 const DEFAULT_TENANT = 'org_retail_holding';
 const CATALOG_PATH = dataPath('catalog.json');

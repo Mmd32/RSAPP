@@ -179,6 +179,32 @@ them (see the note below), so nothing visible breaks — but real photo upload
 will need object storage (S3, Cloudflare R2, Supabase Storage) before it can
 work there. On Render or a volume-backed host these endpoints work as they are.
 
+### Imports in the server's module graph need file extensions
+
+Vercel does not bundle the function: it transpiles each TypeScript file on its
+own and runs the result on Node's ESM loader, which requires every relative
+import to carry an explicit extension. An extensionless import works locally
+(Vite and esbuild both resolve it) and then fails in production with
+`ERR_MODULE_NOT_FOUND`.
+
+So every relative import reachable from `api/index.ts` — through `server/src/`
+and into the `src/` modules the server shares, currently
+`src/engine/scoringEngine.ts` and `src/types.ts` — must be written as
+`./thing.js`, pointing at the `.ts` file. TypeScript, Vite and Node all accept
+that form.
+
+Bundling locally with esbuild does **not** catch this, because bundlers resolve
+extensionless paths happily. To reproduce the production module graph, transpile
+per file and boot the result:
+
+```bash
+npx esbuild api/index.ts server/src/**/*.ts src/engine/scoringEngine.ts src/types.ts \
+  --outdir=.vtest --outbase=. --format=esm --platform=node
+echo '{"type":"module"}' > .vtest/package.json
+ln -s "$PWD/node_modules" .vtest/node_modules && ln -s "$PWD/data" .vtest/data
+node -e "import('./.vtest/api/index.js').then(()=>console.log('module graph OK'))"
+```
+
 ### A note on photo evidence
 
 The camera and gallery buttons in the friction sheet do **not** capture a real

@@ -10,7 +10,7 @@ import {
   MainFindingPrioritized,
   AssessmentType,
   RoundingMethod,
-} from '../types';
+} from '../types.js';
 
 // ============================================================================
 // 1. CANONICAL REPORTING DIMENSIONS (Prompt 3, Requirement 6)
