@@ -876,6 +876,84 @@ app.post('/api/storage/upload', (req: Request, res: Response) => {
     .catch((err) => res.status(400).json({ error: err.message }));
 });
 
+// ----------------------------------------------------------------------------
+// EVIDENCE PHOTOS
+// ----------------------------------------------------------------------------
+// Photos go through the data store rather than the local filesystem, so they
+// survive on a serverless deployment where the disk is read-only and
+// per-invocation. They are addressed by URL and never travel inside a visit
+// document, which is re-sent in full on every questionnaire sync.
+
+const ALLOWED_PHOTO_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+// The client downscales before sending; this only guards against a client that
+// could not compress, or a hand-crafted request.
+const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
+
+app.post(
+  '/api/photos',
+  route(async (req, res) => {
+    const { data, mimeType, visitId, indicatorCode } = req.body || {};
+
+    if (!data || typeof data !== 'string') {
+      return res.status(400).json({ error: 'A base64 "data" field is required.' });
+    }
+    if (!ALLOWED_PHOTO_TYPES.has(mimeType)) {
+      return res.status(415).json({
+        error: `Unsupported image type: ${mimeType || 'unknown'}. Use JPEG, PNG or WebP.`,
+      });
+    }
+
+    const buffer = Buffer.from(data, 'base64');
+    if (buffer.length === 0) {
+      return res.status(400).json({ error: 'The image data could not be decoded.' });
+    }
+    if (buffer.length > MAX_PHOTO_BYTES) {
+      return res.status(413).json({
+        error: `Image is ${Math.round(buffer.length / 1024 / 1024)}MB; the limit is 8MB.`,
+      });
+    }
+
+    const meta = await store.savePhoto({
+      id: `photo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      tenantId: tenantOf(req),
+      visitId: typeof visitId === 'string' ? visitId : undefined,
+      indicatorCode: typeof indicatorCode === 'string' ? indicatorCode : undefined,
+      mimeType,
+      sizeBytes: buffer.length,
+      data: buffer,
+      createdAt: new Date().toISOString(),
+    });
+
+    res.status(201).json({ ...meta, url: `/api/photos/${meta.id}` });
+  })
+);
+
+app.get(
+  '/api/photos/:id',
+  route(async (req, res) => {
+    const photo = await store.getPhoto(req.params.id);
+    if (!photo) {
+      return res.status(404).json({ error: 'Photo not found' });
+    }
+    res.setHeader('Content-Type', photo.mimeType);
+    res.setHeader('Content-Length', String(photo.sizeBytes));
+    // Photo bytes never change once stored, so they can be cached hard.
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    res.send(photo.data);
+  })
+);
+
+app.delete(
+  '/api/photos/:id',
+  route(async (req, res) => {
+    const removed = await store.deletePhoto(req.params.id);
+    if (!removed) {
+      return res.status(404).json({ error: 'Photo not found' });
+    }
+    res.json({ success: true });
+  })
+);
+
 // Serves an uploaded evidence file. Matches the download URLs the storage
 // provider hands out (`/api/storage/files/<tenant>/<uuid>.<ext>`).
 app.get('/api/storage/files/:storageKey(*)', (req: Request, res: Response) => {

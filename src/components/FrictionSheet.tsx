@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Indicator, QuestionResponse, SeverityLevel, EvidencePhoto } from '../types';
 import {
   X,
@@ -11,12 +11,25 @@ import {
   Bookmark,
   Sparkles,
   HelpCircle,
+  Loader2,
+  CloudOff,
+  RotateCw,
 } from 'lucide-react';
+import {
+  compressImage,
+  uploadPhoto,
+  deletePhoto,
+  formatBytes,
+  TrackedPhoto,
+} from '../services/photoService';
 
 interface FrictionSheetProps {
   indicator: Indicator;
   currentResponse?: QuestionResponse;
   isOpen: boolean;
+  /** Tenant and visit the evidence belongs to, sent with each upload. */
+  tenantId: string;
+  visitId?: string;
   onClose: () => void;
   onSave: (data: {
     severity: SeverityLevel;
@@ -31,6 +44,8 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
   indicator,
   currentResponse,
   isOpen,
+  tenantId,
+  visitId,
   onClose,
   onSave,
 }) => {
@@ -43,37 +58,117 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
   const [recommendation, setRecommendation] = useState(
     currentResponse?.recommendation || ''
   );
-  const [photos, setPhotos] = useState<EvidencePhoto[]>(
-    currentResponse?.photos || []
+  const [photos, setPhotos] = useState<TrackedPhoto[]>(
+    () => (currentResponse?.photos || []).map((p) => ({ ...p, state: 'uploaded' as const }))
   );
   const [isFlagged, setIsFlagged] = useState<boolean>(
     currentResponse?.isFlagged || false
   );
   const [photoError, setPhotoError] = useState<string | null>(null);
 
-  const handleAddPhoto = (source: 'camera' | 'gallery') => {
-    const palette = ['#0F766E', '#1D4ED8', '#B91C1C', '#C2410C', '#4C1D95'];
-    const color = palette[photos.length % palette.length];
-    const sourceLabel = source === 'camera' ? 'دوربین زنده' : 'گالری تصاویر';
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
-    const svgData = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240" fill="${encodeURIComponent(
-      color
-    )}"><rect width="100%" height="100%"/><text x="50%" y="45%" fill="white" font-size="15" font-weight="bold" font-family="sans-serif" text-anchor="middle">شاهد عینی ${
-      photos.length + 1
-    } (${indicator.code})</text><text x="50%" y="60%" fill="rgba(255,255,255,0.8)" font-size="12" font-family="sans-serif" text-anchor="middle">${sourceLabel}</text></svg>`;
-
-    const newPhoto: EvidencePhoto = {
-      id: 'photo_' + Date.now(),
-      url: svgData,
-      caption: `شاهد نقص در ${indicator.subject}`,
-      timestamp: new Date().toLocaleTimeString('fa-IR'),
+  // Preview URLs are held by the browser until explicitly released.
+  useEffect(() => {
+    return () => {
+      photos.forEach((p) => p.localUrl && URL.revokeObjectURL(p.localUrl));
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    setPhotos((prev) => [...prev, newPhoto]);
+  /** Compresses and uploads one selected file, tracking its state for the UI. */
+  const processFile = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      setPhotoError('فقط فایل تصویری می‌توان افزود.');
+      return;
+    }
+
+    const id = `photo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const localUrl = URL.createObjectURL(file);
+
+    // Show the thumbnail straight away; the auditor should never wait on the
+    // network to see that their photo was taken.
+    setPhotos((prev) => [
+      ...prev,
+      {
+        id,
+        url: localUrl,
+        localUrl,
+        caption: `شاهد نقص در ${indicator.subject}`,
+        timestamp: new Date().toLocaleTimeString('fa-IR'),
+        state: 'compressing',
+      },
+    ]);
     setPhotoError(null);
+
+    const { blob, mimeType } = await compressImage(file);
+
+    setPhotos((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, state: 'uploading', sizeBytes: blob.size } : p))
+    );
+
+    const result = await uploadPhoto(blob, mimeType, {
+      tenantId,
+      visitId,
+      indicatorCode: indicator.code,
+    });
+
+    setPhotos((prev) =>
+      prev.map((p) =>
+        p.id === id
+          ? {
+              ...p,
+              id: result.pending ? p.id : result.id,
+              url: result.url,
+              state: result.pending ? 'pending' : 'uploaded',
+            }
+          : p
+      )
+    );
+  };
+
+  const handleFilesSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    // Reset so picking the same file twice still fires a change event.
+    event.target.value = '';
+    for (const file of files) {
+      await processFile(file);
+    }
+  };
+
+  const handleRetryPhoto = async (photo: TrackedPhoto) => {
+    if (!photo.localUrl) return;
+    setPhotos((prev) => prev.map((p) => (p.id === photo.id ? { ...p, state: 'uploading' } : p)));
+
+    try {
+      const blob = await fetch(photo.localUrl).then((r) => r.blob());
+      const result = await uploadPhoto(blob, blob.type || 'image/jpeg', {
+        tenantId,
+        visitId,
+        indicatorCode: indicator.code,
+      });
+      setPhotos((prev) =>
+        prev.map((p) =>
+          p.id === photo.id
+            ? {
+                ...p,
+                id: result.pending ? p.id : result.id,
+                url: result.url,
+                state: result.pending ? 'pending' : 'uploaded',
+              }
+            : p
+        )
+      );
+    } catch {
+      setPhotos((prev) => prev.map((p) => (p.id === photo.id ? { ...p, state: 'failed' } : p)));
+    }
   };
 
   const handleRemovePhoto = (id: string) => {
+    const photo = photos.find((p) => p.id === id);
+    if (photo?.localUrl) URL.revokeObjectURL(photo.localUrl);
+    deletePhoto(id, tenantId);
     setPhotos((prev) => prev.filter((p) => p.id !== id));
   };
 
@@ -216,12 +311,32 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
             )}
           </div>
 
+          {/* `capture` opens the rear camera directly on a phone; on desktop
+              both inputs fall back to the file picker. */}
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleFilesSelected}
+            style={{ display: 'none' }}
+          />
+          <input
+            ref={galleryInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleFilesSelected}
+            style={{ display: 'none' }}
+          />
+
           <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
             <button
               type="button"
-              onClick={() => handleAddPhoto('camera')}
+              onClick={() => cameraInputRef.current?.click()}
               className="btn-secondary"
               style={{ flex: 1, minHeight: 44, justifyContent: 'center' }}
+              aria-label="عکاسی با دوربین"
             >
               <Camera size={18} color="var(--rs-color-brand-cyan)" />
               عکاسی با دوربین
@@ -229,14 +344,24 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
 
             <button
               type="button"
-              onClick={() => handleAddPhoto('gallery')}
+              onClick={() => galleryInputRef.current?.click()}
               className="btn-secondary"
               style={{ flex: 1, minHeight: 44, justifyContent: 'center' }}
+              aria-label="انتخاب عکس از گالری"
             >
               <Image size={18} color="var(--rs-color-brand-cyan)" />
               انتخاب از گالری
             </button>
           </div>
+
+          {photos.some((p) => p.state === 'pending') && (
+            <div className="photo-offline-note" role="status">
+              <CloudOff size={15} />
+              <span>
+                عکس‌ها روی این دستگاه ذخیره شدند و به‌محض وصل شدن اینترنت خودکار ارسال می‌شوند.
+              </span>
+            </div>
+          )}
 
           {/* Photo requirement blocker alert */}
           {photoError && (
@@ -250,12 +375,44 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
           {photos.length > 0 && (
             <div className="photo-gallery-grid">
               {photos.map((p) => (
-                <div key={p.id} className="photo-thumb-card">
-                  <img src={p.url} alt={p.caption || 'شاهد'} />
+                <div key={p.id} className={`photo-thumb-card state-${p.state}`}>
+                  <img src={p.localUrl || p.url} alt={p.caption || 'شاهد نقص'} loading="lazy" />
+
+                  {(p.state === 'compressing' || p.state === 'uploading') && (
+                    <div className="photo-thumb-overlay" role="status">
+                      <Loader2 size={18} className="photo-spinner" />
+                      <span>{p.state === 'compressing' ? 'فشرده‌سازی…' : 'در حال ارسال…'}</span>
+                    </div>
+                  )}
+
+                  {p.state === 'pending' && (
+                    <div className="photo-thumb-badge pending" title="در انتظار ارسال">
+                      <CloudOff size={11} />
+                      در انتظار
+                    </div>
+                  )}
+
+                  {p.state === 'failed' && (
+                    <button
+                      type="button"
+                      className="photo-thumb-overlay failed"
+                      onClick={() => handleRetryPhoto(p)}
+                      aria-label="تلاش مجدد برای ارسال عکس"
+                    >
+                      <RotateCw size={18} />
+                      <span>تلاش مجدد</span>
+                    </button>
+                  )}
+
+                  {p.state === 'uploaded' && p.sizeBytes && (
+                    <div className="photo-thumb-badge size">{formatBytes(p.sizeBytes)}</div>
+                  )}
+
                   <button
                     type="button"
                     onClick={() => handleRemovePhoto(p.id)}
                     className="photo-thumb-delete"
+                    aria-label={`حذف عکس ${p.caption || ''}`}
                     title="حذف عکس"
                   >
                     <Trash2 size={12} />

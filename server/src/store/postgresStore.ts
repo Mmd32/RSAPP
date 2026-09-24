@@ -1,7 +1,7 @@
 import pg from 'pg';
 import { logger } from '../logger.js';
 import { CorrectiveAction, ActionAuditLog } from '../types/actions.js';
-import { DataStore, VisitFilter } from './types.js';
+import { DataStore, VisitFilter, StoredPhoto, PhotoMetadata } from './types.js';
 import { DOCUMENT_STORE_SCHEMA } from './schema.js';
 
 const { Pool } = pg;
@@ -235,6 +235,54 @@ export class PostgresDataStore implements DataStore {
       [actionId]
     );
     return rows.map((r) => r.doc as ActionAuditLog);
+  }
+
+  // --- evidence photos ------------------------------------------------------
+
+  async savePhoto(photo: StoredPhoto): Promise<PhotoMetadata> {
+    await this.pool.query(
+      `INSERT INTO evidence_photos
+         (id, tenant_id, visit_id, indicator_code, mime_type, size_bytes, data, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, COALESCE($8, now()))
+       ON CONFLICT (id) DO NOTHING`,
+      [
+        photo.id,
+        photo.tenantId,
+        photo.visitId ?? null,
+        photo.indicatorCode ?? null,
+        photo.mimeType,
+        photo.sizeBytes,
+        photo.data,
+        toTimestamp(photo.createdAt),
+      ]
+    );
+    const { data, ...meta } = photo;
+    return meta;
+  }
+
+  async getPhoto(id: string): Promise<StoredPhoto | null> {
+    const { rows } = await this.pool.query(
+      `SELECT id, tenant_id, visit_id, indicator_code, mime_type, size_bytes, data, created_at
+       FROM evidence_photos WHERE id = $1`,
+      [id]
+    );
+    const row = rows[0];
+    if (!row) return null;
+    return {
+      id: row.id,
+      tenantId: row.tenant_id,
+      visitId: row.visit_id ?? undefined,
+      indicatorCode: row.indicator_code ?? undefined,
+      mimeType: row.mime_type,
+      sizeBytes: row.size_bytes,
+      data: row.data as Buffer,
+      createdAt: new Date(row.created_at).toISOString(),
+    };
+  }
+
+  async deletePhoto(id: string): Promise<boolean> {
+    const { rowCount } = await this.pool.query('DELETE FROM evidence_photos WHERE id = $1', [id]);
+    return (rowCount ?? 0) > 0;
   }
 
   async appendAuditLog(log: ActionAuditLog): Promise<void> {

@@ -13,6 +13,7 @@ import { LandingPage } from './components/landing/LandingPage';
 import { StoreService } from './services/storeService';
 import { apiFetch, apiSync } from './services/apiClient';
 import { VisitSync, fetchPastVisits } from './services/visitService';
+import { flushPendingPhotos } from './services/photoService';
 import { FormOverview } from './components/FormOverview';
 import { QuestionCard } from './components/QuestionCard';
 import { FrictionSheet } from './components/FrictionSheet';
@@ -464,15 +465,24 @@ export const App: React.FC = () => {
     };
   }, [currentTenantId]);
 
-  // Retry a deferred sync as soon as connectivity returns.
+  // Retry deferred work as soon as connectivity returns: the questionnaire
+  // first, then any evidence photos taken while the store had no signal.
   useEffect(() => {
     const handleBackOnline = () => {
       if (VisitSync.hasPendingWork()) {
         VisitSync.flush(currentTenantId);
       }
+      flushPendingPhotos(currentTenantId).catch((err) =>
+        console.warn('Queued photos could not be uploaded yet.', err)
+      );
     };
     window.addEventListener('online', handleBackOnline);
     return () => window.removeEventListener('online', handleBackOnline);
+  }, [currentTenantId]);
+
+  // Also try once on load, for photos left queued by an earlier session.
+  useEffect(() => {
+    flushPendingPhotos(currentTenantId).catch(() => undefined);
   }, [currentTenantId]);
 
   // Autosave to localStorage and background API sync (Dual Persistence for field durability)
@@ -1478,6 +1488,8 @@ export const App: React.FC = () => {
 
             {/* Friction Flow Bottom Sheet (Section 9) */}
             <FrictionSheet
+              tenantId={currentTenantId}
+              visitId={activeSession?.id}
               indicator={currentIndicator}
               currentResponse={activeSession.responses[currentIndicator.id]}
               isOpen={isFrictionSheetOpen}
