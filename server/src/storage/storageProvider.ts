@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { dataPath, ensureDir } from '../config.js';
 
 export interface FileMetadata {
   id: string;
@@ -62,12 +63,10 @@ export class LocalStorageProvider implements StorageProvider {
   private secretKey: string;
 
   constructor(baseDir?: string, baseUrl: string = '/api/storage/files') {
-    this.baseDir = baseDir || path.resolve(process.cwd(), 'data/uploads');
+    this.baseDir = baseDir || dataPath('uploads');
     this.baseUrl = baseUrl;
     this.secretKey = process.env.STORAGE_SIGNING_SECRET || 'rsapp-dev-storage-secret-key-32b';
-    if (!fs.existsSync(this.baseDir)) {
-      fs.mkdirSync(this.baseDir, { recursive: true });
-    }
+    ensureDir(this.baseDir);
   }
 
   validateFile(mimeType: string, sizeBytes: number): { valid: boolean; error?: string } {
@@ -158,9 +157,22 @@ export class LocalStorageProvider implements StorageProvider {
     };
   }
 
+  /**
+   * Resolves a storage key inside the upload root, rejecting keys that try to
+   * escape it (`../`, absolute paths). Returns null for anything out of bounds.
+   */
+  resolveKey(storageKey: string): string | null {
+    const targetPath = path.resolve(this.baseDir, storageKey);
+    const root = path.resolve(this.baseDir);
+    if (targetPath !== root && !targetPath.startsWith(root + path.sep)) {
+      return null;
+    }
+    return targetPath;
+  }
+
   async deleteFile(storageKey: string): Promise<boolean> {
-    const targetPath = path.join(this.baseDir, storageKey);
-    if (fs.existsSync(targetPath)) {
+    const targetPath = this.resolveKey(storageKey);
+    if (targetPath && fs.existsSync(targetPath)) {
       fs.unlinkSync(targetPath);
       return true;
     }

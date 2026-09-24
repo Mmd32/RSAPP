@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { dataPath, ensureDir } from './config.js';
 
 export type LogLevel = 'INFO' | 'WARN' | 'ERROR' | 'AUDIT' | 'SECURITY';
 
@@ -22,21 +23,25 @@ export interface StructuredLogEntry {
 
 class Logger {
   private logFilePath: string;
+  private fileLoggingEnabled: boolean;
 
   constructor() {
-    const logsDir = path.resolve(process.cwd(), 'data/logs');
-    if (!fs.existsSync(logsDir)) {
-      fs.mkdirSync(logsDir, { recursive: true });
-    }
+    const logsDir = dataPath('logs');
+    // A read-only filesystem is acceptable: console logging still works, and
+    // most managed hosts collect stdout anyway.
+    this.fileLoggingEnabled = ensureDir(logsDir);
     this.logFilePath = path.join(logsDir, 'app.log');
   }
 
   private writeLog(entry: StructuredLogEntry) {
     const line = JSON.stringify(entry) + '\n';
-    try {
-      fs.appendFileSync(this.logFilePath, line, 'utf-8');
-    } catch (e) {
-      // Fallback
+    if (this.fileLoggingEnabled) {
+      try {
+        fs.appendFileSync(this.logFilePath, line, 'utf-8');
+      } catch (e) {
+        // Stop retrying once the filesystem rejects writes.
+        this.fileLoggingEnabled = false;
+      }
     }
 
     // Also output to console in readable format

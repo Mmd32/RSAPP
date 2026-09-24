@@ -7,6 +7,7 @@ import {
   ShieldCheck,
   BarChart3,
   GitCompare,
+  Archive,
   Target,
   Database,
   FlaskConical,
@@ -32,7 +33,8 @@ export type ViewMode =
   | 'CATALOG'
   | 'SCENARIOS'
   | 'ACTIONS'
-  | 'REVISIT';
+  | 'REVISIT'
+  | 'ARCHIVE';
 
 interface AppSidebarProps {
   viewMode: ViewMode;
@@ -259,6 +261,18 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                   )}
                 </>
               )}
+            </button>
+
+            <button
+              type="button"
+              className={`sidebar-nav-item ${viewMode === 'ARCHIVE' ? 'active' : ''}`}
+              onClick={() => handleNavClick('ARCHIVE')}
+              title="بایگانی پرسشنامه‌ها"
+            >
+              <div className="nav-icon-wrap">
+                <Archive size={18} />
+              </div>
+              {!isCollapsed && <span className="nav-item-label">بایگانی بازدیدها</span>}
             </button>
 
             <button

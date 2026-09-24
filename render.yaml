@@ -1,0 +1,18 @@
+# Render blueprint: one free web service hosting both the API and the UI.
+# Note that the free plan has no persistent disk — JSON stores reset on every
+# redeploy and after the service sleeps. See docs/deployment.md.
+services:
+  - type: web
+    name: rsapp
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: '20'
+      - key: SERVE_CLIENT
+        value: 'true'
+      - key: STORAGE_SIGNING_SECRET
+        generateValue: true
