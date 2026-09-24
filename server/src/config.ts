@@ -5,8 +5,33 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-/** Repository root — two levels up from `server/src`. */
-export const PROJECT_ROOT = path.resolve(__dirname, '../..');
+/**
+ * Repository root.
+ *
+ * `../..` from `server/src` is correct when running the sources directly, but
+ * wrong once a bundler has flattened them into a single file somewhere else —
+ * which is what happens on a serverless deploy. Each candidate is therefore
+ * checked for a package.json, and the working directory is the final fallback
+ * (serverless runtimes place the deployment there).
+ */
+function resolveProjectRoot(): string {
+  const candidates = [
+    process.env.PROJECT_ROOT,
+    path.resolve(__dirname, '../..'),
+    process.cwd(),
+  ].filter((c): c is string => Boolean(c));
+
+  for (const candidate of candidates) {
+    try {
+      if (fs.existsSync(path.join(candidate, 'package.json'))) return candidate;
+    } catch {
+      // Unreadable candidate; try the next one.
+    }
+  }
+  return process.cwd();
+}
+
+export const PROJECT_ROOT = resolveProjectRoot();
 
 /**
  * Writable data directory. Point `DATA_DIR` at a mounted volume (Railway,
