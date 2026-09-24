@@ -2337,4 +2337,21 @@ button.photo-thumb-overlay {
   [role='button'] {
     min-height: 44px !important;
   }
+
+  /* Content columns carry a desktop max-width (540px) inline. On a 390px
+     phone that width was being honoured rather than the viewport, so every
+     screen was laid out 540px wide and the chip rows, search placeholders and
+     headings were cut off at the edge. Capping the column at the viewport
+     costs nothing on desktop, where the media query does not apply. */
+  main > * {
+    max-width: 100% !important;
+  }
+
+  /* Controls that only make sense with a mouse and a wide window. The
+     three-column split toggle is the clear case: its label wrapped onto three
+     lines in the phone header and the layout it switches to is unusable at
+     this width anyway. */
+  .desktop-only {
+    display: none !important;
+  }
 }
