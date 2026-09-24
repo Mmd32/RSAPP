@@ -1058,7 +1058,7 @@ export const App: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsDesktopSplitView(!isDesktopSplitView)}
-                className="btn-secondary"
+                className="btn-secondary desktop-only"
                 style={{ padding: '6px 12px', fontSize: 12, minHeight: 34 }}
                 title="تغییر نحوه نمایش دسکتاپ"
                 aria-label="تغییر نحوه نمایش دسکتاپ و موبایل"
@@ -1447,23 +1447,13 @@ export const App: React.FC = () => {
                 </div>
               </div>
             ) : (
-              /* Mobile First Single Focus Flow */
+              /* Mobile single-focus flow.
+                 The question comes first: the overview panel is about 426px of
+                 progress, search and stage chips, which on a phone pushed the
+                 answer options and the next button below the fold on every one
+                 of 253 questions. Navigation and filters still follow underneath,
+                 where they are reached deliberately rather than scrolled past. */
               <>
-                <FormOverview
-                  indicators={activeSession.indicators}
-                  responses={activeSession.responses}
-                  currentStage={currentStage}
-                  onSelectStage={handleSelectStage}
-                  searchQuery={searchQuery}
-                  onSearchChange={setSearchQuery}
-                  brandName={activeSession.brandName}
-                  branchName={activeSession.branchName}
-                  startTime={activeSession.startedAt}
-                  autosaveState={!isOnline ? 'OFFLINE' : isSaving ? 'SAVING' : 'SAVED'}
-                  onOpenReview={() => setViewMode('REVIEW')}
-                  assessmentType={activeSession.assessmentType}
-                />
-
                 <QuestionCard
                   indicator={currentIndicator}
                   response={activeSession.responses[currentIndicator.id]}
@@ -1482,6 +1472,21 @@ export const App: React.FC = () => {
                   quickMode={quickMode}
                   onToggleQuickMode={() => setQuickMode(!quickMode)}
                   supervisorNote={activeSession.findingDecisions?.[currentIndicator.id]?.comment}
+                />
+
+                <FormOverview
+                  indicators={activeSession.indicators}
+                  responses={activeSession.responses}
+                  currentStage={currentStage}
+                  onSelectStage={handleSelectStage}
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  brandName={activeSession.brandName}
+                  branchName={activeSession.branchName}
+                  startTime={activeSession.startedAt}
+                  autosaveState={!isOnline ? 'OFFLINE' : isSaving ? 'SAVING' : 'SAVED'}
+                  onOpenReview={() => setViewMode('REVIEW')}
+                  assessmentType={activeSession.assessmentType}
                 />
               </>
             )}
