@@ -2290,3 +2290,51 @@ button.photo-thumb-overlay {
     animation: none;
   }
 }
+
+/* ===========================================================================
+   MOBILE INPUT AND TOUCH TARGET CORRECTIONS
+   Measured on a 375px viewport, which is the phone an auditor actually holds.
+   =========================================================================== */
+@media (max-width: 768px) {
+  /* iOS Safari zooms the whole page whenever a focused input is under 16px.
+     On a form filled in hundreds of times per visit that is constant,
+     disorienting movement, so every text control is held at 16px on phones
+     regardless of its desktop size. */
+  input,
+  select,
+  textarea,
+  .archive-search input,
+  .user-role-select,
+  .friction-textarea {
+    font-size: 16px;
+  }
+
+  /* The existing rule sets a 44px minimum height for buttons but not width, so
+     icon-only controls stayed narrow, and selects and search fields were not
+     covered at all. */
+  .mobile-menu-btn,
+  .sidebar-toggle-btn,
+  .photo-thumb-delete,
+  .archive-refresh {
+    min-width: 44px;
+  }
+
+  select,
+  .user-role-select,
+  .archive-search,
+  .archive-search input,
+  .archive-chip {
+    min-height: 44px;
+  }
+
+  /* Around fifteen controls across the app set a smaller minHeight inline
+     (28-40px), and an inline style beats any stylesheet rule short of
+     !important. Rewriting each one would touch eight files and risk the
+     desktop layout, so the touch minimum is enforced here, on phones only.
+     Desktop keeps the compact sizing the components ask for. */
+  button,
+  select,
+  [role='button'] {
+    min-height: 44px !important;
+  }
+}
