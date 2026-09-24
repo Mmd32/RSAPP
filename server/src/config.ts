@@ -75,6 +75,24 @@ export function ensureDir(dir: string): boolean {
   }
 }
 
+/**
+ * Probes whether a directory can actually be written to.
+ *
+ * `existsSync` is not enough: a serverless deployment ships the repository's
+ * data directory read-only, so the JSON store would appear to work while every
+ * write silently failed.
+ */
+export function isWritable(dir: string): boolean {
+  const probe = path.join(dir, `.write-probe-${process.pid}`);
+  try {
+    fs.writeFileSync(probe, '');
+    fs.unlinkSync(probe);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function dataPath(...segments: string[]): string {
   return path.join(DATA_DIR, ...segments);
 }
