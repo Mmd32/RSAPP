@@ -171,7 +171,7 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
         </div>
 
         <div style={{ overflowX: 'auto', maxHeight: '600px' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <table style={{ width: '100%', minWidth: 720, borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--theme-card-border)', color: 'var(--text-muted)', position: 'sticky', top: 0, background: 'var(--surface-sunken)' }}>
                 <th style={{ textAlign: 'right', padding: '10px 8px' }}>کد شاخص</th>
@@ -186,7 +186,7 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
               {filteredIndicators.slice(0, 100).map((ind) => (
                 <tr
                   key={ind.id}
-                  style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)', cursor: 'pointer', transition: 'background var(--rs-duration-micro) var(--rs-ease-standard)' }}
+                  style={{ borderBottom: '1px solid var(--theme-card-border)', cursor: 'pointer', transition: 'background var(--rs-duration-micro) var(--rs-ease-standard)' }}
                   onClick={() => setSelectedIndicator(ind)}
                   onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(0, 176, 240, 0.06)')}
                   onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}

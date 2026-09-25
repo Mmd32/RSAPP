@@ -212,7 +212,7 @@ export const ScenarioRunner: React.FC<ScenarioRunnerProps> = ({ indicators }) =>
 
         {/* Live Comparison Table */}
         <div style={{ overflowX: 'auto', marginTop: 16 }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <table style={{ width: '100%', minWidth: 760, borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}>
                 <th style={{ textAlign: 'right', padding: '10px 8px' }}>سناریو</th>
@@ -225,7 +225,7 @@ export const ScenarioRunner: React.FC<ScenarioRunnerProps> = ({ indicators }) =>
             </thead>
             <tbody>
               {scenarioResults.map((sc) => (
-                <tr key={sc.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                <tr key={sc.id} style={{ borderBottom: '1px solid var(--theme-card-border)' }}>
                   <td style={{ padding: '12px 8px', fontWeight: 700, color: 'var(--rs-color-brand-cyan)' }}>
                     {sc.id} ({sc.title.split(':')[1]?.trim()})
                   </td>
@@ -250,7 +250,7 @@ export const ScenarioRunner: React.FC<ScenarioRunnerProps> = ({ indicators }) =>
                     <span
                       style={{
                         padding: '4px 10px',
-                        background: sc.excludedCount > 0 ? 'rgba(217, 74, 86, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+                        background: sc.excludedCount > 0 ? 'rgba(217, 74, 86, 0.12)' : 'var(--surface-chip)',
                         color: sc.excludedCount > 0 ? 'var(--rs-color-error)' : 'var(--text-dim)',
                         borderRadius: 'var(--rs-radius-control)',
                         fontWeight: 700,

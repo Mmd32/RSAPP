@@ -975,3 +975,63 @@ input[type='number'] {
    whole page past the viewport. Pages shrink; wide content scrolls inside
    its own card instead. */
 main > * { min-width: 0; width: 100%; }
+
+/* --- Phone layout fixes -------------------------------------------------- */
+@media (max-width: 600px) {
+  /* Two small stat cards per row read faster than six full-width ones. */
+  .stat-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2); }
+  .stat-row > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+  .sup-panel { padding: 16px !important; }
+  .sup-final-actions { grid-template-columns: 1fr !important; }
+  .sup-final-actions > * { width: 100%; }
+  .sup-final-actions > :last-child { order: -1; } /* primary action first */
+}
+
+@media (max-width: 600px) {
+  /* Report key metrics: five in a row is unreadable on a phone. */
+  .report-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .report-metrics > :first-child { grid-column: 1 / -1; }
+}
+
+/* .ltr-num is inline-block for inline numbers; on a table cell that breaks
+   the row into a wrapped strip of boxes. */
+td.ltr-num, th.ltr-num { display: table-cell; }
+
+@media (max-width: 600px) {
+  .compare-stats { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: var(--sp-2) !important; }
+  .compare-stats > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+  /* Corrective actions: one card per action instead of a sideways table. */
+  .actions-table { min-width: 0 !important; }
+  .actions-table thead { display: none; }
+  .actions-table, .actions-table tbody { display: block; }
+  .actions-table tbody tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-2) var(--sp-3);
+    padding: var(--sp-4);
+    border-bottom: var(--bw-hair) solid var(--theme-card-border);
+  }
+  .actions-table tbody td {
+    display: flex !important;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0 !important;
+    border: 0 !important;
+    min-width: 0;
+  }
+  .actions-table tbody td[colspan] { grid-column: 1 / -1; padding: var(--sp-6) 0 !important; }
+  .actions-table tbody td[data-label]:not([data-label=''])::before {
+    content: attr(data-label);
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-medium);
+    color: var(--theme-text-muted);
+  }
+  /* Title spans the card; the action button closes it. */
+  .actions-table tbody td[data-label='اقدام'] { grid-column: 1 / -1; }
+  .actions-table tbody td[data-label='اقدام']::before { display: none; }
+  .actions-table tbody td[data-label=''] { grid-column: 1 / -1; }
+  .actions-table tbody td[data-label=''] > * { width: 100%; justify-content: center; }
+  .actions-table tbody td > * { align-self: flex-start; }
+}

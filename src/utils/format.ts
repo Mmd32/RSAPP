@@ -115,3 +115,42 @@ export function stageLabel(stage: string | undefined | null): string {
   if (!stage) return '—';
   return STORE_JOURNEY_ORDER[stage]?.labelFa || MALL_JOURNEY_ORDER[stage]?.labelFa || stage;
 }
+
+const STORE_PROFILE_LABEL: Record<string, string> = {
+  // Location context
+  STREET_STORE: 'فروشگاه خیابانی',
+  MALL_STORE: 'فروشگاه داخل مال',
+  FOOD_COURT: 'غرفه فودکورت',
+  STANDALONE: 'فروشگاه مستقل بزرگ',
+  // Store format (SHOP_IN_SHOP / KIOSK are shared with location)
+  FLAGSHIP: 'شعبه پرچمدار',
+  CHAIN: 'شعبه زنجیره‌ای',
+  BOUTIQUE: 'بوتیک',
+  SHOP_IN_SHOP: 'شاپ این شاپ',
+  KIOSK: 'کیوسک',
+  // Business type
+  Fashion: 'پوشاک',
+  Shoe_Bag: 'کیف و کفش',
+  Watch_Jewelry: 'ساعت و طلا',
+  FMCG: 'تندمصرف',
+  F_B: 'کافه و غذا',
+  Hardware: 'ابزار و یراق',
+  Homeware: 'لوازم خانگی',
+  Beauty_Cosmetics: 'آرایشی و زیبایی',
+  Electronics: 'الکترونیک و دیجیتال',
+  Entertainment: 'سرگرمی و اسباب‌بازی',
+  Sports: 'لوازم ورزشی',
+  Specialty: 'کالای تخصصی',
+  // Mall type
+  SM: 'مرکز خرید محلی',
+  Neighborhood: 'مرکز تجاری محله‌ای',
+  Community: 'مرکز خرید منطقه‌ای',
+  Regional: 'مرکز خرید منطقه‌ای بزرگ',
+  Super_Regional: 'مرکز خرید فرامنطقه‌ای',
+};
+
+/** Persian name for a store/mall profile code (location, format, business or mall type). */
+export function profileLabel(code: string | undefined | null): string {
+  if (!code) return '—';
+  return STORE_PROFILE_LABEL[code] || code;
+}

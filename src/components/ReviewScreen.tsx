@@ -1,6 +1,10 @@
 import React from 'react';
 import { Indicator, QuestionResponse } from '../types';
 import { calculateVisitSummary } from '../engine/scoringEngine';
+import { faDigits } from '../utils/format';
+
+/** How many open problems to list before collapsing behind "show all". */
+const PROBLEM_PREVIEW = 12;
 import { AlertCircle, CheckCircle2, AlertTriangle, ArrowRight, Send, Camera, FileText } from 'lucide-react';
 
 interface ReviewScreenProps {
@@ -21,6 +25,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
   assessmentType,
 }) => {
   const [showConfirmModal, setShowConfirmModal] = React.useState(false);
+  const [showAllProblems, setShowAllProblems] = React.useState(false);
   const summary = calculateVisitSummary(indicators, responses, assessmentType);
 
   // Calculate detailed counts
@@ -45,7 +50,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
         indicator: ind,
         index: idx,
         code: ind.code,
-        problemText: `${ind.code} — بدون پاسخ`,
+        problemText: 'بدون پاسخ',
       });
     } else if (resp.answerState === 'FRICTION') {
       if (ind.requiresPhoto && (!resp.photos || resp.photos.length === 0)) {
@@ -53,7 +58,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
           indicator: ind,
           index: idx,
           code: ind.code,
-          problemText: `${ind.code} — عکس ندارد`,
+          problemText: 'عکس ندارد',
         });
       }
       if (ind.requiresComment && (!resp.comment || resp.comment.trim() === '')) {
@@ -61,7 +66,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
           indicator: ind,
           index: idx,
           code: ind.code,
-          problemText: `${ind.code} — توضیح الزامی`,
+          problemText: 'توضیح الزامی',
         });
       }
     }
@@ -123,7 +128,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
             </div>
           </div>
           <div className="metric-card">
-            <span className="metric-label">غیرقابل بررسی (N/A)</span>
+            <span className="metric-label">غیرقابل بررسی</span>
             <div className="metric-value" style={{ color: 'var(--text-muted)' }}>{naCount}</div>
           </div>
           <div className="metric-card">
@@ -139,11 +144,11 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
             <div className="metric-value" style={{ color: 'var(--rs-color-error)' }}>{criticalCount}</div>
           </div>
           <div className="metric-card">
-            <span className="metric-label">مدارک تصویری (Evidence)</span>
+            <span className="metric-label">مدارک تصویری</span>
             <div className="metric-value" style={{ color: 'var(--rs-color-brand-cyan)' }}>{totalPhotos}</div>
           </div>
           <div className="metric-card">
-            <span className="metric-label">نشانه‌دارها (Flags)</span>
+            <span className="metric-label">نشانه‌دارها</span>
             <div className="metric-value" style={{ color: 'var(--rs-color-warning)' }}>{flagCount}</div>
           </div>
         </div>
@@ -170,7 +175,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {validationProblems.map((prob) => (
+              {validationProblems.slice(0, showAllProblems ? undefined : PROBLEM_PREVIEW).map((prob) => (
                 <div
                   key={`${prob.indicator.id}-${prob.problemText}`}
                   onClick={() => onJumpToQuestion(prob.index)}
@@ -181,6 +186,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
+                    gap: 10,
                     cursor: 'pointer',
                     fontSize: 13,
                     border: '1px solid var(--border-subtle)',
@@ -195,19 +201,31 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
                     e.currentTarget.style.borderColor = 'var(--border-subtle)';
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span className="indicator-code-badge" style={{ background: 'var(--rs-color-brand-cyan)', color: 'var(--rs-color-brand-navy)', fontWeight: 800 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                    <span className="indicator-code-badge" style={{ flexShrink: 0 }}>
                       {prob.code}
                     </span>
-                    <span style={{ color: 'var(--text-main)', fontWeight: 600 }}>{prob.indicator.subject}</span>
+                    <span style={{ color: 'var(--text-main)', fontWeight: 600, minWidth: 0 }}>{prob.indicator.subject}</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontSize: 12, color: 'var(--rs-color-error)', fontWeight: 700 }}>{prob.problemText}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                    <span style={{ fontSize: 12, color: 'var(--friction-high)', fontWeight: 700, whiteSpace: 'nowrap' }}>{prob.problemText}</span>
                     <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>←</span>
                   </div>
                 </div>
               ))}
             </div>
+            {validationProblems.length > PROBLEM_PREVIEW && (
+              <button
+                type="button"
+                className="btn-secondary"
+                style={{ marginTop: 10, width: '100%', justifyContent: 'center' }}
+                onClick={() => setShowAllProblems((v) => !v)}
+              >
+                {showAllProblems
+                  ? 'نمایش کمتر'
+                  : `نمایش همه (${faDigits(validationProblems.length)} مورد)`}
+              </button>
+            )}
           </div>
         ) : (
           <div

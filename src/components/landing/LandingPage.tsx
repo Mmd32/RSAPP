@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { RetailSolutionsLogo } from '../brand/RetailSolutionsLogo';
 import { VisitSession, UserRole } from '../../types';
+import { faDigits } from '../../utils/format';
 
 interface LandingPageProps {
   currentUserName: string;
@@ -371,8 +372,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--rs-color-brand-cyan)' }}>
-                  ۰{i + 1} • {dim.key}
+                <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--rs-color-action-primary)' }}>
+                  بُعد {faDigits(i + 1)}
                 </span>
               </div>
               <strong style={{ fontSize: 13, color: 'var(--theme-text-primary)', display: 'block', marginBottom: 2 }}>
