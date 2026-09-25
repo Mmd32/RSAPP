@@ -54,7 +54,7 @@ export const RadarChart: React.FC<RadarChartProps> = ({
     return [
       {
         id: 'current_visit',
-        label: 'ارزیابی فعلی (Current Visit)',
+        label: 'ارزیابی فعلی',
         color: '#00B0F0',
         scores,
         visible: true,
@@ -148,7 +148,7 @@ export const RadarChart: React.FC<RadarChartProps> = ({
             FR™ RADAR ENGINE
           </span>
           <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--theme-text-primary)', margin: 0 }}>
-            تحلیل چندبعدی رادار تجربه مشتری (Reporting Dimensions)
+            تحلیل چندبعدی رادار تجربه مشتری
           </h3>
         </div>
 

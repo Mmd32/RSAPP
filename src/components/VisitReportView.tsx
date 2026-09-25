@@ -1,3 +1,4 @@
+import { faDate } from '../utils/format';
 import React, { useState, useMemo, useRef } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -365,7 +366,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
                   {visit.assessmentType === 'STORE' ? 'ارزیابی فروشگاهی' : 'ارزیابی مجتمع تجاری'}
                 </span>
                 <span style={{ fontSize: 12, color: 'var(--theme-text-muted)' }}>
-                  تاریخ ممیزی: {new Date(visit.startedAt).toLocaleDateString('fa-IR')}
+                  تاریخ ممیزی: {faDate(visit.startedAt)}
                 </span>
                 <span
                   style={{
@@ -561,7 +562,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
               <TrendingUp color="var(--rs-color-success)" size={22} />
               <h3 style={{ fontSize: 17, fontWeight: 700, color: 'var(--theme-text-primary)', margin: 0 }}>
-                نقاط قوت و حوزه‌های عملکرد برجسته (Strengths & High-Performing Dimensions)
+                نقاط قوت و حوزه‌های عملکرد برجسته
               </h3>
             </div>
             <p style={{ fontSize: 13, color: 'var(--theme-text-muted)', marginBottom: 16, maxWidth: 680, lineHeight: 1.7 }}>
@@ -611,7 +612,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <AlertTriangle color="var(--rs-color-error)" size={22} />
               <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
-                مهم‌ترین یافته‌ها بر اساس ضریب اولویت مشاوره‌ای (Prioritized Key Findings)
+                مهم‌ترین یافته‌ها بر اساس ضریب اولویت مشاوره‌ای
               </h3>
             </div>
 
@@ -810,7 +811,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
         <div className="glass-panel" style={{ padding: 24, marginBottom: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
             <h3 style={{ fontSize: 17, fontWeight: 700, color: 'var(--theme-text-primary)', margin: 0 }}>
-              تحلیل و شفافیت محاسباتی ابعاد هشت‌گانه (Score Explainability Table)
+              تحلیل و شفافیت محاسباتی ابعاد هشت‌گانه
             </h3>
             <span style={{ fontSize: 11, color: 'var(--rs-color-brand-cyan)' }}>
               تمامی محاسبات بدون گردکردن فرضی و با کسر موارد N/A انجام شده است.

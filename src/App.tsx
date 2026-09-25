@@ -999,7 +999,7 @@ export const App: React.FC = () => {
       {/* 2. Main Content Canvas */}
       <div className="app-main-layout">
         {/* Semantic H1 for WCAG 2.1 Heading Hierarchy */}
-        <h1 className="visually-hidden">سامانه ارزیابی اصطکاک و پاداش خرده‌فروشی ریتیل سلوشنز (RSAPP)</h1>
+        <h1 className="visually-hidden">سامانه ارزیابی اصطکاک و پاداش خرده‌فروشی ریتیل سلوشنز</h1>
 
         {/* Minimal High-End Top Navbar */}
         <header className="app-top-navbar">
@@ -1315,7 +1315,7 @@ export const App: React.FC = () => {
                   </div>
 
                   <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 12 }}>
-                    مراحل ارزیابی (Sections)
+                    مراحل ارزیابی
                   </h4>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

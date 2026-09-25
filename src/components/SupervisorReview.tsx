@@ -186,10 +186,10 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
                 style={{ minHeight: 34, padding: '4px 8px', fontSize: 12, borderRadius: 'var(--radius-sm)' }}
               >
                 <option value="ALL">همه شدت‌ها</option>
-                <option value="CRITICAL">بحرانی (Critical)</option>
-                <option value="HIGH">زیاد (High)</option>
-                <option value="MEDIUM">متوسط (Medium)</option>
-                <option value="LOW">کم (Low)</option>
+                <option value="CRITICAL">بحرانی</option>
+                <option value="HIGH">زیاد</option>
+                <option value="MEDIUM">متوسط</option>
+                <option value="LOW">کم</option>
               </select>
             </div>
 

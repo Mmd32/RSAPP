@@ -362,3 +362,201 @@ input[type='number'] {
 .stat-card--positive .stat-card__value {
   color: var(--friction-clean);
 }
+
+/* ===========================================================================
+   THE AUDIT FORM
+   ===========================================================================
+   The screen an auditor looks at 253 times per visit, standing in a shop,
+   holding a phone in one hand. Everything here is judged by one question:
+   can the next answer be given without thinking about the interface?
+   =========================================================================== */
+
+.kpi-statement {
+  font-size: var(--fs-lead);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-body);
+  color: var(--theme-text-primary);
+  margin: 0 0 var(--sp-3);
+  letter-spacing: -0.01em;
+}
+
+/* --- The three answers ---------------------------------------------------
+   These are the product's primary control. They read as one set: same
+   height, same internal rhythm, distinguished only by the friction ramp.
+   The colours are the ramp, not per-component hexes. */
+
+.answer-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+}
+
+.answer-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  border: var(--bw-hair) solid var(--theme-card-border);
+  background: var(--theme-card-bg);
+  color: var(--theme-text-primary);
+  font-family: var(--rs-font-fa);
+  text-align: start;
+  cursor: pointer;
+  min-height: 0;
+  box-shadow: none;
+  transition: border-color var(--t-fast) var(--ease), background-color var(--t-fast) var(--ease);
+}
+
+/* A hover that lifts the card shifts the two below it. On a touch screen the
+   lift never even shows; it only ever cost stability. */
+.answer-btn:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--rs-color-action-primary);
+}
+
+.answer-btn:active {
+  transform: none;
+  filter: brightness(0.97);
+}
+
+.answer-btn__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-pill);
+  flex-shrink: 0;
+}
+
+.answer-btn-title {
+  display: block;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.01em;
+  color: var(--theme-text-primary);
+}
+
+.answer-btn-sub {
+  display: block;
+  font-size: var(--fs-caption);
+  line-height: 1.55;
+  color: var(--theme-text-muted);
+  margin-top: 2px;
+}
+
+/* Selection is stated by the whole card, not by a coloured word, so it is
+   readable at arm's length and does not depend on colour alone -- the border
+   weight changes too. */
+.answer-btn.selected-clean,
+.answer-btn.selected-friction,
+.answer-btn.selected-na {
+  border-width: var(--bw-emphasis);
+  box-shadow: none;
+}
+
+.answer-btn.selected-clean {
+  background: var(--friction-clean-bg);
+  border-color: var(--friction-clean);
+}
+.answer-btn.selected-clean .answer-btn-title { color: var(--friction-clean); }
+.answer-btn.selected-clean .answer-btn__icon { background: var(--friction-clean); color: #fff; }
+
+.answer-btn.selected-friction {
+  background: var(--friction-high-bg);
+  border-color: var(--friction-high);
+}
+.answer-btn.selected-friction .answer-btn-title { color: var(--friction-critical); }
+.answer-btn.selected-friction .answer-btn__icon { background: var(--friction-high); color: #fff; }
+
+.answer-btn.selected-na {
+  background: var(--theme-badge-bg);
+  border-color: var(--theme-text-muted);
+}
+.answer-btn.selected-na .answer-btn-title { color: var(--theme-text-muted); }
+
+/* Unselected icons sit quietly; the ramp only lights up on choice. */
+.answer-btn__icon--clean    { background: var(--friction-clean-bg);    color: var(--friction-clean); }
+.answer-btn__icon--friction { background: var(--friction-high-bg);     color: var(--friction-high); }
+.answer-btn__icon--na       { background: var(--theme-badge-bg);       color: var(--theme-text-muted); }
+
+/* --- Guidance ------------------------------------------------------------
+   Useful on question one, noise by question fifty. It stays, but quietly:
+   one line, muted, no coloured panel competing with the answers. */
+
+.question-guidance {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+  padding: 0;
+  background: none;
+  border: none;
+  font-size: var(--fs-caption);
+  line-height: var(--lh-body);
+  color: var(--theme-text-muted);
+}
+
+/* --- Friction summary strip ---------------------------------------------- */
+
+.friction-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  margin-top: var(--sp-3);
+  padding: var(--sp-3);
+  border-radius: var(--r-md);
+  background: var(--friction-high-bg);
+  border: var(--bw-hair) solid var(--friction-high);
+}
+
+/* --- Undo ----------------------------------------------------------------
+   Quick mode advances to the next question the moment an answer is tapped,
+   so this bar is the only way back from a mis-tap. It was a pill sized to
+   nothing in particular: the label wrapped onto three lines and the button
+   sat on top of it. It is a bar now, it clears the tab bar and the home
+   indicator, and it never wraps. */
+
+.undo-snackbar {
+  position: fixed;
+  bottom: calc(var(--sp-8) + env(safe-area-inset-bottom, 0px) + 28px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: max-content;
+  max-width: calc(100vw - var(--sp-8));
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--rs-color-brand-navy);
+  border: var(--bw-hair) solid rgba(255, 255, 255, 0.14);
+  box-shadow: var(--el-3);
+  color: #fff;
+  font-size: var(--fs-small);
+  white-space: nowrap;
+}
+
+.undo-btn {
+  flex-shrink: 0;
+  min-height: 32px !important;
+  padding: 0 var(--sp-3);
+  border-radius: var(--r-sm);
+  background: var(--rs-color-brand-cyan);
+  color: var(--rs-color-brand-navy);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-bold);
+  border: none;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .undo-snackbar { animation: none; }
+}

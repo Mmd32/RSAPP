@@ -94,7 +94,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
         {/* Overall Completion Progress */}
         <div style={{ background: 'var(--bg-input)', padding: 16, borderRadius: 'var(--rs-radius-card)', marginBottom: 20, border: '1px solid var(--border-subtle)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-main)' }}>درصد تکمیل کل (Overall Completion):</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-main)' }}>درصد تکمیل کل:</span>
             <span className="ltr-num" style={{ fontSize: 18, fontWeight: 800, color: completionPercent === 100 ? 'var(--rs-color-success)' : 'var(--rs-color-brand-cyan)' }}>
               {completionPercent}%
             </span>
@@ -113,11 +113,11 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
         {/* 9 Metrics Grid (Section 23 Requirements) */}
         <div className="metric-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10 }}>
           <div className="metric-card">
-            <span className="metric-label">پاسخ‌داده‌شده (Answered)</span>
+            <span className="metric-label">پاسخ‌داده‌شده</span>
             <div className="metric-value" style={{ color: 'var(--rs-color-success)' }}>{answeredCount}</div>
           </div>
           <div className="metric-card">
-            <span className="metric-label">بی‌پاسخ (Missing)</span>
+            <span className="metric-label">بی‌پاسخ</span>
             <div className="metric-value" style={{ color: missingCount > 0 ? 'var(--rs-color-error)' : 'var(--text-dim)' }}>
               {missingCount}
             </div>
@@ -127,15 +127,15 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
             <div className="metric-value" style={{ color: 'var(--text-muted)' }}>{naCount}</div>
           </div>
           <div className="metric-card">
-            <span className="metric-label">اصطکاک‌ها (Friction)</span>
+            <span className="metric-label">اصطکاک‌ها</span>
             <div className="metric-value" style={{ color: 'var(--rs-color-error)' }}>{frictionCount}</div>
           </div>
           <div className="metric-card">
-            <span className="metric-label">موارد شدید (High)</span>
+            <span className="metric-label">موارد شدید</span>
             <div className="metric-value" style={{ color: '#EA580C' }}>{highCount}</div>
           </div>
           <div className="metric-card">
-            <span className="metric-label">موارد بحرانی (Critical)</span>
+            <span className="metric-label">موارد بحرانی</span>
             <div className="metric-value" style={{ color: 'var(--rs-color-error)' }}>{criticalCount}</div>
           </div>
           <div className="metric-card">

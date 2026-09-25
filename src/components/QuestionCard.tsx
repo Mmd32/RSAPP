@@ -32,6 +32,21 @@ interface QuestionCardProps {
   supervisorNote?: string;
 }
 
+/** One vocabulary for severity, shared with the friction ramp in CSS. */
+const SEVERITY_LABEL: Record<string, string> = {
+  LOW: 'کم',
+  MEDIUM: 'متوسط',
+  HIGH: 'زیاد',
+  CRITICAL: 'بحرانی',
+};
+
+const SEVERITY_TONE: Record<string, string> = {
+  LOW: 'low',
+  MEDIUM: 'medium',
+  HIGH: 'high',
+  CRITICAL: 'critical',
+};
+
 export const QuestionCard: React.FC<QuestionCardProps> = ({
   indicator,
   response,
@@ -200,24 +215,14 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           </h2>
         </div>
 
-        {/* Compact Guidance Pill */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            background: 'rgba(0, 176, 240, 0.06)',
-            border: '1px solid rgba(0, 176, 240, 0.16)',
-            borderRadius: '10px',
-            padding: '7px 12px',
-            marginBottom: 16,
-            fontSize: 12,
-            color: 'var(--theme-text-muted)',
-          }}
-        >
-          <Info size={14} color="var(--rs-color-brand-cyan)" style={{ flexShrink: 0 }} />
-          <span>در صورت انطباق فضا با استاندارد <strong>«وضعیت مناسب»</strong>، و در صورت هرگونه نقص <strong>«اصطکاک»</strong> را ثبت کنید.</span>
-        </div>
+        {/* Guidance: useful on question one, noise by question fifty. */}
+        <p className="question-guidance">
+          <Info size={14} color="var(--rs-color-action-primary)" style={{ flexShrink: 0, marginTop: 2 }} />
+          <span>
+            در صورت انطباق فضا با استاندارد <strong>«وضعیت مناسب»</strong>، و در صورت هرگونه نقص{' '}
+            <strong>«اصطکاک»</strong> را ثبت کنید.
+          </span>
+        </p>
 
         {/* Answer Buttons (3 Distinct Options) */}
         <div className="answer-grid">
@@ -227,11 +232,11 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             onClick={handleCleanClick}
             className={`answer-btn ${currentState === 'NO_FRICTION' ? 'selected-clean' : ''}`}
           >
-            <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'rgba(45, 157, 120, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <CheckCircle2 size={24} color="#2D9D78" />
-            </div>
+            <span className="answer-btn__icon answer-btn__icon--clean">
+              <CheckCircle2 size={20} />
+            </span>
             <div>
-              <span className="answer-btn-title" style={{ color: currentState === 'NO_FRICTION' ? 'var(--rs-color-success)' : 'var(--theme-text-primary)' }}>
+              <span className="answer-btn-title">
                 وضعیت مناسب است
               </span>
               <span className="answer-btn-sub">
@@ -246,11 +251,11 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             onClick={handleFrictionClick}
             className={`answer-btn ${currentState === 'FRICTION' ? 'selected-friction' : ''}`}
           >
-            <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'rgba(217, 74, 86, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <AlertTriangle size={24} color="#D94A56" />
-            </div>
+            <span className="answer-btn__icon answer-btn__icon--friction">
+              <AlertTriangle size={20} />
+            </span>
             <div>
-              <span className="answer-btn-title" style={{ color: currentState === 'FRICTION' ? 'var(--rs-color-error)' : 'var(--theme-text-primary)' }}>
+              <span className="answer-btn-title">
                 اصطکاک مشاهده شد
               </span>
               <span className="answer-btn-sub">
@@ -265,11 +270,11 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             onClick={handleNaClick}
             className={`answer-btn ${currentState === 'NOT_APPLICABLE' ? 'selected-na' : ''}`}
           >
-            <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'rgba(100, 110, 140, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <HelpCircle size={24} color="#646E8C" />
-            </div>
+            <span className="answer-btn__icon answer-btn__icon--na">
+              <HelpCircle size={20} />
+            </span>
             <div>
-              <span className="answer-btn-title" style={{ color: currentState === 'NOT_APPLICABLE' ? '#94A3B8' : 'var(--theme-text-primary)' }}>
+              <span className="answer-btn-title">
                 قابل ارزیابی نیست
               </span>
               <span className="answer-btn-sub">
@@ -281,11 +286,11 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
 
         {/* Friction Details Capsule (if answer is FRICTION) */}
         {currentState === 'FRICTION' && (
-          <div style={{ marginTop: 14, background: 'rgba(217, 74, 86, 0.08)', border: '1px solid rgba(217, 74, 86, 0.25)', borderRadius: 'var(--rs-radius-card)', padding: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div className="friction-summary">
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>شدت:</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: response?.severity === 'CRITICAL' ? 'var(--rs-color-error)' : 'var(--rs-color-warning)' }}>
-                {response?.severity === 'CRITICAL' ? 'بحرانی' : response?.severity === 'HIGH' ? 'زیاد' : response?.severity === 'MEDIUM' ? 'متوسط' : 'کم'}
+              <span className={`sev-chip sev-${SEVERITY_TONE[response?.severity || 'LOW']}`}>
+                {SEVERITY_LABEL[response?.severity || 'LOW']}
               </span>
               {hasPhotos && (
                 <span style={{ fontSize: 11, color: 'var(--rs-color-brand-cyan)', display: 'flex', alignItems: 'center', gap: 3 }}>

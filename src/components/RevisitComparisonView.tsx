@@ -154,7 +154,7 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
       {/* Header */}
       <div style={{ marginBottom: 20 }}>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--rs-color-text-ink)' }}>
-          مقایسه تاریخی و بهبود مستمر شعب (Revisit Comparison)
+          مقایسه تاریخی و بهبود مستمر شعب
         </h1>
         <p style={{ fontSize: 13, color: 'var(--rs-color-text-muted)', marginTop: 4 }}>
           راستی‌آزمایی حل اصطکاک‌ها در بازدیدهای مجدد، کشف مشکلات پرتکرار و سیر تحول امتیاز شعبه
@@ -193,7 +193,7 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
 
         <div style={{ flex: '1 1 200px' }}>
           <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--rs-color-text-muted)', display: 'block', marginBottom: 4 }}>
-            بازدید مبنا (Baseline Visit)
+            بازدید مبنا
           </label>
           <select
             className="select-rs"
@@ -210,7 +210,7 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
 
         <div style={{ flex: '1 1 200px' }}>
           <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--rs-color-text-muted)', display: 'block', marginBottom: 4 }}>
-            بازدید مجدد / مقایسه‌ای (Current Revisit)
+            بازدید مجدد / مقایسه‌ای
           </label>
           <select
             className="select-rs"
@@ -238,7 +238,7 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
         >
           <div className="card-rs" style={{ padding: '14px 16px', background: '#FFFFFF' }}>
             <span style={{ fontSize: 12, color: 'var(--rs-color-text-muted)', fontWeight: 600 }}>
-              امتیاز اولیه (Initial Score)
+              امتیاز اولیه
             </span>
             <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--rs-color-text-ink)', marginTop: 4 }}>
               {branchSummary.initialScore}%
@@ -250,7 +250,7 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
 
           <div className="card-rs" style={{ padding: '14px 16px', background: '#FFFFFF' }}>
             <span style={{ fontSize: 12, color: 'var(--rs-color-text-muted)', fontWeight: 600 }}>
-              امتیاز جاری (Current Score)
+              امتیاز جاری
             </span>
             <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--rs-color-brand-cyan)', marginTop: 4 }}>
               {branchSummary.currentScore}%
@@ -269,7 +269,7 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
             }}
           >
             <span style={{ fontSize: 12, color: 'var(--rs-color-text-muted)', fontWeight: 600 }}>
-              تغییر امتیاز (Score Delta)
+              تغییر امتیاز
             </span>
             <div
               style={{
@@ -293,7 +293,7 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
 
           <div className="card-rs" style={{ padding: '14px 16px', background: '#FFFFFF' }}>
             <span style={{ fontSize: 12, color: 'var(--rs-color-text-muted)', fontWeight: 600 }}>
-              اصطکاک‌های حل‌شده (Resolved)
+              اصطکاک‌های حل‌شده
             </span>
             <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--rs-color-success)', marginTop: 4 }}>
               {branchSummary.resolvedFrictionsCount}
@@ -305,7 +305,7 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
 
           <div className="card-rs" style={{ padding: '14px 16px', background: '#FFFFFF' }}>
             <span style={{ fontSize: 12, color: 'var(--rs-color-text-muted)', fontWeight: 600 }}>
-              مشکلات پرتکرار (Recurring)
+              مشکلات پرتکرار
             </span>
             <div
               style={{
@@ -344,10 +344,10 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
             <AlertTriangle size={24} color="#B45309" />
             <div>
               <div style={{ fontSize: 14, fontWeight: 800, color: '#92400E' }}>
-                هشدار: {comparison.recurringCount} مشکل پرتکرار شناسایی شد (Recurring Problem Flag)!
+                هشدار: {comparison.recurringCount} مشکل پرتکرار شناسایی شد!
               </div>
               <div style={{ fontSize: 12, color: '#B45309', marginTop: 2 }}>
-                این شاخص‌ها در بازدید قبلی دارای اصطکاک بوده و در بازدید فعلی نیز رفع نشده‌اند. نیازمند بررسی ریشه‌ای (Root Cause).
+                این شاخص‌ها در بازدید قبلی دارای اصطکاک بوده و در بازدید فعلی نیز رفع نشده‌اند. نیازمند بررسی ریشه‌ای.
               </div>
             </div>
           </div>
@@ -428,13 +428,13 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
                   شرح شاخص و موضوع
                 </th>
                 <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: 'var(--rs-color-text-muted)' }}>
-                  وضعیت در بازدید قبل (Baseline)
+                  وضعیت در بازدید قبل
                 </th>
                 <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: 'var(--rs-color-text-muted)' }}>
-                  وضعیت در بازدید فعلی (Revisit)
+                  وضعیت در بازدید فعلی
                 </th>
                 <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: 'var(--rs-color-text-muted)' }}>
-                  طبقه‌بندی تغییر (Change Class)
+                  طبقه‌بندی تغییر
                 </th>
               </tr>
             </thead>

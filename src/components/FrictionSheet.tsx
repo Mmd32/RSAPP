@@ -216,7 +216,7 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
               {indicator.code}
             </span>
             <div>
-              <h2 style={{ fontSize: 16, fontWeight: 800, color: 'var(--theme-text-primary)' }}>ثبت و تکمیل اصطکاک (Friction)</h2>
+              <h2 style={{ fontSize: 16, fontWeight: 800, color: 'var(--theme-text-primary)' }}>ثبت و تکمیل اصطکاک</h2>
               <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{indicator.subject}</span>
             </div>
           </div>
@@ -245,7 +245,7 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
         {/* 1. SEVERITY SELECTION (4 explicit cards with microcopy) */}
         <div style={{ marginBottom: 18 }}>
           <label style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-main)', display: 'block', marginBottom: 4 }}>
-            سطح شدت اصطکاک (Severity):
+            سطح شدت اصطکاک:
           </label>
           <div className="severity-card-grid">
             {/* LOW */}
@@ -254,7 +254,7 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
               onClick={() => setSeverity('LOW')}
             >
               <div className="severity-card-title">
-                <span style={{ color: severity === 'LOW' ? 'var(--rs-color-brand-cyan)' : 'var(--text-main)' }}>کم (Low)</span>
+                <span style={{ color: severity === 'LOW' ? 'var(--rs-color-brand-cyan)' : 'var(--text-main)' }}>کم</span>
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-dim)' }}>جریمه ×۱</span>
               </div>
               <p className="severity-card-desc">اثر محدود روی تجربه مشتری</p>
@@ -266,7 +266,7 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
               onClick={() => setSeverity('MEDIUM')}
             >
               <div className="severity-card-title">
-                <span style={{ color: severity === 'MEDIUM' ? 'var(--rs-color-warning)' : 'var(--text-main)' }}>متوسط (Medium)</span>
+                <span style={{ color: severity === 'MEDIUM' ? 'var(--rs-color-warning)' : 'var(--text-main)' }}>متوسط</span>
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-dim)' }}>جریمه ×۲</span>
               </div>
               <p className="severity-card-desc">اثر محسوس بر ارزیابی و خرید</p>
@@ -278,7 +278,7 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
               onClick={() => setSeverity('HIGH')}
             >
               <div className="severity-card-title">
-                <span style={{ color: severity === 'HIGH' ? '#EA580C' : 'var(--text-main)' }}>زیاد (High)</span>
+                <span style={{ color: severity === 'HIGH' ? '#EA580C' : 'var(--text-main)' }}>زیاد</span>
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-dim)' }}>جریمه ×۳</span>
               </div>
               <p className="severity-card-desc">مانع مهم تجربه مشتری و نارضایتی</p>
@@ -290,7 +290,7 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
               onClick={() => setSeverity('CRITICAL')}
             >
               <div className="severity-card-title">
-                <span style={{ color: severity === 'CRITICAL' ? 'var(--rs-color-error)' : 'var(--text-main)' }}>بحرانی (Critical)</span>
+                <span style={{ color: severity === 'CRITICAL' ? 'var(--rs-color-error)' : 'var(--text-main)' }}>بحرانی</span>
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-dim)' }}>جریمه ×۴</span>
               </div>
               <p className="severity-card-desc">ریسک جدی، توقف تجربه یا نقص ایمنی</p>
