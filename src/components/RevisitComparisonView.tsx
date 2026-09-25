@@ -423,8 +423,8 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
 
       {/* 3. Comparison Grid Table (Requirements 14-16) */}
       {comparison ? (
-        <div className="card-rs" style={{ padding: 0, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right' }}>
+        <div className="card-rs" style={{ padding: 0, overflowX: 'auto' }}>
+          <table style={{ width: '100%', minWidth: 720, borderCollapse: 'collapse', textAlign: 'right' }}>
             <thead>
               <tr style={{ background: 'var(--surface-sunken)', borderBottom: '1px solid var(--theme-card-border)' }}>
                 <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: 'var(--theme-text-secondary)' }}>
