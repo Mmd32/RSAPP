@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react';
+import { faDateShort, faDigits, faPercent } from '../utils/format';
+import { StatCard, StatRow } from './ui/StatCard';
 import {
   CorrectiveAction,
   CorrectiveActionPriority,
@@ -199,7 +201,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--rs-color-text-ink)' }}>
-              اقدامات اصلاحی (Corrective Actions)
+              اقدامات اصلاحی
             </h1>
             <span
               style={{
@@ -236,94 +238,37 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
       </div>
 
       {/* 1. Executive Metrics Strip (Requirement 11 & 18) */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: 12,
-          marginBottom: 24,
-        }}
-      >
-        <div className="card-rs" style={{ padding: '14px 16px', background: 'var(--theme-card-bg)' }}>
-          <span style={{ fontSize: 12, color: 'var(--rs-color-text-muted)', fontWeight: 600 }}>
-            اقدامات فعال (Open)
-          </span>
-          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--rs-color-text-ink)', marginTop: 4 }}>
-            {analytics.openActions}
-          </div>
-          <div style={{ fontSize: 11, color: 'var(--rs-color-text-faint)', marginTop: 2 }}>
-            در حال پیگیری در شعب
-          </div>
-        </div>
-
-        <div
-          className="card-rs"
-          style={{
-            padding: '14px 16px',
-            background: analytics.overdueActions > 0 ? 'var(--rs-color-callout-crit)' : 'var(--theme-card-bg)',
-            borderColor: analytics.overdueActions > 0 ? 'var(--rs-color-error)' : 'var(--rs-color-border-line)',
-          }}
-        >
-          <span
-            style={{
-              fontSize: 12,
-              color: analytics.overdueActions > 0 ? 'var(--rs-color-error)' : 'var(--rs-color-text-muted)',
-              fontWeight: 700,
-            }}
-          >
-            سررسید گذشته (Overdue)
-          </span>
-          <div
-            style={{
-              fontSize: 28,
-              fontWeight: 800,
-              color: analytics.overdueActions > 0 ? 'var(--rs-color-error)' : 'var(--rs-color-text-ink)',
-              marginTop: 4,
-            }}
-          >
-            {analytics.overdueActions}
-          </div>
-          <div style={{ fontSize: 11, color: 'var(--rs-color-text-muted)', marginTop: 2 }}>
-            نیازمند اقدام فوری مسئول شعبه
-          </div>
-        </div>
-
-        <div className="card-rs" style={{ padding: '14px 16px', background: 'var(--theme-card-bg)' }}>
-          <span style={{ fontSize: 12, color: 'var(--theme-text-muted)', fontWeight: 600 }}>
-            اصطکاک‌های بحرانی (Critical)
-          </span>
-          <div style={{ fontSize: 28, fontWeight: 800, color: '#EA580C', marginTop: 4 }}>
-            {analytics.criticalActions}
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--theme-text-muted)', marginTop: 2 }}>
-            اولویت اول اصلاح
-          </div>
-        </div>
-
-        <div className="card-rs" style={{ padding: '14px 16px', background: 'var(--theme-card-bg)' }}>
-          <span style={{ fontSize: 12, color: 'var(--theme-text-muted)', fontWeight: 600 }}>
-            در انتظار تایید (Awaiting Verification)
-          </span>
-          <div style={{ fontSize: 28, fontWeight: 800, color: '#7C3AED', marginTop: 4 }}>
-            {analytics.awaitingVerificationActions}
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--theme-text-muted)', marginTop: 2 }}>
-            مدرک ارسال شده / آماده راستی‌آزمایی
-          </div>
-        </div>
-
-        <div className="card-rs" style={{ padding: '14px 16px', background: 'var(--theme-card-bg)' }}>
-          <span style={{ fontSize: 12, color: 'var(--theme-text-muted)', fontWeight: 600 }}>
-            نرخ رفع و تایید (Resolution Rate)
-          </span>
-          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--rs-color-success)', marginTop: 4 }}>
-            {analytics.resolutionRate}%
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--theme-text-muted)', marginTop: 2 }}>
-            میانگین زمان: {analytics.medianResolutionHours} ساعت
-          </div>
-        </div>
-      </div>
+      <StatRow>
+        <StatCard
+          label="اقدامات باز"
+          value={faDigits(analytics.openActions)}
+          hint="در حال پیگیری در شعب"
+        />
+        <StatCard
+          label="سررسید گذشته"
+          value={faDigits(analytics.overdueActions)}
+          hint="نیازمند اقدام فوری مسئول شعبه"
+          /* Only an overdue action that actually exists is an alarm. */
+          tone={analytics.overdueActions > 0 ? 'alarm' : 'default'}
+        />
+        <StatCard
+          label="اصطکاک‌های بحرانی"
+          value={faDigits(analytics.criticalActions)}
+          hint="اولویت اول اصلاح"
+          tone={analytics.criticalActions > 0 ? 'alarm' : 'default'}
+        />
+        <StatCard
+          label="در انتظار راستی‌آزمایی"
+          value={faDigits(analytics.awaitingVerificationActions)}
+          hint="مدرک ارسال شده و آماده بررسی"
+        />
+        <StatCard
+          label="نرخ رفع و تأیید"
+          value={faPercent(analytics.resolutionRate)}
+          hint={`میانگین زمان: ${faDigits(analytics.medianResolutionHours)} ساعت`}
+          tone="positive"
+        />
+      </StatRow>
 
       {/* 2. Filter Toolbar (Requirement 12) */}
       <div
@@ -488,7 +433,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                 مسئول / واحد
               </th>
               <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: 'var(--rs-color-text-muted)' }}>
-                مهلت (Due Date)
+                مهلت
               </th>
               <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: 'var(--rs-color-text-muted)' }}>
                 مدارک
@@ -673,7 +618,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                         }}
                       >
                         {isOverdue && <AlertTriangle size={14} color="var(--rs-color-error)" />}
-                        <span className="ltr-code">{action.dueDate?.slice(0, 10)}</span>
+                        <span>{faDateShort(action.dueDate)}</span>
                       </div>
                       {isOverdue && (
                         <span style={{ fontSize: 10, color: 'var(--rs-color-error)', fontWeight: 700 }}>
@@ -853,7 +798,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                     marginTop: 2,
                   }}
                 >
-                  {selectedAction.dueDate.slice(0, 10)}
+                  {faDateShort(selectedAction.dueDate)}
                 </div>
               </div>
               <div>
