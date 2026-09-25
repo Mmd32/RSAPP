@@ -970,3 +970,8 @@ input[type='number'] {
   --friction-critical: #FF8A80;
   --friction-critical-bg: rgba(255, 90, 90, 0.22);
 }
+
+/* Flex children default to min-width:auto, so one wide table used to push a
+   whole page past the viewport. Pages shrink; wide content scrolls inside
+   its own card instead. */
+main > * { min-width: 0; width: 100%; }

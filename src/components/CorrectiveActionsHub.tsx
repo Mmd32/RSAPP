@@ -408,8 +408,8 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
       </div>
 
       {/* 3. Action List Table (Enterprise Style) */}
-      <div className="card-rs" style={{ padding: 0, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right' }}>
+      <div className="card-rs" style={{ padding: 0, overflowX: 'auto' }}>
+        <table style={{ width: '100%', minWidth: 880, borderCollapse: 'collapse', textAlign: 'right' }}>
           <thead>
             <tr
               style={{
@@ -574,6 +574,8 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                           background: pBadge.bg,
                           color: pBadge.color,
                           border: `1px solid ${pBadge.border}`,
+                          display: 'inline-block',
+                          whiteSpace: 'nowrap',
                         }}
                       >
                         {pBadge.label}
@@ -590,6 +592,8 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                           borderRadius: 'var(--rs-radius-full)',
                           background: sBadge.bg,
                           color: sBadge.color,
+                          display: 'inline-block',
+                          whiteSpace: 'nowrap',
                         }}
                       >
                         {sBadge.label}
@@ -635,24 +639,26 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                           style={{
                             fontSize: 11,
                             padding: '1px 6px',
+                            whiteSpace: 'nowrap',
                             background: 'var(--friction-low-bg)',
                             color: 'var(--friction-medium)',
                             borderRadius: 'var(--rs-radius-control)',
                           }}
                         >
-                          قبل: {action.beforePhotos?.length || 0}
+                          قبل: {faDigits(action.beforePhotos?.length || 0)}
                         </span>
                         <span
                           title="عکس بعد"
                           style={{
                             fontSize: 11,
                             padding: '1px 6px',
+                            whiteSpace: 'nowrap',
                             background: action.afterPhotos?.length > 0 ? 'var(--friction-clean-bg)' : 'var(--surface-chip)',
                             color: action.afterPhotos?.length > 0 ? 'var(--friction-clean)' : '#646E8C',
                             borderRadius: 'var(--rs-radius-control)',
                           }}
                         >
-                          بعد: {action.afterPhotos?.length || 0}
+                          بعد: {faDigits(action.afterPhotos?.length || 0)}
                         </span>
                       </div>
                     </td>
