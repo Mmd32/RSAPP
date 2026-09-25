@@ -19,34 +19,35 @@ export function apiUrl(path: string): string {
 }
 
 export interface ApiFetchOptions extends RequestInit {
-  /** Sent as `x-tenant-id`; the backend scopes corrective actions by tenant. */
+  /**
+   * Ignored. Identity now comes from the session cookie, which the server
+   * verifies; these used to be sent as headers the browser could forge.
+   * Kept so existing call sites compile.
+   */
   tenantId?: string;
-  /** Sent as `x-user-role`; the backend enforces RBAC on it. */
   userRole?: string;
-  /** Sent as `x-user-name`; used for audit logs and self-verification checks. */
   userName?: string;
 }
 
-/**
- * HTTP header values are Latin-1, so a Persian name would reach the server as
- * mojibake. Percent-encoding keeps identities intact; the server decodes them.
- */
-function encodeHeaderValue(value: string): string {
-  return encodeURIComponent(value);
-}
+/** Fired on any 401 from a non-auth endpoint: the session ended or was revoked. */
+export const UNAUTHORIZED_EVENT = 'rsapp:unauthorized';
 
 export async function apiFetch(path: string, options: ApiFetchOptions = {}): Promise<Response> {
-  const { tenantId, userRole, userName, headers, ...rest } = options;
+  const { tenantId: _t, userRole: _r, userName: _n, headers, ...rest } = options;
 
-  const mergedHeaders: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...((headers as Record<string, string>) || {}),
-  };
-  if (tenantId) mergedHeaders['x-tenant-id'] = encodeHeaderValue(tenantId);
-  if (userRole) mergedHeaders['x-user-role'] = encodeHeaderValue(userRole);
-  if (userName) mergedHeaders['x-user-name'] = encodeHeaderValue(userName);
-
-  return fetch(apiUrl(path), { ...rest, headers: mergedHeaders });
+  const res = await fetch(apiUrl(path), {
+    // Same-origin in every deployment we ship, so the session cookie rides along.
+    credentials: 'same-origin',
+    ...rest,
+    headers: {
+      'Content-Type': 'application/json',
+      ...((headers as Record<string, string>) || {}),
+    },
+  });
+  if (res.status === 401 && !path.startsWith('/auth/')) {
+    window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT));
+  }
+  return res;
 }
 
 /**

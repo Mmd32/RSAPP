@@ -16,12 +16,16 @@ import {
   ChevronRight,
   ChevronLeft,
   UserCheck,
+  Users,
+  KeyRound,
+  LogOut,
   Sparkles,
   Layers,
   X,
 } from 'lucide-react';
 import { RetailSolutionsLogo } from '../brand/RetailSolutionsLogo';
 import { VisitSession, UserRole } from '../../types';
+import { ROLE_LABEL, Role, capabilities } from '../../auth/roles';
 
 export type ViewMode =
   | 'LANDING'
@@ -34,7 +38,9 @@ export type ViewMode =
   | 'SCENARIOS'
   | 'ACTIONS'
   | 'REVISIT'
-  | 'ARCHIVE';
+  | 'ARCHIVE'
+  | 'USERS'
+  | 'PASSWORD';
 
 interface AppSidebarProps {
   viewMode: ViewMode;
@@ -44,8 +50,8 @@ interface AppSidebarProps {
   themeMode: 'light' | 'dark';
   onToggleTheme: () => void;
   currentUserRole: UserRole;
-  onChangeRole: (role: UserRole) => void;
   currentUserName: string;
+  onLogout: () => void;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   isMobileOpen: boolean;
@@ -60,13 +66,14 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   themeMode,
   onToggleTheme,
   currentUserRole,
-  onChangeRole,
   currentUserName,
+  onLogout,
   isCollapsed,
   onToggleCollapse,
   isMobileOpen,
   onCloseMobile,
 }) => {
+  const can = capabilities(currentUserRole);
   const answeredCount = activeSession
     ? Object.values(activeSession.responses).filter(
         (r) => r.answerState !== 'UNANSWERED'
@@ -173,6 +180,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
               {!isCollapsed && <span className="nav-item-label">صفحه اصلی</span>}
             </button>
 
+            {can.fieldWork && (
             <button
               type="button"
               className={`sidebar-nav-item ${viewMode === 'WIZARD' ? 'active' : ''}`}
@@ -184,6 +192,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
               </div>
               {!isCollapsed && <span className="nav-item-label">بازدید جدید</span>}
             </button>
+            )}
 
             {activeSession && (
               <button
@@ -220,7 +229,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
               </button>
             )}
 
-            {activeSession && (
+            {activeSession && can.review && (
               <button
                 type="button"
                 className={`sidebar-nav-item ${viewMode === 'SUPERVISOR' ? 'active' : ''}`}
@@ -319,6 +328,8 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
 
           <div className="sidebar-divider" />
 
+          {can.adminTools && (
+          <>
           {/* GROUP 4: ADVANCED TOOLS */}
           <div className="sidebar-nav-group">
             {!isCollapsed && (
@@ -348,7 +359,22 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
               </div>
               {!isCollapsed && <span className="nav-item-label">تست سناریوها</span>}
             </button>
+                      {can.manageUsers && (
+              <button
+                type="button"
+                className={`sidebar-nav-item ${viewMode === 'USERS' ? 'active' : ''}`}
+                onClick={() => handleNavClick('USERS')}
+                title="مدیریت کاربران"
+              >
+                <div className="nav-icon-wrap">
+                  <Users size={18} />
+                </div>
+                {!isCollapsed && <span className="nav-item-label">مدیریت کاربران</span>}
+              </button>
+            )}
           </div>
+          </>
+          )}
         </nav>
 
         {/* Sidebar Footer: User Role & Theme Toggle */}
@@ -362,20 +388,18 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                 </div>
                 <div className="user-info">
                   <span className="user-name">{currentUserName}</span>
-                  <select
-                    className="user-role-select"
-                    value={currentUserRole}
-                    onChange={(e) => onChangeRole(e.target.value as UserRole)}
-                    aria-label="انتخاب نقش کاربری"
-                  >
-                    <option value="Supervisor">سرپرست ارزیابی</option>
-                    <option value="Evaluator">ارزیاب میدانی</option>
-                    <option value="Manager">مدیر برند/شعبه</option>
-                    <option value="Owner">مسئول رفع نقص</option>
-                    <option value="Verifier">راستی‌آزما</option>
-                    <option value="Admin">مدیر سیستم</option>
-                  </select>
+                  <span className="user-role-label">{ROLE_LABEL[currentUserRole as Role] || currentUserRole}</span>
                 </div>
+              </div>
+              <div className="sidebar-account-actions">
+                <button type="button" className="sidebar-account-btn" onClick={() => handleNavClick('PASSWORD')}>
+                  <KeyRound size={14} />
+                  <span>تغییر رمز</span>
+                </button>
+                <button type="button" className="sidebar-account-btn is-danger" onClick={onLogout}>
+                  <LogOut size={14} />
+                  <span>خروج</span>
+                </button>
               </div>
 
               {/* Theme Toggle Button */}
@@ -408,6 +432,9 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                 aria-label="تغییر تم"
               >
                 {themeMode === 'light' ? <Moon size={16} /> : <Sun size={16} color="#FBBF24" />}
+              </button>
+              <button type="button" className="sidebar-mini-icon-btn" onClick={onLogout} title="خروج" aria-label="خروج">
+                <LogOut size={16} />
               </button>
             </div>
           )}

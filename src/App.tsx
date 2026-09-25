@@ -11,7 +11,7 @@ import {
 import { StartVisitWizard } from './components/StartVisitWizard';
 import { LandingPage } from './components/landing/LandingPage';
 import { StoreService } from './services/storeService';
-import { apiFetch, apiSync } from './services/apiClient';
+import { apiFetch } from './services/apiClient';
 import { VisitSync, fetchPastVisits } from './services/visitService';
 import { flushPendingPhotos } from './services/photoService';
 import { FormOverview } from './components/FormOverview';
@@ -21,6 +21,10 @@ import { ReviewScreen } from './components/ReviewScreen';
 import { ComparisonEngine } from './engine/comparisonEngine';
 import { getVisitScore } from './engine/scoringEngine';
 import { FilterEmptyState } from './components/FilterEmptyState';
+import { UserManagement } from './components/UserManagement';
+import { ChangePasswordScreen } from './components/auth/AuthScreen';
+import { useAuth } from './auth/AuthContext';
+import { capabilities } from './auth/roles';
 import { RetailSolutionsLogo } from './components/brand/RetailSolutionsLogo';
 import { AppSidebar } from './components/layout/AppSidebar';
 import { MobileTabBar } from './components/layout/MobileTabBar';
@@ -128,7 +132,9 @@ type ViewMode =
   | 'SCENARIOS'
   | 'ACTIONS'
   | 'REVISIT'
-  | 'ARCHIVE';
+  | 'ARCHIVE'
+  | 'USERS'
+  | 'PASSWORD';
 
 const LOCAL_STORAGE_KEY = 'rsapp_active_visit_v1';
 
@@ -237,6 +243,12 @@ const INITIAL_DEMO_ACTIONS: CorrectiveAction[] = [
 ];
 
 export const App: React.FC = () => {
+  const { user, logout, signedIn } = useAuth();
+  // AuthGate only renders App for a signed-in user.
+  const currentUser = user!;
+  const can = capabilities(currentUser.role);
+  // One draft per account, so a shared tablet never resumes someone else's visit.
+  const activeVisitKey = `${LOCAL_STORAGE_KEY}:${currentUser.id}`;
   const allIndicators: Indicator[] = catalogData.indicators as any;
 
   const [activeSession, setActiveSession] = useState<VisitSession | null>(null);
@@ -256,6 +268,9 @@ export const App: React.FC = () => {
         'SCENARIOS',
         'ACTIONS',
         'REVISIT',
+        'ARCHIVE',
+        'USERS',
+        'PASSWORD',
       ];
       if (validModes.includes(hash as ViewMode)) {
         return hash as ViewMode;
@@ -273,6 +288,20 @@ export const App: React.FC = () => {
   }, []);
 
   const [viewMode, setViewModeState] = useState<ViewMode>(getInitialViewMode);
+
+  // Keep people out of screens their role cannot use (the server refuses the
+  // underlying writes anyway; this avoids offering them).
+  const viewAllowed = (mode: ViewMode): boolean => {
+    if (mode === 'WIZARD' || mode === 'AUDIT' || mode === 'REVIEW') return can.fieldWork;
+    if (mode === 'SUPERVISOR') return can.review;
+    if (mode === 'CATALOG' || mode === 'SCENARIOS') return can.adminTools;
+    if (mode === 'USERS') return can.manageUsers;
+    return true;
+  };
+  useEffect(() => {
+    if (!viewAllowed(viewMode)) setViewModeState('LANDING');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode, currentUser.role]);
   const [toolsDropdownOpen, setToolsDropdownOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
@@ -324,9 +353,9 @@ export const App: React.FC = () => {
   const toggleTheme = () => {
     setThemeMode((prev) => (prev === 'light' ? 'dark' : 'light'));
   };
-  const [currentUserRole, setCurrentUserRole] = useState<UserRole>('Supervisor');
-  const [currentUserName, setCurrentUserName] = useState<string>('نیما ذوقی');
-  const [currentTenantId, setCurrentTenantId] = useState<string>('org_retail_holding');
+  const currentUserRole = currentUser.role as UserRole;
+  const currentUserName = currentUser.name;
+  const currentTenantId = currentUser.tenantId;
 
   // Corrective Actions State
   const [actions, setActions] = useState<CorrectiveAction[]>(INITIAL_DEMO_ACTIONS);
@@ -400,7 +429,15 @@ export const App: React.FC = () => {
   // Check for saved visit on initial mount (Section 21: Resume)
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      // Drafts from before accounts existed were stored under a shared key;
+      // hand one over to the first account that signs in on this device.
+      const legacy = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (legacy && !localStorage.getItem(activeVisitKey)) {
+        localStorage.setItem(activeVisitKey, legacy);
+      }
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
+
+      const saved = localStorage.getItem(activeVisitKey);
       if (saved) {
         const parsed: VisitSession = JSON.parse(saved);
         if (parsed && parsed.indicators && parsed.indicators.length > 0) {
@@ -412,13 +449,40 @@ export const App: React.FC = () => {
     }
   }, []);
 
+  const [actionsNotice, setActionsNotice] = useState<string | null>(null);
+
+  const reloadActions = () =>
+    apiFetch('/actions')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((serverActions: CorrectiveAction[] | null) => {
+        if (Array.isArray(serverActions)) setActions(serverActions);
+      })
+      .catch(() => undefined);
+
+  /**
+   * Sends a corrective-action change. Changes are applied optimistically; if
+   * the server refuses one (e.g. the role may not do it), the list is reloaded
+   * from the server and the reason shown, instead of keeping a local change
+   * that was never saved. Network failures keep the optimistic state.
+   */
+  const syncAction = (path: string, init: RequestInit) => {
+    apiFetch(path, init)
+      .then(async (res) => {
+        if (res.ok || res.status === 401) return;
+        const body = await res.json().catch(() => ({}));
+        setActionsNotice(body?.error || 'تغییر در سرور ذخیره نشد.');
+        reloadActions();
+      })
+      .catch((err) => console.warn(`Action sync deferred (offline): ${path}`, err));
+  };
+
   // Hydrate corrective actions from the backend on mount. The server is the
   // source of truth, even when it has none yet: demo actions stay only when
   // the API is unreachable, so they never mix with real ones.
   useEffect(() => {
     let cancelled = false;
 
-    apiFetch('/actions', { tenantId: currentTenantId, userRole: currentUserRole, userName: currentUserName })
+    apiFetch('/actions')
       .then((res) => (res.ok ? res.json() : null))
       .then((serverActions: CorrectiveAction[] | null) => {
         if (cancelled || !Array.isArray(serverActions)) return;
@@ -488,9 +552,12 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('online', handleBackOnline);
   }, [currentTenantId]);
 
-  // Also try once on load, for photos left queued by an earlier session.
+  // Also try once on load, for photos left queued by an earlier session, and
+  // for answers whose sync was refused because the session had expired (the
+  // app remounts after signing back in).
   useEffect(() => {
     flushPendingPhotos(currentTenantId).catch(() => undefined);
+    VisitSync.flush(currentTenantId).catch(() => undefined);
   }, [currentTenantId]);
 
   // Autosave to localStorage and background API sync (Dual Persistence for field durability)
@@ -516,7 +583,7 @@ export const App: React.FC = () => {
     
     // 1. Guaranteed Local Persistence (Zero data loss even without network)
     try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(sessionWithAnalytics));
+      localStorage.setItem(activeVisitKey, JSON.stringify(sessionWithAnalytics));
     } catch (e) {
       console.error('Storage error', e);
     }
@@ -565,7 +632,7 @@ export const App: React.FC = () => {
   };
 
   const handleDiscardResume = () => {
-    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    localStorage.removeItem(activeVisitKey);
     setResumeCandidate(null);
     setActiveSession(null);
     setViewMode('WIZARD');
@@ -784,12 +851,14 @@ export const App: React.FC = () => {
       setCurrentStage(visit.indicators[0].journeyStage);
     }
     try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(visit));
+      localStorage.setItem(activeVisitKey, JSON.stringify(visit));
     } catch (e) {
       console.error('Storage error', e);
     }
     setResumeCandidate(null);
-    setViewMode(visit.status === 'IN_PROGRESS' ? 'AUDIT' : 'REPORT');
+    if (visit.status === 'SUBMITTED' && can.review) setViewMode('SUPERVISOR');
+    else if ((visit.status === 'IN_PROGRESS' || visit.status === 'REVISION_REQUESTED') && can.fieldWork) setViewMode('AUDIT');
+    else setViewMode('REPORT');
   };
 
   const handleSubmitVisit = () => {
@@ -841,7 +910,7 @@ export const App: React.FC = () => {
   };
 
   const handleConfirmDiscardSession = () => {
-    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    localStorage.removeItem(activeVisitKey);
     setActiveSession(null);
     setShowDiscardModal(false);
     setViewMode('WIZARD');
@@ -881,12 +950,9 @@ export const App: React.FC = () => {
 
     setActions((prev) => [newAction, ...prev]);
 
-    apiSync('/actions', {
+    syncAction('/actions', {
       method: 'POST',
       body: JSON.stringify(newAction),
-      tenantId: currentTenantId,
-      userRole: currentUserRole,
-      userName: currentUserName,
     });
 
     setViewMode('ACTIONS');
@@ -897,12 +963,9 @@ export const App: React.FC = () => {
       prev.map((a) => (a.id === id ? { ...a, ...updates, updatedAt: new Date().toISOString() } : a))
     );
 
-    apiSync(`/actions/${id}`, {
+    syncAction(`/actions/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(updates),
-      tenantId: currentTenantId,
-      userRole: currentUserRole,
-      userName: currentUserName,
     });
   };
 
@@ -927,12 +990,9 @@ export const App: React.FC = () => {
       })
     );
 
-    apiSync(`/actions/${id}/resolve`, {
+    syncAction(`/actions/${id}/resolve`, {
       method: 'POST',
       body: JSON.stringify({ resolutionNote, afterPhotos, rootCause }),
-      tenantId: currentTenantId,
-      userRole: currentUserRole,
-      userName: currentUserName,
     });
   };
 
@@ -951,12 +1011,9 @@ export const App: React.FC = () => {
       })
     );
 
-    apiSync(`/actions/${id}/verify`, {
+    syncAction(`/actions/${id}/verify`, {
       method: 'POST',
       body: JSON.stringify({ verificationNote }),
-      tenantId: currentTenantId,
-      userRole: currentUserRole,
-      userName: currentUserName,
     });
   };
 
@@ -982,12 +1039,9 @@ export const App: React.FC = () => {
       })
     );
 
-    apiSync(`/actions/${id}/reopen`, {
+    syncAction(`/actions/${id}/reopen`, {
       method: 'POST',
       body: JSON.stringify({ comment }),
-      tenantId: currentTenantId,
-      userRole: currentUserRole,
-      userName: currentUserName,
     });
   };
 
@@ -1004,8 +1058,8 @@ export const App: React.FC = () => {
         themeMode={themeMode}
         onToggleTheme={toggleTheme}
         currentUserRole={currentUserRole}
-        onChangeRole={setCurrentUserRole}
         currentUserName={currentUserName}
+        onLogout={logout}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
         isMobileOpen={isMobileSidebarOpen}
@@ -1049,6 +1103,8 @@ export const App: React.FC = () => {
               {viewMode === 'ACTIONS' && 'کارتابل پیگیری اقدامات اصلاحی'}
               {viewMode === 'CATALOG' && 'بانک جامع شاخص‌های استاندارد'}
               {viewMode === 'SCENARIOS' && 'محیط تست و اجرای سناریوها'}
+              {viewMode === 'USERS' && 'مدیریت کاربران'}
+              {viewMode === 'PASSWORD' && 'تغییر رمز عبور'}
               {viewMode === 'ARCHIVE' && 'بایگانی پرسشنامه‌ها'}
             </h2>
             {viewMode === 'AUDIT' && activeSession && (
@@ -1225,6 +1281,7 @@ export const App: React.FC = () => {
         {/* LANDING VIEW */}
         {viewMode === 'LANDING' && (
           <LandingPage
+            canStartAudit={can.fieldWork}
             currentUserName={currentUserName}
             currentUserRole={currentUserRole}
             activeSession={activeSession}
@@ -1234,7 +1291,7 @@ export const App: React.FC = () => {
             onResumeAudit={() => setViewMode('AUDIT')}
             onOpenReport={() => setViewMode('REPORT')}
             onOpenActions={() => setViewMode('ACTIONS')}
-            onOpenCatalog={() => setViewMode('CATALOG')}
+            onOpenCatalog={can.adminTools ? () => setViewMode('CATALOG') : undefined}
           />
         )}
 
@@ -1573,7 +1630,7 @@ export const App: React.FC = () => {
               onApproveVisit={handleApproveVisit}
               onRequestRevision={handleRequestRevision}
               onBackToDashboard={() => setViewMode('AUDIT')}
-              onCreateCorrectiveAction={handleCreateCorrectiveAction}
+              onCreateCorrectiveAction={can.createActions ? handleCreateCorrectiveAction : undefined}
             />
           )}
 
@@ -1586,6 +1643,15 @@ export const App: React.FC = () => {
               onBackToDashboard={() => setViewMode(activeSession ? 'AUDIT' : 'WIZARD')}
               onCreateCorrectiveAction={handleCreateCorrectiveAction}
             />
+          )}
+
+          {actionsNotice && viewMode === 'ACTIONS' && (
+            <div className="app-notice" role="alert">
+              <span>{actionsNotice}</span>
+              <button type="button" onClick={() => setActionsNotice(null)} aria-label="بستن">
+                ×
+              </button>
+            </div>
           )}
 
           {/* CORRECTIVE ACTIONS HUB (Prompt 4) */}
@@ -1604,6 +1670,20 @@ export const App: React.FC = () => {
           )}
 
           {/* SAVED QUESTIONNAIRES */}
+          {viewMode === 'USERS' && can.manageUsers && <UserManagement currentUserId={currentUser.id} />}
+
+          {viewMode === 'PASSWORD' && (
+            <ChangePasswordScreen
+              embedded
+              forced={false}
+              onDone={(u) => {
+                signedIn(u);
+                setViewMode('LANDING');
+              }}
+              onCancel={() => setViewMode('LANDING')}
+            />
+          )}
+
           {viewMode === 'ARCHIVE' && (
             <VisitArchive
               visits={pastVisits}
@@ -1690,6 +1770,7 @@ export const App: React.FC = () => {
           activeSession={activeSession}
           actionsCount={actions.length}
           onOpenMobileMenu={() => setIsMobileSidebarOpen(true)}
+          canFieldWork={can.fieldWork}
         />
       </div>
     </div>

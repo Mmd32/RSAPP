@@ -66,6 +66,10 @@ class VisitSyncService {
           body: JSON.stringify(session),
           tenantId,
         });
+        // 401: the session expired. Keep the answers queued; they are sent
+        // again once the user signs back in. Other refusals (e.g. a visit that
+        // was already submitted) are final for this state.
+        if (res.status === 401 && !this.pending) this.pending = session;
         this.emit(res.ok ? 'idle' : 'error');
       } catch {
         // Offline: localStorage already holds the answers, so re-queue (unless a

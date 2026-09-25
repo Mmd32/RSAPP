@@ -98,4 +98,25 @@ CREATE TABLE IF NOT EXISTS evidence_photos (
 
 CREATE INDEX IF NOT EXISTS idx_photos_visit ON evidence_photos (visit_id);
 CREATE INDEX IF NOT EXISTS idx_photos_tenant ON evidence_photos (tenant_id);
+
+-- Login accounts. The email is lifted out lower-cased so it can be unique
+-- regardless of how it was typed; the password lives in doc as a scrypt hash.
+CREATE TABLE IF NOT EXISTS users (
+    id          TEXT PRIMARY KEY,
+    tenant_id   TEXT NOT NULL,
+    email       TEXT NOT NULL,
+    doc         JSONB NOT NULL,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users (email);
+CREATE INDEX IF NOT EXISTS idx_users_tenant ON users (tenant_id);
+
+-- Small server-side key/value settings, e.g. the session signing key.
+CREATE TABLE IF NOT EXISTS app_settings (
+    key         TEXT PRIMARY KEY,
+    value       TEXT NOT NULL,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 `;

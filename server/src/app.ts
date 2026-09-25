@@ -15,6 +15,7 @@ import {
 } from './config.js';
 import { defaultStorageProvider } from './storage/storageProvider.js';
 import { createDataStore, DataStore } from './store/index.js';
+import { registerAuthRoutes, requireAuth, requireRole } from './auth/routes.js';
 import {
   CorrectiveAction,
   ActionAuditLog,
@@ -33,6 +34,9 @@ const CATALOG_PATH = dataPath('catalog.json');
 ensureDir(DATA_DIR);
 
 const app = express();
+// Behind Vercel/Render's proxy: trust X-Forwarded-* so req.ip and req.secure
+// (used for rate limiting and the Secure cookie flag) are the client's.
+app.set('trust proxy', 1);
 
 // Same-origin deployments need no allowlist; set ALLOWED_ORIGINS once the
 // frontend is served from a different domain than the API.
@@ -61,8 +65,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     logger.info(`HTTP ${req.method} ${req.path}`, {
       status: res.statusCode,
       durationMs: Date.now() - start,
-      tenantId: identityHeader(req, 'x-tenant-id') || 'default',
-      userRole: identityHeader(req, 'x-user-role') || 'Admin',
+      tenantId: req.user?.tenantId || '-',
+      userId: req.user?.id || '-',
+      userRole: req.user?.role || '-',
     });
   });
   next();
@@ -78,32 +83,73 @@ function route(handler: (req: Request, res: Response) => Promise<unknown>): Requ
   };
 }
 
-/**
- * Reads an identity header.
- *
- * HTTP header values are Latin-1, so a Persian name sent raw arrives as
- * mojibake — which silently defeated the self-verification check, since the
- * mangled header never matched the correctly stored owner name. The client
- * percent-encodes these headers; decoding is tolerant so that plain ASCII sent
- * by curl or an older client still works.
- */
-function identityHeader(req: Request, name: string): string | undefined {
-  const raw = req.headers[name];
-  const value = Array.isArray(raw) ? raw[0] : raw;
-  if (!value) return undefined;
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    return value;
-  }
+// Identity always comes from the signed session (requireAuth), never from
+// request headers: those used to be sent by the browser and could be forged.
+const tenantOf = (req: Request): string => req.user?.tenantId || DEFAULT_TENANT;
+const roleOf = (req: Request): UserRole => (req.user?.role as UserRole) || 'Evaluator';
+const userOf = (req: Request): string => req.user?.name || 'کاربر';
+
+/** Roles that review and approve questionnaires. */
+const REVIEWER_ROLES = new Set(['Admin', 'Supervisor']);
+
+/** Whether the signed-in user may read a visit. */
+function canSeeVisit(req: Request, visit: any): boolean {
+  const user = req.user!;
+  if ((visit.tenantId || DEFAULT_TENANT) !== user.tenantId) return false;
+  if (user.role !== 'Evaluator') return true;
+  // Evaluators see their own questionnaires only.
+  return visit.evaluatorId ? visit.evaluatorId === user.id : visit.auditorName === user.name;
 }
 
-const tenantOf = (req: Request): string =>
-  identityHeader(req, 'x-tenant-id') || DEFAULT_TENANT;
-const roleOf = (req: Request, fallback: UserRole): UserRole =>
-  (identityHeader(req, 'x-user-role') as UserRole) || fallback;
-const userOf = (req: Request, fallback: string): string =>
-  identityHeader(req, 'x-user-name') || fallback;
+/**
+ * Who may write a visit, and into which status. Returns null when allowed.
+ *
+ * - Evaluators write their own questionnaire while it is in progress (or sent
+ *   back to them), and may submit it; after that it is locked for them.
+ * - Supervisors and admins may also approve or return a *submitted* visit.
+ * - Other roles only read visits.
+ */
+function visitWriteProblem(
+  req: Request,
+  existing: any | null,
+  nextStatus: string
+): { status: number; error: string; code: string } | null {
+  const user = req.user!;
+  const isReviewer = REVIEWER_ROLES.has(user.role);
+  if (user.role !== 'Evaluator' && !isReviewer) {
+    return { status: 403, error: 'نقش شما اجازهٔ ثبت پرسشنامه را ندارد.', code: 'FORBIDDEN' };
+  }
+  if (existing && !canSeeVisit(req, existing)) {
+    return { status: 403, error: 'این پرسشنامه متعلق به کاربر دیگری است.', code: 'FORBIDDEN' };
+  }
+  const current = existing?.status;
+  if (nextStatus === 'APPROVED' || nextStatus === 'REVISION_REQUESTED') {
+    if (nextStatus === current) {
+      if (!isReviewer && nextStatus === 'APPROVED') {
+        return { status: 409, error: 'این پرسشنامه تأیید شده و قابل ویرایش نیست.', code: 'LOCKED' };
+      }
+      return null; // re-saving the same state
+    }
+    if (!isReviewer) {
+      return { status: 403, error: 'تأیید یا بازگرداندن پرسشنامه فقط با سرپرست است.', code: 'FORBIDDEN' };
+    }
+    if (current !== 'SUBMITTED') {
+      return { status: 409, error: 'فقط پرسشنامهٔ ارسال‌شده قابل تأیید یا بازگرداندن است.', code: 'INVALID_TRANSITION' };
+    }
+    return null;
+  }
+  // IN_PROGRESS or SUBMITTED from here on.
+  if (!isReviewer && (current === 'SUBMITTED' || current === 'APPROVED')) {
+    return { status: 409, error: 'این پرسشنامه ارسال شده و دیگر قابل ویرایش نیست.', code: 'LOCKED' };
+  }
+  return null;
+}
+
+/** Loads an action of the user's own tenant; anything else reads as missing. */
+async function actionFor(req: Request): Promise<CorrectiveAction | null> {
+  const action = await store.getAction(req.params.id);
+  return action && (action.tenantId || DEFAULT_TENANT) === tenantOf(req) ? action : null;
+}
 
 let catalog: any = null;
 
@@ -177,6 +223,34 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     .catch(next);
 });
 
+// Cookies ride along on cross-site form posts; SameSite=Lax stops most of
+// that, and this closes the rest: a state-changing request from a page on
+// another origin is refused.
+app.use('/api', (req: Request, res: Response, next: NextFunction) => {
+  if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') return next();
+  const origin = req.headers.origin;
+  if (!origin) return next();
+  let sameHost = false;
+  try {
+    sameHost = new URL(origin).host === req.headers.host;
+  } catch {
+    sameHost = false;
+  }
+  if (sameHost || ALLOWED_ORIGINS.includes(origin)) return next();
+  logger.security('Blocked cross-origin write', { origin, path: req.path });
+  res.status(403).json({ error: 'Cross-origin request refused.' });
+});
+
+registerAuthRoutes(app, () => store);
+
+// Everything below requires a signed-in user.
+const PUBLIC_API_PATHS = new Set(['/auth/status', '/auth/setup', '/auth/login', '/auth/logout']);
+const authenticate = requireAuth(() => store);
+app.use('/api', (req: Request, res: Response, next: NextFunction) => {
+  if (PUBLIC_API_PATHS.has(req.path)) return next();
+  authenticate(req, res, next);
+});
+
 // ----------------------------------------------------------------------------
 // HEALTH & CATALOG
 // ----------------------------------------------------------------------------
@@ -234,6 +308,7 @@ app.get(
 
 app.post(
   '/api/organizations',
+  requireRole('Admin'),
   route(async (req, res) => {
     const { name, code, brands } = req.body;
     if (!name || !code) {
@@ -328,6 +403,7 @@ app.post(
 
 app.delete(
   '/api/stores/:id',
+  requireRole('Admin', 'Supervisor'),
   route(async (req, res) => {
     const removed = await store.deleteStore(req.params.id);
     if (!removed) {
@@ -345,14 +421,13 @@ const VISIT_STATUSES = new Set(['IN_PROGRESS', 'SUBMITTED', 'APPROVED', 'REVISIO
 app.get(
   '/api/visits',
   route(async (req, res) => {
-    const { tenantId, branchName, brandName } = req.query;
-    res.json(
-      await store.listVisits({
-        tenantId: tenantId as string | undefined,
-        branchName: branchName as string | undefined,
-        brandName: brandName as string | undefined,
-      })
-    );
+    const { branchName, brandName } = req.query;
+    const list = await store.listVisits({
+      tenantId: tenantOf(req),
+      branchName: branchName as string | undefined,
+      brandName: brandName as string | undefined,
+    });
+    res.json(list.filter((v) => canSeeVisit(req, v)));
   })
 );
 
@@ -378,18 +453,31 @@ app.post(
 
     const id = visitData.id || `visit_${Date.now()}`;
 
-    // navigator.sendBeacon cannot set headers, so the unload path passes the
-    // tenant in the query string instead.
-    const tenantId =
-      visitData.tenantId || (req.query.tenantId as string) || tenantOf(req);
+    const user = req.user!;
+    const tenantId = user.tenantId;
 
     // Saves are repeated upserts of the same questionnaire as it is filled in,
     // so the original creation time must not be rewritten on every save.
     const existing = await store.getVisit(id);
+    const denied = visitWriteProblem(req, existing, visitData.status);
+    if (denied) {
+      logger.security('Visit write refused', { userId: user.id, visitId: id, reason: denied.error });
+      return res.status(denied.status).json({ error: denied.error, code: denied.code });
+    }
+
+    const statusChanged = !existing || existing.status !== visitData.status;
+    const reviewed =
+      statusChanged && (visitData.status === 'APPROVED' || visitData.status === 'REVISION_REQUESTED');
     const visit = {
       ...visitData,
       id,
       tenantId,
+      // Authorship is stamped by the server, not trusted from the client.
+      evaluatorId: existing?.evaluatorId || (user.role === 'Evaluator' ? user.id : visitData.evaluatorId || user.id),
+      auditorName: existing?.auditorName || (user.role === 'Evaluator' ? user.name : visitData.auditorName || user.name),
+      ...(reviewed
+        ? { supervisorId: user.id, supervisorName: user.name, reviewedAt: new Date().toISOString() }
+        : {}),
       createdAt: existing?.createdAt || visitData.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -444,7 +532,7 @@ app.get(
   '/api/visits/:id',
   route(async (req, res) => {
     const visit = await store.getVisit(req.params.id);
-    if (!visit) {
+    if (!visit || !canSeeVisit(req, visit)) {
       return res.status(404).json({ error: 'Visit not found' });
     }
     res.json(visit);
@@ -455,9 +543,11 @@ app.post(
   '/api/visits/:id/responses',
   route(async (req, res) => {
     const visit = await store.getVisit(req.params.id);
-    if (!visit) {
+    if (!visit || !canSeeVisit(req, visit)) {
       return res.status(404).json({ error: 'Visit not found' });
     }
+    const denied = visitWriteProblem(req, visit, visit.status);
+    if (denied) return res.status(denied.status).json({ error: denied.error, code: denied.code });
 
     const { indicatorId, response } = req.body;
     if (!visit.responses) {
@@ -519,8 +609,8 @@ async function writeAuditLog(
 app.get(
   '/api/actions',
   route(async (req, res) => {
-    const { tenantId, brand, branch, owner, department, priority, status, overdue } = req.query;
-    const activeTenant = identityHeader(req, 'x-tenant-id') || (tenantId as string) || DEFAULT_TENANT;
+    const { brand, branch, owner, department, priority, status, overdue } = req.query;
+    const activeTenant = tenantOf(req);
 
     let list = await store.listActions(activeTenant);
 
@@ -551,7 +641,7 @@ app.get(
 app.post(
   '/api/actions',
   route(async (req, res) => {
-    const userRole = roleOf(req, 'Supervisor');
+    const userRole = roleOf(req);
     const perms = ROLE_PERMISSIONS[userRole] || ROLE_PERMISSIONS.Supervisor;
 
     if (!perms.canCreateActions) {
@@ -604,7 +694,7 @@ app.post(
       afterPhotos: [],
       reopenCount: 0,
       reopenComments: [],
-      createdBy: userOf(req, 'Supervisor'),
+      createdBy: userOf(req),
       createdAt: now,
       updatedAt: now,
     };
@@ -629,7 +719,7 @@ app.post(
 app.get(
   '/api/actions/:id',
   route(async (req, res) => {
-    const action = await store.getAction(req.params.id);
+    const action = await actionFor(req);
     if (!action) {
       return res.status(404).json({ error: 'Action not found' });
     }
@@ -641,13 +731,13 @@ app.get(
 app.patch(
   '/api/actions/:id',
   route(async (req, res) => {
-    const action = await store.getAction(req.params.id);
+    const action = await actionFor(req);
     if (!action) {
       return res.status(404).json({ error: 'Action not found' });
     }
 
-    const userRole = roleOf(req, 'Supervisor');
-    const userName = userOf(req, 'User');
+    const userRole = roleOf(req);
+    const userName = userOf(req);
     const fromStatus = action.status;
     const updates = { ...req.body };
 
@@ -672,7 +762,7 @@ app.patch(
 app.post(
   '/api/actions/:id/resolve',
   route(async (req, res) => {
-    const action = await store.getAction(req.params.id);
+    const action = await actionFor(req);
     if (!action) {
       return res.status(404).json({ error: 'Action not found' });
     }
@@ -682,8 +772,8 @@ app.post(
       return res.status(400).json({ error: 'Resolution note is required.' });
     }
 
-    const userRole = roleOf(req, 'Owner');
-    const userName = userOf(req, action.owner || 'Owner');
+    const userRole = roleOf(req);
+    const userName = userOf(req);
     const fromStatus = action.status;
 
     action.status = 'WAITING_REVIEW';
@@ -717,13 +807,13 @@ app.post(
 app.post(
   '/api/actions/:id/verify',
   route(async (req, res) => {
-    const action = await store.getAction(req.params.id);
+    const action = await actionFor(req);
     if (!action) {
       return res.status(404).json({ error: 'Action not found' });
     }
 
-    const userRole = roleOf(req, 'Supervisor');
-    const userName = userOf(req, 'Supervisor');
+    const userRole = roleOf(req);
+    const userName = userOf(req);
     const { verificationNote } = req.body;
 
     // Strict constraint: Resolver / Owner cannot self-verify!
@@ -763,7 +853,7 @@ app.post(
 app.post(
   '/api/actions/:id/reopen',
   route(async (req, res) => {
-    const action = await store.getAction(req.params.id);
+    const action = await actionFor(req);
     if (!action) {
       return res.status(404).json({ error: 'Action not found' });
     }
@@ -773,8 +863,8 @@ app.post(
       return res.status(400).json({ error: 'Comment is required when reopening an action.' });
     }
 
-    const userRole = roleOf(req, 'Supervisor');
-    const userName = userOf(req, 'Supervisor');
+    const userRole = roleOf(req);
+    const userName = userOf(req);
     const fromStatus = action.status;
 
     action.status = 'REOPENED';
@@ -867,7 +957,9 @@ app.get(
 app.get(
   '/api/branches/:branchName/visits',
   route(async (req, res) => {
-    const list = await store.listVisits({ branchName: req.params.branchName });
+    const list = (await store.listVisits({ tenantId: tenantOf(req), branchName: req.params.branchName })).filter(
+      (v) => canSeeVisit(req, v)
+    );
     list.sort(
       (a: any, b: any) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime()
     );
@@ -946,13 +1038,14 @@ app.get(
   '/api/photos/:id',
   route(async (req, res) => {
     const photo = await store.getPhoto(req.params.id);
-    if (!photo) {
+    if (!photo || (photo.tenantId || DEFAULT_TENANT) !== tenantOf(req)) {
       return res.status(404).json({ error: 'Photo not found' });
     }
     res.setHeader('Content-Type', photo.mimeType);
     res.setHeader('Content-Length', String(photo.sizeBytes));
-    // Photo bytes never change once stored, so they can be cached hard.
-    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    // Bytes never change once stored; 'private' keeps shared caches from
+    // serving evidence to someone who is not signed in.
+    res.setHeader('Cache-Control', 'private, max-age=31536000, immutable');
     res.send(photo.data);
   })
 );
@@ -960,6 +1053,10 @@ app.get(
 app.delete(
   '/api/photos/:id',
   route(async (req, res) => {
+    const photo = await store.getPhoto(req.params.id);
+    if (!photo || (photo.tenantId || DEFAULT_TENANT) !== tenantOf(req)) {
+      return res.status(404).json({ error: 'Photo not found' });
+    }
     const removed = await store.deletePhoto(req.params.id);
     if (!removed) {
       return res.status(404).json({ error: 'Photo not found' });

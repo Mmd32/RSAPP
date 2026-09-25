@@ -1,7 +1,7 @@
 import pg from 'pg';
 import { logger } from '../logger.js';
 import { CorrectiveAction, ActionAuditLog } from '../types/actions.js';
-import { DataStore, VisitFilter, StoredPhoto, PhotoMetadata } from './types.js';
+import { DataStore, VisitFilter, StoredPhoto, PhotoMetadata, StoredUser } from './types.js';
 import { DOCUMENT_STORE_SCHEMA } from './schema.js';
 
 const { Pool } = pg;
@@ -235,6 +235,60 @@ export class PostgresDataStore implements DataStore {
       [actionId]
     );
     return rows.map((r) => r.doc as ActionAuditLog);
+  }
+
+  // --- users ---------------------------------------------------------------
+
+  async listUsers(tenantId?: string): Promise<StoredUser[]> {
+    const { rows } = tenantId
+      ? await this.pool.query('SELECT doc FROM users WHERE tenant_id = $1 ORDER BY created_at', [tenantId])
+      : await this.pool.query('SELECT doc FROM users ORDER BY created_at');
+    return rows.map((r) => r.doc);
+  }
+
+  async getUser(id: string): Promise<StoredUser | null> {
+    const { rows } = await this.pool.query('SELECT doc FROM users WHERE id = $1', [id]);
+    return rows[0]?.doc ?? null;
+  }
+
+  async getUserByEmail(email: string): Promise<StoredUser | null> {
+    const { rows } = await this.pool.query('SELECT doc FROM users WHERE email = $1', [
+      email.trim().toLowerCase(),
+    ]);
+    return rows[0]?.doc ?? null;
+  }
+
+  async saveUser(user: StoredUser): Promise<void> {
+    await this.pool.query(
+      `INSERT INTO users (id, tenant_id, email, doc)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (id) DO UPDATE SET
+         tenant_id = EXCLUDED.tenant_id,
+         email = EXCLUDED.email,
+         doc = EXCLUDED.doc,
+         updated_at = now()`,
+      [user.id, user.tenantId, user.email.trim().toLowerCase(), user]
+    );
+  }
+
+  async countUsers(): Promise<number> {
+    const { rows } = await this.pool.query('SELECT count(*)::int AS n FROM users');
+    return rows[0].n;
+  }
+
+  // --- settings ------------------------------------------------------------
+
+  async getSetting(key: string): Promise<string | null> {
+    const { rows } = await this.pool.query('SELECT value FROM app_settings WHERE key = $1', [key]);
+    return rows[0]?.value ?? null;
+  }
+
+  async setSettingIfAbsent(key: string, value: string): Promise<string> {
+    await this.pool.query(
+      'INSERT INTO app_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO NOTHING',
+      [key, value]
+    );
+    return (await this.getSetting(key)) as string;
   }
 
   // --- evidence photos ------------------------------------------------------

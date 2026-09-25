@@ -6,6 +6,7 @@ import {
   BarChart3,
   Target,
   Menu,
+  Archive,
 } from 'lucide-react';
 import { ViewMode } from './AppSidebar';
 import { VisitSession } from '../../types';
@@ -16,6 +17,8 @@ interface MobileTabBarProps {
   activeSession: VisitSession | null;
   actionsCount: number;
   onOpenMobileMenu: () => void;
+  /** False for read-only roles, who get the archive and actions instead. */
+  canFieldWork: boolean;
 }
 
 export const MobileTabBar: React.FC<MobileTabBarProps> = ({
@@ -24,6 +27,7 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({
   activeSession,
   actionsCount,
   onOpenMobileMenu,
+  canFieldWork,
 }) => {
   const answeredCount = activeSession
     ? Object.values(activeSession.responses).filter(
@@ -47,6 +51,8 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({
         <span className="mobile-tab-label">خانه</span>
       </button>
 
+      {canFieldWork ? (
+        <>
       {/* 2. WIZARD */}
       <button
         type="button"
@@ -78,6 +84,35 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({
         </div>
         <span className="mobile-tab-label">فرم ارزیابی</span>
       </button>
+        </>
+      ) : (
+        <>
+      {/* 2-3. Read-only roles: archive and actions */}
+      <button
+        type="button"
+        className={`mobile-tab-btn ${viewMode === 'ARCHIVE' ? 'active' : ''}`}
+        onClick={() => onSelectViewMode('ARCHIVE')}
+        aria-label="بایگانی"
+      >
+        <div className="mobile-tab-icon-wrap">
+          <Archive size={19} />
+        </div>
+        <span className="mobile-tab-label">بایگانی</span>
+      </button>
+      <button
+        type="button"
+        className={`mobile-tab-btn ${viewMode === 'ACTIONS' ? 'active' : ''}`}
+        onClick={() => onSelectViewMode('ACTIONS')}
+        aria-label="اقدامات اصلاحی"
+      >
+        <div className="mobile-tab-icon-wrap">
+          <Target size={19} />
+          {actionsCount > 0 && <span className="mobile-tab-badge ltr-num">{actionsCount}</span>}
+        </div>
+        <span className="mobile-tab-label">اقدامات</span>
+      </button>
+        </>
+      )}
 
       {/* 4. REPORT */}
       <button

@@ -75,7 +75,31 @@ Copy `.env.example` to `.env` and adjust. The variables that matter:
 | `SERVE_CLIENT` | `true` | `false` for an API-only service |
 | `ALLOWED_ORIGINS` | *(empty)* | Set only when the UI is on a different domain |
 | `STORAGE_SIGNING_SECRET` | dev placeholder | **Generate a real value before deploying** |
+| `AUTH_SECRET` | *(unset)* | Optional. Session signing key (≥ 32 chars). Unset, a random key is generated once and kept in the database |
+| `SETUP_TOKEN` | *(unset)* | Optional. When set, the first-run setup screen asks for it before creating the first administrator |
 | `VITE_API_BASE_URL` | `/api` | Build-time; set only for split hosting |
+
+## 3b. Accounts and permissions
+
+Every `/api` route except `/api/health` and the sign-in endpoints requires a
+session. Sessions are an HMAC-signed, `HttpOnly`, `SameSite=Lax` cookie
+(`Secure` over HTTPS) valid for 7 days; passwords are stored as salted scrypt
+hashes. Identity, role and tenant always come from the session — the old
+`x-user-*` / `x-tenant-id` headers are ignored.
+
+| Role | Can |
+| --- | --- |
+| مدیر سامانه (Admin) | everything, including user management |
+| سرپرست (Supervisor) | field work, review/approve/return submitted visits, admin tools, corrective actions |
+| ارزیاب (Evaluator) | create, fill and submit **their own** visits; locked once submitted |
+| مدیر شعبه / مسئول رفع نقص / راستی‌آزما | read reports and visits; corrective-action steps per their permissions |
+
+Also enforced by the server: approval only of a submitted visit, the approver
+and evaluator recorded from the account, 5 wrong passwords lock an account for
+15 minutes, deactivating a user or changing their role or password ends their
+existing sessions, and state-changing requests from another origin are refused.
+
+`npm run test:auth` exercises all of this against a throwaway data folder.
 
 ## 4. Free hosting for initial testing
 
@@ -220,11 +244,12 @@ the existing local provider; on Vercel it needs object storage from day one.
 - [ ] Set `STORAGE_SIGNING_SECRET` to a random value (`openssl rand -hex 32`).
 - [ ] Set `DATABASE_URL` (or attach a volume and set `DATA_DIR`). Without one of
       the two, everything is lost on the next restart. Confirm via `/api/health`.
-- [ ] **There is no authentication yet.** The API trusts the `x-user-role`,
-      `x-user-name` and `x-tenant-id` request headers, which any client can set.
-      RBAC and tenant isolation are therefore demo-grade: anyone with the URL can
-      read and write everything. Keep the link private during testing, and add
-      real auth before production.
+- [ ] **Create the first administrator straight after deploying.** Open the
+      site: while no account exists it shows a one-time setup screen, and
+      whoever completes it becomes the administrator. To close that window
+      entirely, set `SETUP_TOKEN` before the first deploy and enter it there.
+- [ ] Add everyone else from **مدیریت کاربران**. Each new user gets a one-time
+      password and must choose their own at first sign-in.
 - [ ] Reset the demo data if you want a clean start: `npm run data:reset`
       (add `-- --all` to clear the store directory too), then re-run
       `npm run db:import` if you are on PostgreSQL.

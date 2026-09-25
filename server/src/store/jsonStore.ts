@@ -3,7 +3,7 @@ import path from 'path';
 import { logger } from '../logger.js';
 import { dataPath, ensureDir, writeJsonAtomic } from '../config.js';
 import { CorrectiveAction, ActionAuditLog } from '../types/actions.js';
-import { DataStore, VisitFilter, StoredPhoto, PhotoMetadata } from './types.js';
+import { DataStore, VisitFilter, StoredPhoto, PhotoMetadata, StoredUser } from './types.js';
 
 const DEFAULT_TENANT = 'org_retail_holding';
 
@@ -39,6 +39,12 @@ export class JsonDataStore implements DataStore {
   private readonly storesPath = dataPath('stores.json');
   private readonly photosIndexPath = dataPath('photos.json');
   private readonly photosDir = dataPath('uploads');
+  // Credentials: kept out of git (see .gitignore).
+  private readonly usersPath = dataPath('users.json');
+  private readonly settingsPath = dataPath('settings.json');
+
+  private users: Record<string, StoredUser> = {};
+  private settings: Record<string, string> = {};
 
   /** Photo bytes live as files; this index holds their metadata. */
   private photoIndex: Record<string, PhotoMetadata> = {};
@@ -50,6 +56,8 @@ export class JsonDataStore implements DataStore {
     this.organizations = this.read(this.orgsPath, this.organizations);
     this.storeDirectory = this.read(this.storesPath, this.storeDirectory);
     this.photoIndex = this.read(this.photosIndexPath, this.photoIndex);
+    this.users = this.read(this.usersPath, this.users);
+    this.settings = this.read(this.settingsPath, this.settings);
   }
 
   async close(): Promise<void> {
@@ -160,6 +168,41 @@ export class JsonDataStore implements DataStore {
 
   private photoFile(id: string): string {
     return path.join(this.photosDir, id);
+  }
+
+  async listUsers(tenantId?: string): Promise<StoredUser[]> {
+    const list = Object.values(this.users);
+    return tenantId ? list.filter((u) => u.tenantId === tenantId) : list;
+  }
+
+  async getUser(id: string): Promise<StoredUser | null> {
+    return this.users[id] ?? null;
+  }
+
+  async getUserByEmail(email: string): Promise<StoredUser | null> {
+    const wanted = email.trim().toLowerCase();
+    return Object.values(this.users).find((u) => u.email.toLowerCase() === wanted) ?? null;
+  }
+
+  async saveUser(user: StoredUser): Promise<void> {
+    this.users[user.id] = { ...user, email: user.email.trim().toLowerCase() };
+    this.write(this.usersPath, this.users);
+  }
+
+  async countUsers(): Promise<number> {
+    return Object.keys(this.users).length;
+  }
+
+  async getSetting(key: string): Promise<string | null> {
+    return this.settings[key] ?? null;
+  }
+
+  async setSettingIfAbsent(key: string, value: string): Promise<string> {
+    if (!(key in this.settings)) {
+      this.settings[key] = value;
+      this.write(this.settingsPath, this.settings);
+    }
+    return this.settings[key];
   }
 
   async savePhoto(photo: StoredPhoto): Promise<PhotoMetadata> {
