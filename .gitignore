@@ -45,3 +45,7 @@ scratch_retail_solutions.css
 # Runtime-generated data
 data/logs/
 data/uploads/
+
+# Credentials written by the JSON store (password hashes, session key)
+data/users.json
+data/settings.json

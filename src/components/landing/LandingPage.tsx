@@ -22,6 +22,8 @@ import { VisitSession, UserRole } from '../../types';
 import { faDigits } from '../../utils/format';
 
 interface LandingPageProps {
+  /** False for read-only roles: no entry point to start a visit. */
+  canStartAudit?: boolean;
   currentUserName: string;
   currentUserRole: UserRole;
   activeSession: VisitSession | null;
@@ -31,10 +33,12 @@ interface LandingPageProps {
   onResumeAudit: () => void;
   onOpenReport: () => void;
   onOpenActions: () => void;
-  onOpenCatalog: () => void;
+  /** Omitted for roles without the admin tools. */
+  onOpenCatalog?: () => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({
+  canStartAudit = true,
   currentUserName,
   currentUserRole,
   activeSession,
@@ -128,6 +132,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             cell an odd number of equal cards always leaves behind. */}
         <div className="landing-actions">
           {/* CARD 1: START NEW AUDIT */}
+          {canStartAudit && (
           <div
             onClick={onStartNewAudit}
             className="landing-actions__lead"
@@ -152,7 +157,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 شروع ارزیابی و بازدید جدید
               </h3>
               <p style={{ fontSize: 12, color: 'var(--theme-text-muted)', lineHeight: 1.6, margin: 0 }}>
-                انتخاب از میان شعب ثبت‌شده در دیتابیس (زارا، کوروش مال، مانگو...) یا تعریف سریع شعبه جدید با تکمیل خودکار فرم.
+                انتخاب از میان شعب ثبت‌شده یا تعریف سریع شعبهٔ جدید؛ فرم بر اساس ویژگی‌های شعبه ساخته می‌شود.
               </p>
             </div>
 
@@ -163,6 +168,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <ChevronLeft size={18} color="var(--rs-color-brand-cyan)" />
             </div>
           </div>
+          )}
 
           {/* CARD 2: ACTIVE SESSION / RESUME AUDIT */}
           {activeSession ? (
@@ -341,14 +347,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <h2 style={{ fontSize: 16, fontWeight: 800, color: 'var(--theme-text-primary)', margin: 0 }}>
             ابعاد ۸گانه مدل ارزیابی تجربه مشتری
           </h2>
-          <button
-            type="button"
-            onClick={onOpenCatalog}
-            className="btn-secondary"
-            style={{ fontSize: 11, padding: '4px 10px', minHeight: 30 }}
-          >
-            مشاهده بانک شاخص‌ها
-          </button>
+          {onOpenCatalog && (
+            <button
+              type="button"
+              onClick={onOpenCatalog}
+              className="btn-secondary"
+              style={{ fontSize: 11, padding: '4px 10px', minHeight: 30 }}
+            >
+              مشاهده بانک شاخص‌ها
+            </button>
+          )}
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10 }}>

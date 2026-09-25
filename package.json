@@ -13,7 +13,8 @@
     "data:reset": "node scripts/reset-data.mjs",
     "db:import": "tsx server/src/scripts/importJson.ts",
     "typecheck": "tsc --noEmit && tsc -p server/tsconfig.json",
-    "test:scenarios": "python3 scripts/test_scenarios.py"
+    "test:scenarios": "python3 scripts/test_scenarios.py",
+    "test:auth": "tsx server/tests/auth.test.ts"
   },
   "dependencies": {
     "clsx": "^2.1.1",

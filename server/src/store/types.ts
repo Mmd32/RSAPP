@@ -19,6 +19,27 @@ export interface StoredPhoto {
 /** Photo metadata without the bytes, which is what the API returns. */
 export type PhotoMetadata = Omit<StoredPhoto, 'data'>;
 
+/**
+ * A login account. The password is only ever stored as a salted scrypt hash;
+ * `sessionVersion` is bumped to revoke every token issued before it.
+ */
+export interface StoredUser {
+  id: string;
+  tenantId: string;
+  email: string;
+  name: string;
+  role: string;
+  passwordHash: string;
+  isActive: boolean;
+  sessionVersion: number;
+  failedLogins: number;
+  lockedUntil?: string | null;
+  mustChangePassword?: boolean;
+  lastLoginAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 /** Query filters applied to a visit listing. */
 export interface VisitFilter {
   tenantId?: string;
@@ -60,6 +81,21 @@ export interface DataStore {
 
   listAuditLogs(actionId: string): Promise<ActionAuditLog[]>;
   appendAuditLog(log: ActionAuditLog): Promise<void>;
+
+  listUsers(tenantId?: string): Promise<StoredUser[]>;
+  getUser(id: string): Promise<StoredUser | null>;
+  /** Case-insensitive lookup. */
+  getUserByEmail(email: string): Promise<StoredUser | null>;
+  saveUser(user: StoredUser): Promise<void>;
+  countUsers(): Promise<number>;
+
+  /** Server-side settings (e.g. the session signing key). */
+  getSetting(key: string): Promise<string | null>;
+  /**
+   * Stores `value` unless the key already exists, and returns whichever value
+   * is stored. Safe when several serverless instances race on first boot.
+   */
+  setSettingIfAbsent(key: string, value: string): Promise<string>;
 
   savePhoto(photo: StoredPhoto): Promise<PhotoMetadata>;
   getPhoto(id: string): Promise<StoredPhoto | null>;
