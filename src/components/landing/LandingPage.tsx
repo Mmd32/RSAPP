@@ -119,14 +119,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* 2. PRIMARY ACTION CARDS */}
       <section style={{ marginBottom: 28 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 800, color: 'var(--theme-text-primary)', marginBottom: 14 }}>
-          عملیات و شروع ارزیابی
-        </h2>
+        <h2 className="section-title">عملیات و شروع ارزیابی</h2>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+        {/* Three entry points, but they are not equals: starting an audit is
+            what happens on nine visits out of ten. It takes the full first row
+            and the other two share the second, which also removes the empty
+            cell an odd number of equal cards always leaves behind. */}
+        <div className="landing-actions">
           {/* CARD 1: START NEW AUDIT */}
           <div
             onClick={onStartNewAudit}
+            className="landing-actions__lead"
             style={{
               background: 'linear-gradient(135deg, rgba(0, 176, 240, 0.12) 0%, var(--theme-card-bg) 100%)',
               border: '1.5px solid var(--rs-color-brand-cyan)',

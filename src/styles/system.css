@@ -1,0 +1,364 @@
+/* ===========================================================================
+   RETAIL SOLUTIONS — COMPONENT SYSTEM
+   ===========================================================================
+   Loaded after index.css so it wins on the cascade without unpicking 2,380
+   lines of accumulated rules. Everything here is expressed in tokens.
+
+   Three decisions drive this layer:
+
+   1. The accent earns its place. Cyan previously sat on the top edge of every
+      panel and every metric card, so it signalled nothing. Here it marks one
+      thing -- where you are, or what you are about to do -- and nowhere else.
+
+   2. One button family. The app had two (.btn-primary/.btn-secondary and
+      .btn-rs*) with different heights, radii and weights, which is why no two
+      screens agreed. They are unified below; both names survive so no markup
+      has to change.
+
+   3. Numbers are data. Metrics, counts, scores and dates are set with tabular
+      figures so columns line up and a changing number does not shift the
+      layout around it.
+   =========================================================================== */
+
+/* --- Surfaces ------------------------------------------------------------ */
+
+.glass-panel,
+.card-rs,
+.card-light {
+  background: var(--theme-card-bg);
+  border: var(--bw-hair) solid var(--theme-card-border);
+  /* The decorative cyan top border is deliberately gone. */
+  border-top: var(--bw-hair) solid var(--theme-card-border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--el-1);
+  color: var(--theme-text-primary);
+  transition: border-color var(--t-base) var(--ease), box-shadow var(--t-base) var(--ease);
+}
+
+.glass-panel {
+  /* Keep a touch of the glass character on the main panels only. */
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  background: var(--theme-panel-bg);
+  border-color: var(--theme-panel-border);
+}
+
+/* --- Metric cards -------------------------------------------------------- */
+
+.metric-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--sp-3);
+  margin: var(--sp-4) 0;
+}
+
+.metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  background: var(--theme-card-bg);
+  border: var(--bw-hair) solid var(--theme-card-border);
+  border-top: var(--bw-hair) solid var(--theme-card-border);
+  border-radius: var(--r-md);
+  padding: var(--sp-4);
+  /* Left-aligned (start, in RTL): a column of centred cards has no shared
+     edge for the eye to follow, which is why the old row read as scattered. */
+  text-align: start;
+  box-shadow: var(--el-1);
+  transition: border-color var(--t-base) var(--ease), box-shadow var(--t-base) var(--ease);
+}
+
+.metric-label {
+  order: 1;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-medium);
+  color: var(--theme-text-muted);
+  line-height: var(--lh-tight);
+}
+
+.metric-value {
+  order: 2;
+  font-family: var(--rs-font-fa);
+  font-size: var(--fs-metric);
+  font-weight: var(--fw-black);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-top: 0;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* --- Buttons ------------------------------------------------------------- */
+
+.btn-primary,
+.btn-secondary,
+.btn-rs,
+.btn-rs-primary,
+.btn-rs-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-height: var(--control-h);
+  padding: 0 var(--sp-4);
+  border-radius: var(--r-sm);
+  font-family: var(--rs-font-fa);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  border: var(--bw-hair) solid transparent;
+  transition: background-color var(--t-fast) var(--ease),
+              border-color var(--t-fast) var(--ease),
+              color var(--t-fast) var(--ease);
+}
+
+.btn-primary,
+.btn-rs-primary {
+  background: var(--rs-color-action-primary);
+  color: #fff;
+  border-color: var(--rs-color-action-primary);
+}
+
+.btn-primary:hover,
+.btn-rs-primary:hover {
+  background: var(--rs-color-action-hover);
+  border-color: var(--rs-color-action-hover);
+}
+
+.btn-secondary,
+.btn-rs,
+.btn-rs-secondary {
+  background: var(--theme-card-bg);
+  color: var(--theme-text-primary);
+  border-color: var(--theme-card-border);
+}
+
+.btn-secondary:hover,
+.btn-rs:hover,
+.btn-rs-secondary:hover {
+  border-color: var(--rs-color-action-primary);
+  color: var(--rs-color-action-primary);
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-rs:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* A press must not move the layout. The old rule scaled the element, which
+   shifted everything beside it on every tap. */
+.btn-primary:active,
+.btn-secondary:active,
+.btn-rs:active,
+.btn-rs-primary:active,
+.btn-rs-secondary:active,
+.theme-toggle-btn:active,
+.choice-card:active {
+  transform: none !important;
+  filter: brightness(0.94);
+}
+
+/* --- Numbers and codes ---------------------------------------------------- */
+
+.ltr-num,
+.metric-value,
+.stat-number,
+td,
+.data-cell {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.ltr-code,
+.code-tag,
+.indicator-code-badge {
+  font-family: var(--rs-font-code);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.02em;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* --- Severity chips ------------------------------------------------------
+   One ramp, used wherever severity appears, so a "critical" chip in a table
+   is the same object as a "critical" chip in a report. */
+
+.sev-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: 3px var(--sp-2);
+  border-radius: var(--r-pill);
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-semibold);
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.sev-clean    { background: var(--friction-clean-bg);    color: var(--friction-clean); }
+.sev-low      { background: var(--friction-low-bg);      color: var(--friction-low); }
+.sev-medium   { background: var(--friction-medium-bg);   color: var(--friction-medium); }
+.sev-high     { background: var(--friction-high-bg);     color: var(--friction-high); }
+.sev-critical { background: var(--friction-critical-bg); color: var(--friction-critical); }
+
+/* --- Page frame ----------------------------------------------------------
+   Every screen previously set its own max-width and padding inline, which is
+   why headers and content did not line up between views. */
+
+.page {
+  width: 100%;
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding: var(--sp-6) var(--page-gutter) var(--sp-8);
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-6);
+}
+
+.page-title {
+  margin: 0;
+  font-size: var(--fs-display);
+  font-weight: var(--fw-black);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.01em;
+  color: var(--theme-text-primary);
+}
+
+.page-subtitle {
+  margin: var(--sp-2) 0 0;
+  font-size: var(--fs-small);
+  line-height: var(--lh-body);
+  color: var(--theme-text-muted);
+  max-width: 62ch;
+}
+
+.section-title {
+  margin: 0 0 var(--sp-3);
+  font-size: var(--fs-title);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  color: var(--theme-text-primary);
+}
+
+/* --- Form controls -------------------------------------------------------- */
+
+.select-rs,
+.input-rs,
+select,
+input[type='text'],
+input[type='search'],
+input[type='number'] {
+  min-height: var(--control-h);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-small);
+}
+
+@media (max-width: 768px) {
+  .btn-primary,
+  .btn-secondary,
+  .btn-rs,
+  .btn-rs-primary,
+  .btn-rs-secondary,
+  .select-rs,
+  .input-rs {
+    min-height: var(--control-h-touch);
+  }
+
+  .metric-card-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: var(--sp-2);
+  }
+}
+
+/* --- Landing entry points -------------------------------------------------
+   Deliberately unequal. Starting an audit is the job; the report and the
+   action queue are where you go afterwards. */
+
+.landing-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-4);
+}
+
+.landing-actions__lead {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 720px) {
+  .landing-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* --- Stat cards -----------------------------------------------------------
+   One number per card, on a shared baseline. The label sits above the value
+   so the eye can scan a row of labels, then a row of numbers, instead of
+   hunting for each pair. */
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-6);
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  padding: var(--sp-4);
+  background: var(--theme-card-bg);
+  border: var(--bw-hair) solid var(--theme-card-border);
+  border-radius: var(--r-md);
+  box-shadow: var(--el-1);
+}
+
+.stat-card__label {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  color: var(--theme-text-muted);
+  line-height: var(--lh-tight);
+  /* Two-word and four-word labels must not change the card's height. */
+  min-height: calc(var(--fs-caption) * var(--lh-tight) * 2);
+}
+
+.stat-card__value {
+  font-size: var(--fs-metric);
+  font-weight: var(--fw-black);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--theme-text-primary);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.stat-card__hint {
+  font-size: var(--fs-micro);
+  line-height: var(--lh-body);
+  color: var(--theme-text-muted);
+}
+
+.stat-card--alarm {
+  border-color: var(--friction-high);
+  background: var(--friction-high-bg);
+}
+.stat-card--alarm .stat-card__label,
+.stat-card--alarm .stat-card__value,
+.stat-card--alarm .stat-card__hint {
+  color: var(--friction-critical);
+}
+
+.stat-card--positive .stat-card__value {
+  color: var(--friction-clean);
+}

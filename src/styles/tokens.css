@@ -1,0 +1,113 @@
+/* ===========================================================================
+   RETAIL SOLUTIONS — DESIGN TOKENS
+   ===========================================================================
+   The single source of truth for scale in this product.
+
+   Before this file the interface used 16 font sizes, 51 padding values and 26
+   border radii, invented per component. Nothing lined up because nothing
+   shared a scale. Every value below is a step on a deliberate ramp, and
+   components are expected to pick a step rather than a number.
+
+   The product is a field instrument: a consultant walks a store with a phone
+   and records where the customer journey breaks. It is read one-handed, often
+   under bright light, by someone who is standing up and in a hurry. So the
+   system favours legibility and calm over decoration, and spends its one
+   strong colour on a single job: telling you where you are.
+   =========================================================================== */
+
+:root {
+  /* --- Type scale -------------------------------------------------------
+     Seven steps, roughly 1.25 apart. Persian text needs a little more size
+     than Latin at the same optical weight, so the body step is 15px. */
+  --fs-micro: 11px;   /* dense table meta, timestamps */
+  --fs-caption: 12px; /* labels, helper text */
+  --fs-small: 13px;   /* secondary body, table cells */
+  --fs-body: 15px;    /* default reading size */
+  --fs-lead: 17px;    /* card titles, question subject */
+  --fs-title: 21px;   /* section headings */
+  --fs-display: 28px; /* page titles, hero */
+  --fs-metric: 34px;  /* the one number a card exists to show */
+
+  --lh-tight: 1.35;   /* headings */
+  --lh-body: 1.7;     /* Persian body copy needs room */
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-black: 800;
+
+  /* --- Spacing ----------------------------------------------------------
+     4px base. Component padding uses 3-5; section rhythm uses 6-8. */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-7: 32px;
+  --sp-8: 48px;
+
+  /* --- Radii ------------------------------------------------------------
+     Three, plus a pill. Controls are tighter than the cards holding them. */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-pill: 999px;
+
+  /* --- Borders ----------------------------------------------------------- */
+  --bw-hair: 1px;
+  --bw-emphasis: 2px;
+
+  /* --- Motion -----------------------------------------------------------
+     Two durations. Anything slower reads as lag on a phone. */
+  --t-fast: 120ms;
+  --t-base: 200ms;
+  --ease: cubic-bezier(0.2, 0, 0.2, 1);
+
+  /* --- Friction scale ---------------------------------------------------
+     The product measures one thing, so that thing gets its own ramp and is
+     used identically everywhere: severity chips, table rows, radar, report.
+     Never reach for an arbitrary red. */
+  --friction-clean: #1F8A60;
+  --friction-clean-bg: #E7F6EF;
+  --friction-low: #B8860B;
+  --friction-low-bg: #FDF4E0;
+  --friction-medium: #D97706;
+  --friction-medium-bg: #FEF0E2;
+  --friction-high: #DC4A3D;
+  --friction-high-bg: #FDEAE8;
+  --friction-critical: #A81E1E;
+  --friction-critical-bg: #FADBDB;
+
+  /* --- Elevation --------------------------------------------------------
+     Three levels. Level 1 is almost everything; 3 is reserved for things
+     that float above the page (sheets, menus). */
+  --el-1: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.06);
+  --el-2: 0 2px 4px rgba(16, 24, 40, 0.05), 0 8px 16px -6px rgba(16, 24, 40, 0.10);
+  --el-3: 0 8px 12px -4px rgba(16, 24, 40, 0.08), 0 24px 48px -12px rgba(16, 24, 40, 0.18);
+
+  /* --- Layout ----------------------------------------------------------- */
+  --page-max: 1180px;
+  --page-gutter: var(--sp-6);
+  --control-h: 40px;      /* desktop control height */
+  --control-h-touch: 44px;/* phone minimum */
+}
+
+/* Dark theme keeps the same ramp but needs its own surfaces: a shadow does
+   not read on a dark background, so elevation is carried by a lighter
+   surface and a hairline instead. */
+:root {
+  --el-1-dark: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --el-2-dark: 0 4px 16px -4px rgba(0, 0, 0, 0.5);
+  --el-3-dark: 0 16px 48px -12px rgba(0, 0, 0, 0.65);
+}
+
+@media (max-width: 768px) {
+  :root {
+    --page-gutter: var(--sp-4);
+    --fs-display: 24px;
+    --fs-metric: 28px;
+    --fs-title: 19px;
+  }
+}
