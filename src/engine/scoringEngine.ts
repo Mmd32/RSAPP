@@ -551,7 +551,7 @@ export function calculateVisitSummary(
   const radarSeries: RadarSeriesData[] = [
     {
       id: 'current_visit',
-      label: 'ارزیابی فعلی (Current Visit)',
+      label: 'ارزیابی فعلی',
       color: '#00B0F0', // Retail Solutions Brand Cyan
       scores: currentVisitRadarScores,
       visible: true,

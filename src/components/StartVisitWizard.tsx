@@ -1,3 +1,4 @@
+import { CodeText } from './ui/CodeText';
 import React, { useState, useMemo, useEffect } from 'react';
 import {
   AssessmentType,
@@ -923,7 +924,9 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                         <strong style={{ fontSize: 13, display: 'block', color: isChecked ? 'var(--theme-text-primary)' : 'var(--text-muted)' }}>
                           {attr.label}
                         </strong>
-                        <span style={{ fontSize: 11, color: 'var(--text-dim)' }}>{attr.desc}</span>
+                        <span style={{ fontSize: 11, color: 'var(--text-dim)' }}>
+                          <CodeText>{attr.desc}</CodeText>
+                        </span>
                       </div>
                       <input
                         type="checkbox"

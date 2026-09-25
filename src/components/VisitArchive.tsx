@@ -173,7 +173,11 @@ export const VisitArchive: React.FC<VisitArchiveProps> = ({
                     {formatDate(visit.startedAt)}
                   </span>
                   {visit.auditorName && <span>ارزیاب: {visit.auditorName}</span>}
-                  {visit.visitCode && <span>کد: {visit.visitCode}</span>}
+                  {visit.visitCode && (
+                    <span>
+                      کد: <code className="ltr-code">{visit.visitCode}</code>
+                    </span>
+                  )}
                 </div>
 
                 <div className="archive-progress">

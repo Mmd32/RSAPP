@@ -378,7 +378,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
                     fontWeight: 600,
                   }}
                 >
-                  پروفایل: {activeProfile.name}
+                  پروفایل: <span className="latin-digits">{activeProfile.name}</span>
                 </span>
               </div>
 
