@@ -154,7 +154,10 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
           <span>ویژگی فیزیکی</span>
           <span style={{ background: 'var(--rs-color-navy-700)', border: '1px solid var(--border-subtle)', padding: '3px 8px', borderRadius: 'var(--rs-radius-control)', fontWeight: 700 }}>Has Fitting Room = True</span>
           <span style={{ color: 'var(--rs-color-success)', fontWeight: 700 }}>➔</span>
-          <span style={{ color: 'var(--rs-color-success)', fontWeight: 600 }}>فعال‌سازی پرسش‌های FFR02 تا FFR06</span>
+          <span style={{ color: 'var(--rs-color-success)', fontWeight: 600 }}>
+            فعال‌سازی پرسش‌های <code className="ltr-code">FFR02</code> تا{' '}
+            <code className="ltr-code">FFR06</code>
+          </span>
         </div>
       </div>
 

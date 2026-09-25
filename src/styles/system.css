@@ -560,3 +560,14 @@ input[type='number'] {
 @media (prefers-reduced-motion: reduce) {
   .undo-snackbar { animation: none; }
 }
+
+/* --- Opting out of Persian digits ----------------------------------------
+   Digits are Persian everywhere by default, which is right for a quantity and
+   wrong for a version string or any other Latin identifier that happens to
+   contain numbers. This puts a run of text back on the plain Latin stack. */
+
+.latin-digits {
+  font-family: 'Plus Jakarta Sans', 'Outfit', 'Inter', -apple-system, sans-serif;
+  direction: ltr;
+  unicode-bidi: isolate;
+}

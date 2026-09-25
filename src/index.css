@@ -33,8 +33,12 @@
 
 :root {
   /* --- Brand Typography (Elevated for Executive Elegance) --- */
-  --rs-font-fa: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --rs-font-latin: 'Plus Jakarta Sans', 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --rs-font-fa: 'Vazirmatn Digits', 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* The Latin face is used almost entirely for numerals -- scores, percentages,
+     metric values -- so the digit face leads here too. Its unicode-range
+     claims only 0-9, so Latin letters still fall through to Plus Jakarta Sans,
+     and identifiers set in the code face are untouched. */
+  --rs-font-latin: 'Vazirmatn Digits', 'Plus Jakarta Sans', 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --rs-font-code: 'Fira Code', monospace;
 
   /* Legacy aliases for backward compatibility */
@@ -1897,6 +1901,72 @@ button:active:not(:disabled),
   }
 }
 
+
+
+/* ---------------------------------------------------------------------------
+   PERSIAN DIGITS
+   ---------------------------------------------------------------------------
+   Numbers were arriving half Persian and half Latin: anything passed through a
+   formatter came out ۱۲۳, anything rendered straight from state came out 123,
+   often in the same row. Converting at every render site would work until the
+   next number is added and someone forgets.
+
+   Instead these faces carry only the digit glyphs, taken from the Farsi-Digits
+   build of Vazirmatn, and are bound to the digit code points. Listed ahead of
+   Vazirmatn in the Persian stack, they claim 0-9 and nothing else, so every
+   number in the interface is Persian with no render site involved and none to
+   forget. Subset to digits, the five weights come to 20 KB in total rather
+   than the 239 KB the full faces would cost.
+
+   Identifiers are deliberately excluded: indicator codes and visit codes are
+   set in the code face, which does not include these, so FS01 and
+   VST-2026-7298 stay Latin where they belong.
+   --------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: 'Vazirmatn Digits';
+  src: url('/fonts/Vazirmatn-Digits-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0030-0039, U+002C, U+002E, U+066B, U+066C, U+06F0-06F9;
+}
+
+@font-face {
+  font-family: 'Vazirmatn Digits';
+  src: url('/fonts/Vazirmatn-Digits-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0030-0039, U+002C, U+002E, U+066B, U+066C, U+06F0-06F9;
+}
+
+@font-face {
+  font-family: 'Vazirmatn Digits';
+  src: url('/fonts/Vazirmatn-Digits-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0030-0039, U+002C, U+002E, U+066B, U+066C, U+06F0-06F9;
+}
+
+@font-face {
+  font-family: 'Vazirmatn Digits';
+  src: url('/fonts/Vazirmatn-Digits-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0030-0039, U+002C, U+002E, U+066B, U+066C, U+06F0-06F9;
+}
+
+@font-face {
+  font-family: 'Vazirmatn Digits';
+  src: url('/fonts/Vazirmatn-Digits-800.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0030-0039, U+002C, U+002E, U+066B, U+066C, U+06F0-06F9;
+}
 
 /* ===========================================================================
    VISIT ARCHIVE — saved questionnaires
