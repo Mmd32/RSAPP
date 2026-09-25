@@ -235,6 +235,7 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
       {/* Branch Improvement KPI Strip (Requirement 17) */}
       {branchSummary && (
         <div
+          className="compare-stats"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',

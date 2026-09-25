@@ -52,6 +52,17 @@ interface CorrectiveActionsHubProps {
   onCreateAction: (actionData: Partial<CorrectiveAction>) => void;
 }
 
+const ROOT_CAUSE_LABEL: Record<RootCauseCategory, string> = {
+  FACILITY: 'تاسیسات و امکانات',
+  EQUIPMENT: 'تجهیزات و ابزار',
+  PROCESS: 'فرآیند و دستورالعمل',
+  PEOPLE: 'پرسنل و رفتار',
+  TRAINING: 'آموزش و مهارت',
+  POLICY: 'سیاست‌گذاری',
+  TECHNOLOGY: 'فناوری و نرم‌افزار',
+  OTHER: 'سایر',
+};
+
 export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
   actions,
   analytics,
@@ -409,7 +420,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
 
       {/* 3. Action List Table (Enterprise Style) */}
       <div className="card-rs" style={{ padding: 0, overflowX: 'auto' }}>
-        <table style={{ width: '100%', minWidth: 880, borderCollapse: 'collapse', textAlign: 'right' }}>
+        <table className="actions-table" style={{ width: '100%', minWidth: 880, borderCollapse: 'collapse', textAlign: 'right' }}>
           <thead>
             <tr
               style={{
@@ -507,7 +518,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                     }}
                   >
                     {/* Title & Code */}
-                    <td style={{ padding: '12px 14px' }}>
+                    <td data-label="اقدام" style={{ padding: '12px 14px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span
                           className="ltr-code"
@@ -558,13 +569,13 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                     </td>
 
                     {/* Branch & Brand */}
-                    <td style={{ padding: '12px 14px', fontSize: 12, color: 'var(--theme-text-primary)' }}>
+                    <td data-label="شعبه / برند" style={{ padding: '12px 14px', fontSize: 12, color: 'var(--theme-text-primary)' }}>
                       <div style={{ fontWeight: 600 }}>{action.branchName}</div>
                       <div style={{ fontSize: 11, color: 'var(--theme-text-muted)' }}>{action.brandName}</div>
                     </td>
 
                     {/* Priority */}
-                    <td style={{ padding: '12px 14px' }}>
+                    <td data-label="اولویت" style={{ padding: '12px 14px' }}>
                       <span
                         style={{
                           fontSize: 11,
@@ -583,7 +594,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                     </td>
 
                     {/* Status */}
-                    <td style={{ padding: '12px 14px' }}>
+                    <td data-label="وضعیت" style={{ padding: '12px 14px' }}>
                       <span
                         style={{
                           fontSize: 11,
@@ -601,7 +612,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                     </td>
 
                     {/* Owner & Department */}
-                    <td style={{ padding: '12px 14px', fontSize: 12 }}>
+                    <td data-label="مسئول" style={{ padding: '12px 14px', fontSize: 12 }}>
                       <div style={{ fontWeight: 600, color: 'var(--theme-text-primary)' }}>
                         {action.owner || 'نامشخص'}
                       </div>
@@ -611,7 +622,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                     </td>
 
                     {/* Due Date & Overdue Flag */}
-                    <td style={{ padding: '12px 14px', fontSize: 12 }}>
+                    <td data-label="مهلت" style={{ padding: '12px 14px', fontSize: 12 }}>
                       <div
                         style={{
                           display: 'flex',
@@ -632,7 +643,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                     </td>
 
                     {/* Evidence summary */}
-                    <td style={{ padding: '12px 14px', fontSize: 12 }}>
+                    <td data-label="مدارک" style={{ padding: '12px 14px', fontSize: 12 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span
                           title="عکس قبل"
@@ -664,7 +675,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                     </td>
 
                     {/* Actions */}
-                    <td style={{ padding: '12px 14px' }}>
+                    <td data-label="" style={{ padding: '12px 14px' }}>
                       <button
                         onClick={() => setSelectedAction(action)}
                         className="btn-rs btn-rs-secondary"
@@ -740,7 +751,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--theme-text-secondary)', marginTop: 4 }}>
                   {selectedAction.branchName} • برند: {selectedAction.brandName} • ثبت شده در تاریخ{' '}
-                  <span className="ltr-code">{selectedAction.createdAt.slice(0, 10)}</span>
+                  {faDateShort(selectedAction.createdAt)}
                 </div>
               </div>
 
@@ -790,7 +801,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
               <div>
                 <span style={{ fontSize: 11, color: 'var(--theme-text-secondary)' }}>دپارتمان:</span>
                 <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--theme-text-primary)', marginTop: 2 }}>
-                  {selectedAction.department}
+                  {departmentLabel(selectedAction.department)}
                 </div>
               </div>
               <div>
@@ -808,9 +819,9 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                 </div>
               </div>
               <div>
-                <span style={{ fontSize: 11, color: 'var(--theme-text-secondary)' }}>ریشه علت (Root Cause):</span>
+                <span style={{ fontSize: 11, color: 'var(--theme-text-secondary)' }}>ریشه علت:</span>
                 <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--theme-text-primary)', marginTop: 2 }}>
-                  {selectedAction.rootCause || 'بررسی نشده'}
+                  {selectedAction.rootCause ? ROOT_CAUSE_LABEL[selectedAction.rootCause] : 'بررسی نشده'}
                 </div>
               </div>
             </div>
@@ -830,7 +841,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
             {/* Side-by-Side Before vs After Evidence Photos (Requirement 6) */}
             <div style={{ marginBottom: 24 }}>
               <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--theme-text-primary)', marginBottom: 12 }}>
-                مقایسه شواهد تصویری قبل و بعد (Before / After Evidence)
+                مقایسه شواهد تصویری قبل و بعد
               </h4>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 {/* Before Box */}
@@ -854,7 +865,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                     }}
                   >
                     <Camera size={14} />
-                    شواهد اصطکاک اولیه (Before Photos)
+                    شواهد اصطکاک اولیه
                   </div>
                   {selectedAction.beforePhotos && selectedAction.beforePhotos.length > 0 ? (
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -908,7 +919,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                     }}
                   >
                     <CheckCircle2 size={14} />
-                    شواهد اصلاح و بهبود (After Photos)
+                    شواهد اصلاح و بهبود
                   </div>
                   {selectedAction.afterPhotos && selectedAction.afterPhotos.length > 0 ? (
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -960,7 +971,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                 {selectedAction.completionDate && (
                   <div style={{ fontSize: 10, color: 'var(--friction-clean)', marginTop: 4 }}>
                     تاریخ تکمیل:{' '}
-                    <span className="ltr-code">{selectedAction.completionDate.slice(0, 10)}</span>
+                    {faDateShort(selectedAction.completionDate)}
                   </div>
                 )}
               </div>
@@ -985,7 +996,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                 </p>
                 <div style={{ fontSize: 10, color: 'var(--theme-text-secondary)', marginTop: 4 }}>
                   تاییدکننده: {selectedAction.verifiedBy} در تاریخ{' '}
-                  <span className="ltr-code">{selectedAction.verifiedAt?.slice(0, 10)}</span>
+                  {faDateShort(selectedAction.verifiedAt)}
                 </div>
               </div>
             )}
@@ -1011,7 +1022,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                     <div>{rc.comment}</div>
                     <div style={{ fontSize: 10, color: 'var(--rs-color-error)', marginTop: 2 }}>
                       توسط: {rc.reopenedBy} •{' '}
-                      <span className="ltr-code">{rc.timestamp.slice(0, 10)}</span>
+                      {faDateShort(rc.timestamp)}
                     </div>
                   </div>
                 ))}
@@ -1132,14 +1143,14 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                 value={selectedRootCause}
                 onChange={(e) => setSelectedRootCause(e.target.value as RootCauseCategory)}
               >
-                <option value="FACILITY">تاسیسات و امکانات (FACILITY)</option>
-                <option value="EQUIPMENT">تجهیزات و ابزار (EQUIPMENT)</option>
-                <option value="PROCESS">فرآیند و دستورالعمل (PROCESS)</option>
-                <option value="PEOPLE">پرسنل و رفتار (PEOPLE)</option>
-                <option value="TRAINING">آموزش و مهارت (TRAINING)</option>
-                <option value="POLICY">سیاست‌گذاری (POLICY)</option>
-                <option value="TECHNOLOGY">فناوری و نرم‌افزار (TECHNOLOGY)</option>
-                <option value="OTHER">سایر (OTHER)</option>
+                <option value="FACILITY">تاسیسات و امکانات</option>
+                <option value="EQUIPMENT">تجهیزات و ابزار</option>
+                <option value="PROCESS">فرآیند و دستورالعمل</option>
+                <option value="PEOPLE">پرسنل و رفتار</option>
+                <option value="TRAINING">آموزش و مهارت</option>
+                <option value="POLICY">سیاست‌گذاری</option>
+                <option value="TECHNOLOGY">فناوری و نرم‌افزار</option>
+                <option value="OTHER">سایر</option>
               </select>
             </div>
 
@@ -1266,13 +1277,13 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
             style={{ background: 'var(--theme-modal-bg)', width: '100%', maxWidth: 560, padding: 24 }}
           >
             <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--theme-text-primary)', marginBottom: 16 }}>
-              ثبت اقدام اصلاحی جدید (New Corrective Action)
+              ثبت اقدام اصلاحی جدید
             </h3>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
               <div>
                 <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>
-                  کد شاخص (Indicator Code)
+                  کد شاخص
                 </label>
                 <input
                   type="text"
@@ -1327,7 +1338,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
               </div>
               <div>
                 <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>
-                  اولویت (Priority)
+                  اولویت
                 </label>
                 <select
                   className="select-rs"
@@ -1344,7 +1355,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
 
             <div style={{ marginBottom: 12 }}>
               <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>
-                مهلت انجام (Due Date)
+                مهلت انجام
               </label>
               <input
                 type="date"

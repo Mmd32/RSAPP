@@ -1,4 +1,6 @@
-import { faDate } from '../utils/format';
+import { faDate, faDigits, faPercent } from '../utils/format';
+
+const SEVERITY_FA: Record<string, string> = { LOW: 'کم', MEDIUM: 'متوسط', HIGH: 'زیاد', CRITICAL: 'بحرانی' };
 import React, { useState, useMemo, useRef } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -513,10 +515,10 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
           </div>
 
           {/* Key Metrics Strip (Requirement 10) */}
-          <div className="metric-card-grid" style={{ gridTemplateColumns: 'repeat(5, 1fr)', marginTop: 20 }}>
+          <div className="metric-card-grid report-metrics" style={{ gridTemplateColumns: 'repeat(5, 1fr)', marginTop: 20 }}>
             <div className="metric-card">
               <span className="metric-label">شاخص‌های ارزیابی‌شده</span>
-              <div className="metric-value">{summary.answeredCount} <span style={{ fontSize: 12, color: 'gray' }}>از {summary.totalApplicable}</span></div>
+              <div className="metric-value">{faDigits(summary.answeredCount)} <span style={{ fontSize: 12, color: 'var(--theme-text-muted)' }}>از {faDigits(summary.totalApplicable)}</span></div>
             </div>
             <div className="metric-card">
               <span className="metric-label">کل اصطکاک‌ها</span>
@@ -532,7 +534,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
             </div>
             <div className="metric-card">
               <span className="metric-label">اصطکاک‌های شدید</span>
-              <div className="metric-value" style={{ color: '#EA580C' }}>
+              <div className="metric-value" style={{ color: 'var(--friction-medium)' }}>
                 {summary.highFrictions}
               </div>
             </div>
@@ -589,7 +591,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
                     </span>
                   </div>
                   <span className="ltr-num" style={{ fontSize: 20, fontWeight: 900, color: 'var(--rs-color-success)' }}>
-                    {str.score}%
+                    {faPercent(str.score)}
                   </span>
                 </div>
               ))}
@@ -688,8 +690,8 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
                         </span>
                         <span className="indicator-code-badge">{indicator.code}</span>
                         <span style={{ fontWeight: 800, fontSize: 16, color: 'var(--theme-text-primary)' }}>{indicator.subject}</span>
-                        <span style={{ fontSize: 11, color: 'var(--rs-color-text-dark-200)', background: 'rgba(255,255,255,0.08)', padding: '2px 8px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)' }}>
-                          بُعد: {indicator.reportingDimension || finding.reportingDimension}
+                        <span style={{ fontSize: 11, color: 'var(--theme-text-secondary)', background: 'var(--surface-chip)', padding: '2px 8px', borderRadius: 6, border: '1px solid var(--theme-card-border)' }}>
+                          بُعد: {(() => { const k = indicator.reportingDimension || finding.reportingDimension; return CANONICAL_DIMENSIONS.find((d) => d.key === k)?.nameFa || k; })()}
                         </span>
                       </div>
 
@@ -725,7 +727,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
                             fontWeight: 700,
                           }}
                         >
-                          شدت: {response.severity}
+                          شدت: {SEVERITY_FA[response.severity || ''] || response.severity}
                         </span>
 
                         {onCreateCorrectiveAction && (
@@ -856,12 +858,12 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
                         {dim.frictionCount}
                       </td>
                       <td style={{ textAlign: 'center', color: 'var(--rs-color-success)', fontWeight: 700 }} className="ltr-num">{dim.cleanCount}</td>
-                      <td style={{ textAlign: 'center', color: 'var(--rs-color-text-dark-300)' }} className="ltr-num">{dim.naCount}</td>
-                      <td style={{ textAlign: 'center', color: '#EA580C', fontFamily: 'var(--rs-font-code)' }} className="ltr-num">{dim.severityPenaltiesSum}</td>
-                      <td style={{ textAlign: 'center', color: 'var(--rs-color-text-dark-200)', fontFamily: 'var(--rs-font-code)' }} className="ltr-num">{dim.rawScore}%</td>
+                      <td style={{ textAlign: 'center', color: 'var(--theme-text-muted)' }} className="ltr-num">{dim.naCount}</td>
+                      <td style={{ textAlign: 'center', color: 'var(--friction-medium)' }}>{faDigits(dim.severityPenaltiesSum)}</td>
+                      <td style={{ textAlign: 'center', color: 'var(--theme-text-secondary)', fontFeatureSettings: "'tnum' 1" }}>{faPercent(dim.rawScore)}</td>
                       <td style={{ textAlign: 'center' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
-                          <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 10, overflow: 'hidden' }}>
+                          <div style={{ flex: 1, height: 6, background: 'var(--surface-chip)', borderRadius: 10, overflow: 'hidden' }}>
                             <div
                               style={{
                                 width: `${Math.max(5, Math.min(100, dim.normalizedScore))}%`,
@@ -884,7 +886,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
                               minWidth: 46,
                             }}
                           >
-                            {dim.normalizedScore}%
+                            {faPercent(dim.normalizedScore)}
                           </span>
                         </div>
                       </td>
@@ -928,7 +930,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
             <span style={{ fontSize: 11, color: 'var(--rs-color-brand-cyan)' }}>
               Audit Engine V2.5 • Persian RTL Core
             </span>
-            <span style={{ fontSize: 11, color: 'var(--rs-color-text-dark-300)', display: 'block', marginTop: 2 }}>
+            <span style={{ fontSize: 11, color: 'var(--theme-text-muted)', display: 'block', marginTop: 2 }}>
               info@retailsolutions.ir • retailsolutions.ir
             </span>
           </div>

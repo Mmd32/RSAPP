@@ -1034,6 +1034,7 @@ export const App: React.FC = () => {
               {viewMode === 'ACTIONS' && 'کارتابل پیگیری اقدامات اصلاحی'}
               {viewMode === 'CATALOG' && 'بانک جامع شاخص‌های استاندارد'}
               {viewMode === 'SCENARIOS' && 'محیط تست و اجرای سناریوها'}
+              {viewMode === 'ARCHIVE' && 'بایگانی پرسشنامه‌ها'}
             </h2>
             {viewMode === 'AUDIT' && activeSession && (
               <span

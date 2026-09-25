@@ -33,6 +33,7 @@ import {
   Tag,
   Sliders,
 } from 'lucide-react';
+import { profileLabel } from '../utils/format';
 
 interface StartVisitWizardProps {
   allIndicators: Indicator[];
@@ -477,12 +478,12 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                                     fontWeight: 700,
                                   }}
                                 >
-                                  {store.assessmentType === 'STORE' ? (store.businessType || 'فروشگاهی') : (store.mallType || 'مرکز خرید')}
+                                  {store.assessmentType === 'STORE' ? (store.businessType ? profileLabel(store.businessType) : 'فروشگاهی') : (store.mallType ? profileLabel(store.mallType) : 'مرکز خرید')}
                                 </span>
 
                                 {store.storeFormat && (
                                   <span style={{ fontSize: 10, color: 'var(--theme-text-muted)' }}>
-                                    {store.storeFormat}
+                                    {profileLabel(store.storeFormat)}
                                   </span>
                                 )}
 
@@ -973,13 +974,13 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                   <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>نوع ارزیابی:</span>
                   <span style={{ fontSize: 13, color: 'var(--rs-color-brand-cyan)', fontWeight: 700 }}>
-                    {assessmentType === 'STORE' ? `فروشگاه (${businessType})` : `مرکز خرید (${mallType})`}
+                    {assessmentType === 'STORE' ? `فروشگاه ${profileLabel(businessType)}` : profileLabel(mallType)}
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>موقعیت و قالب:</span>
                   <span style={{ fontSize: 12, color: 'var(--theme-text-primary)' }}>
-                    {locationContext} • {assessmentType === 'STORE' ? storeFormat : 'مرکز تجاری'}
+                    {profileLabel(locationContext)} • {assessmentType === 'STORE' ? profileLabel(storeFormat) : 'مرکز تجاری'}
                   </span>
                 </div>
               </div>

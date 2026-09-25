@@ -460,7 +460,7 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
             style={{ width: 18, height: 18, accentColor: 'var(--rs-color-warning)' }}
           />
           <span style={{ fontSize: 13, color: 'var(--text-main)', userSelect: 'none' }}>
-            نشانه‌گذاری جهت بازبینی مجدد (Flag for Review Later)
+            نشانه‌گذاری برای بازبینی بعدی
           </span>
         </div>
 

@@ -119,9 +119,9 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
 
   return (
     <div style={{ maxWidth: 880, margin: '20px auto', padding: '0 16px 40px' }}>
-      <div className="glass-panel" style={{ padding: 24 }}>
+      <div className="glass-panel sup-panel" style={{ padding: 24 }}>
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap-reverse', marginBottom: 20 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <h2 style={{ fontSize: 20, fontWeight: 700 }}>بررسی سرپرست: {visit.brandName} - {visit.branchName}</h2>
@@ -281,12 +281,12 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
                 >
                   {/* Card Header */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                       <span className="indicator-code-badge" style={{ background: 'var(--rs-color-brand-cyan)', color: 'var(--rs-color-brand-navy)', fontWeight: 800 }}>
                         {ind.code}
                       </span>
                       <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{ind.subject}</span>
-                      <span style={{ fontSize: 11, color: 'var(--text-muted)', background: 'rgba(255,255,255,0.06)', padding: '2px 8px', borderRadius: 'var(--rs-radius-control)' }}>
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)', background: 'var(--surface-chip)', padding: '2px 8px', borderRadius: 'var(--rs-radius-control)' }}>
                         {stageLabel(ind.journeyStage)}
                       </span>
                       <span
@@ -304,7 +304,7 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
                     </div>
 
                     {/* Section 26: 3 Finding Action Buttons */}
-                    <div style={{ display: 'flex', gap: 6 }}>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       <button
                         type="button"
                         onClick={() => handleSetDecisionStatus(ind.id, 'APPROVED')}
@@ -474,7 +474,7 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
         </div>
 
         {/* Section 28: Return Visit vs Final Approval */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: 12 }}>
+        <div className="sup-final-actions" style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: 12 }}>
           <button
             type="button"
             className="btn-secondary"
