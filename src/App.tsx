@@ -19,6 +19,8 @@ import { QuestionCard } from './components/QuestionCard';
 import { FrictionSheet } from './components/FrictionSheet';
 import { ReviewScreen } from './components/ReviewScreen';
 import { ComparisonEngine } from './engine/comparisonEngine';
+import { getVisitScore } from './engine/scoringEngine';
+import { FilterEmptyState } from './components/FilterEmptyState';
 import { RetailSolutionsLogo } from './components/brand/RetailSolutionsLogo';
 import { AppSidebar } from './components/layout/AppSidebar';
 import { MobileTabBar } from './components/layout/MobileTabBar';
@@ -265,6 +267,10 @@ export const App: React.FC = () => {
   const [savedStoresCount, setSavedStoresCount] = useState<number>(() => {
     return StoreService.getLocalStores().length;
   });
+  // The cached count can be stale; refresh it from the server once on load.
+  useEffect(() => {
+    StoreService.getAllStores().then((stores) => setSavedStoresCount(stores.length)).catch(() => {});
+  }, []);
 
   const [viewMode, setViewModeState] = useState<ViewMode>(getInitialViewMode);
   const [toolsDropdownOpen, setToolsDropdownOpen] = useState(false);
@@ -406,15 +412,16 @@ export const App: React.FC = () => {
     }
   }, []);
 
-  // Hydrate corrective actions from the backend on mount. Demo seed data stays
-  // in place when the API is unreachable so the app remains usable offline.
+  // Hydrate corrective actions from the backend on mount. The server is the
+  // source of truth, even when it has none yet: demo actions stay only when
+  // the API is unreachable, so they never mix with real ones.
   useEffect(() => {
     let cancelled = false;
 
     apiFetch('/actions', { tenantId: currentTenantId, userRole: currentUserRole, userName: currentUserName })
       .then((res) => (res.ok ? res.json() : null))
       .then((serverActions: CorrectiveAction[] | null) => {
-        if (cancelled || !Array.isArray(serverActions) || serverActions.length === 0) return;
+        if (cancelled || !Array.isArray(serverActions)) return;
         setActions(serverActions);
       })
       .catch((err) => {
@@ -625,6 +632,8 @@ export const App: React.FC = () => {
     const updatedResponse: QuestionResponse = {
       ...existing,
       answerState: state,
+      // A severity only means something on a friction; don't leave a stale one behind.
+      severity: state === 'FRICTION' ? existing.severity : undefined,
       answeredAt: new Date().toISOString(),
     };
 
@@ -650,6 +659,9 @@ export const App: React.FC = () => {
 
       // Advance with short delay
       setTimeout(() => {
+        // Under the "unanswered" filter the answered question drops out of the
+        // list, so the next one slides into the current index by itself.
+        if (auditFilter === 'MISSING') return;
         if (currentQuestionIndex < displayedIndicators.length - 1) {
           setCurrentQuestionIndex((prev) => prev + 1);
         }
@@ -786,6 +798,7 @@ export const App: React.FC = () => {
       ...activeSession,
       status: 'SUBMITTED',
       completedAt: new Date().toISOString(),
+      overallScore: getVisitScore(activeSession),
     };
     saveVisitState(updated);
     // Submitting is a milestone: push it now rather than waiting for the debounce.
@@ -801,8 +814,10 @@ export const App: React.FC = () => {
     const updated: VisitSession = {
       ...activeSession,
       status: 'APPROVED',
+      supervisorName: currentUserName,
       supervisorNotes: notes,
       findingDecisions: decisions,
+      overallScore: getVisitScore(activeSession),
     };
     saveVisitState(updated);
     VisitSync.flush(currentTenantId).then(loadPastVisits);
@@ -1227,6 +1242,7 @@ export const App: React.FC = () => {
           <StartVisitWizard
             allIndicators={allIndicators}
             onStartVisit={handleStartVisit}
+            currentUserName={currentUserName}
           />
         )}
 
@@ -1427,6 +1443,50 @@ export const App: React.FC = () => {
 
                 {/* Column 3: Main (Focused Question Card & Details) */}
                 <div className="split-pane split-main">
+                  {displayedIndicators.length === 0 ? (
+                    <FilterEmptyState
+                      filter={auditFilter}
+                      onShowAll={() => { setAuditFilter('ALL'); setSearchQuery(''); setCurrentQuestionIndex(0); }}
+                      onReview={() => setViewMode('REVIEW')}
+                    />
+                  ) : (
+                    <QuestionCard
+                      indicator={currentIndicator}
+                      response={activeSession.responses[currentIndicator.id]}
+                      currentIndex={currentQuestionIndex}
+                      totalCount={displayedIndicators.length}
+                      sectionName={currentStage}
+                      onAnswer={handleAnswerState}
+                      onOpenFrictionSheet={() => setIsFrictionSheetOpen(true)}
+                      onToggleFlag={handleToggleFlag}
+                      onPrev={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}
+                      onNext={() =>
+                        setCurrentQuestionIndex((prev) =>
+                          Math.min(displayedIndicators.length - 1, prev + 1)
+                        )
+                      }
+                      quickMode={quickMode}
+                      onToggleQuickMode={() => setQuickMode(!quickMode)}
+                      supervisorNote={activeSession.findingDecisions?.[currentIndicator.id]?.comment}
+                    />
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* Mobile single-focus flow.
+                 The question comes first: the overview panel is about 426px of
+                 progress, search and stage chips, which on a phone pushed the
+                 answer options and the next button below the fold on every one
+                 of 253 questions. Navigation and filters still follow underneath,
+                 where they are reached deliberately rather than scrolled past. */
+              <>
+                {displayedIndicators.length === 0 ? (
+                  <FilterEmptyState
+                    filter={auditFilter}
+                    onShowAll={() => { setAuditFilter('ALL'); setSearchQuery(''); setCurrentQuestionIndex(0); }}
+                    onReview={() => setViewMode('REVIEW')}
+                  />
+                ) : (
                   <QuestionCard
                     indicator={currentIndicator}
                     response={activeSession.responses[currentIndicator.id]}
@@ -1446,35 +1506,7 @@ export const App: React.FC = () => {
                     onToggleQuickMode={() => setQuickMode(!quickMode)}
                     supervisorNote={activeSession.findingDecisions?.[currentIndicator.id]?.comment}
                   />
-                </div>
-              </div>
-            ) : (
-              /* Mobile single-focus flow.
-                 The question comes first: the overview panel is about 426px of
-                 progress, search and stage chips, which on a phone pushed the
-                 answer options and the next button below the fold on every one
-                 of 253 questions. Navigation and filters still follow underneath,
-                 where they are reached deliberately rather than scrolled past. */
-              <>
-                <QuestionCard
-                  indicator={currentIndicator}
-                  response={activeSession.responses[currentIndicator.id]}
-                  currentIndex={currentQuestionIndex}
-                  totalCount={displayedIndicators.length}
-                  sectionName={currentStage}
-                  onAnswer={handleAnswerState}
-                  onOpenFrictionSheet={() => setIsFrictionSheetOpen(true)}
-                  onToggleFlag={handleToggleFlag}
-                  onPrev={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}
-                  onNext={() =>
-                    setCurrentQuestionIndex((prev) =>
-                      Math.min(displayedIndicators.length - 1, prev + 1)
-                    )
-                  }
-                  quickMode={quickMode}
-                  onToggleQuickMode={() => setQuickMode(!quickMode)}
-                  supervisorNote={activeSession.findingDecisions?.[currentIndicator.id]?.comment}
-                />
+                )}
 
                 <FormOverview
                   indicators={activeSession.indicators}
@@ -1549,6 +1581,8 @@ export const App: React.FC = () => {
           {viewMode === 'REPORT' && (
             <VisitReportView
               visit={activeSession || SAMPLE_REAL_VISIT}
+              historyVisits={pastVisits}
+              isSample={!activeSession}
               onBackToDashboard={() => setViewMode(activeSession ? 'AUDIT' : 'WIZARD')}
               onCreateCorrectiveAction={handleCreateCorrectiveAction}
             />

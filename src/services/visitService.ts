@@ -19,7 +19,7 @@ const SYNC_DEBOUNCE_MS = 2500;
 class VisitSyncService {
   private pending: VisitSession | null = null;
   private timer: ReturnType<typeof setTimeout> | null = null;
-  private inFlight = false;
+  private inFlight: Promise<void> | null = null;
   private listeners = new Set<(state: 'idle' | 'pending' | 'error') => void>();
 
   /** Subscribes to sync state so the UI can show whether work is unsaved. */
@@ -41,32 +41,43 @@ class VisitSyncService {
     this.timer = setTimeout(() => this.flush(tenantId), SYNC_DEBOUNCE_MS);
   }
 
-  /** Sends the queued session now. Used on submit, approve and page hide. */
+  /**
+   * Sends the queued session now. Used on submit, approve and page hide.
+   *
+   * If a send is already in flight, waits for it and then sends whatever is
+   * queued. Returning early there used to strand a milestone (e.g. SUBMITTED)
+   * that arrived while an ordinary autosave was on the wire.
+   */
   async flush(tenantId: string): Promise<void> {
     if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null;
     }
-    if (!this.pending || this.inFlight) return;
+    while (this.inFlight) await this.inFlight;
+    if (!this.pending) return;
 
     const session = this.pending;
     this.pending = null;
-    this.inFlight = true;
 
+    this.inFlight = (async () => {
+      try {
+        const res = await apiFetch('/visits', {
+          method: 'POST',
+          body: JSON.stringify(session),
+          tenantId,
+        });
+        this.emit(res.ok ? 'idle' : 'error');
+      } catch {
+        // Offline: localStorage already holds the answers, so re-queue (unless a
+        // newer state arrived meanwhile) and let the next change or flush retry.
+        if (!this.pending) this.pending = session;
+        this.emit('error');
+      }
+    })();
     try {
-      const res = await apiFetch('/visits', {
-        method: 'POST',
-        body: JSON.stringify(session),
-        tenantId,
-      });
-      this.emit(res.ok ? 'idle' : 'error');
-    } catch {
-      // Offline: localStorage already holds the answers, so re-queue and let
-      // the next change or the next flush retry.
-      this.pending = session;
-      this.emit('error');
+      await this.inFlight;
     } finally {
-      this.inFlight = false;
+      this.inFlight = null;
     }
   }
 

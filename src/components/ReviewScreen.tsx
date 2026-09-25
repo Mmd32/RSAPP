@@ -6,6 +6,7 @@ import { faDigits } from '../utils/format';
 /** How many open problems to list before collapsing behind "show all". */
 const PROBLEM_PREVIEW = 12;
 import { AlertCircle, CheckCircle2, AlertTriangle, ArrowRight, Send, Camera, FileText } from 'lucide-react';
+import { PHOTOS_REQUIRED } from '../config/policy';
 
 interface ReviewScreenProps {
   indicators: Indicator[];
@@ -53,7 +54,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
         problemText: 'بدون پاسخ',
       });
     } else if (resp.answerState === 'FRICTION') {
-      if (ind.requiresPhoto && (!resp.photos || resp.photos.length === 0)) {
+      if (PHOTOS_REQUIRED && ind.requiresPhoto && (!resp.photos || resp.photos.length === 0)) {
         validationProblems.push({
           indicator: ind,
           index: idx,

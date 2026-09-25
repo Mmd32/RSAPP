@@ -6,11 +6,13 @@ Creates Visit A -> snapshots indicators -> mutates master indicator table
 -> creates Visit B -> proves Visit A snapshot remains 100% unchanged.
 """
 
+import os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 import sqlite3
 import json
 import uuid
 
-DB_PATH = "/Users/mohammadreza/Desktop/RSAPP/data/rsapp.db"
+DB_PATH = os.path.join(ROOT, "data/rsapp.db")
 
 def run_snapshot_integrity_test():
     conn = sqlite3.connect(DB_PATH)

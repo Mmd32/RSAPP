@@ -34,17 +34,21 @@ import {
   Sliders,
 } from 'lucide-react';
 import { profileLabel } from '../utils/format';
+import { PHOTOS_REQUIRED } from '../config/policy';
 
 interface StartVisitWizardProps {
   allIndicators: Indicator[];
   onStartVisit: (session: VisitSession) => void;
   onCancel?: () => void;
+  /** Recorded as the evaluator of the new visit. */
+  currentUserName?: string;
 }
 
 export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
   allIndicators,
   onStartVisit,
   onCancel,
+  currentUserName,
 }) => {
   const [step, setStep] = useState<number>(1);
   const [wizardMode, setWizardMode] = useState<'DIRECTORY' | 'MANUAL'>('DIRECTORY');
@@ -73,8 +77,9 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
   const [mallType, setMallType] = useState<MallTypeCode>('Regional');
   const [locationContext, setLocationContext] = useState<LocationContextCode>('STREET_STORE');
   const [storeFormat, setStoreFormat] = useState<StoreFormatCode>('FLAGSHIP');
-  const [auditorName, setAuditorName] = useState('نیما ذوقی (ارزیاب ارشد)');
-  const [supervisorName, setSupervisorName] = useState('مهندس سارا احمدی (سرپرست)');
+  const [auditorName, setAuditorName] = useState(currentUserName || '');
+  // The supervisor is recorded when someone actually approves the visit.
+  const [supervisorName, setSupervisorName] = useState('');
 
   const [attributes, setAttributes] = useState<StoreAttributes>({
     has_window_display: true,
@@ -113,8 +118,6 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
     if (store.locationContext) setLocationContext(store.locationContext);
     if (store.storeFormat) setStoreFormat(store.storeFormat);
     if (store.attributes) setAttributes(store.attributes);
-    if (store.auditorName) setAuditorName(store.auditorName);
-    if (store.supervisorName) setSupervisorName(store.supervisorName);
 
     // Jump straight to confirmation step!
     setStep(8);
@@ -1005,7 +1008,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                   <span className="metric-value ltr-num" style={{ fontSize: 18, color: 'var(--rs-color-warning)' }}>
                     {mandatoryPhotoCount}
                   </span>
-                  <span className="metric-label" style={{ fontSize: 10 }}>عکس الزامی</span>
+                  <span className="metric-label" style={{ fontSize: 10 }}>{PHOTOS_REQUIRED ? 'عکس الزامی' : 'عکس توصیه‌شده'}</span>
                 </div>
 
                 <div className="metric-card" style={{ padding: 8, textAlign: 'center' }}>

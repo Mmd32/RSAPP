@@ -14,9 +14,11 @@ Computes for Scenarios A through G:
 And performs full Scenario Diff between Fashion Street vs Fashion Mall.
 """
 
+import os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 import json
 
-CATALOG_PATH = "/Users/mohammadreza/Desktop/RSAPP/data/catalog.json"
+CATALOG_PATH = os.path.join(ROOT, "data/catalog.json")
 
 with open(CATALOG_PATH, "r", encoding="utf-8") as f:
     catalog = json.load(f)

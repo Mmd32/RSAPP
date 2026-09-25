@@ -22,6 +22,7 @@ import {
   formatBytes,
   TrackedPhoto,
 } from '../services/photoService';
+import { PHOTOS_REQUIRED } from '../config/policy';
 
 interface FrictionSheetProps {
   indicator: Indicator;
@@ -178,7 +179,7 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
     );
   };
 
-  const isPhotoBlocked = false; // Relaxed for field test as requested: photos are optional
+  const isPhotoBlocked = PHOTOS_REQUIRED && indicator.requiresPhoto && photos.length === 0;
 
   const handleFinalSave = () => {
     onSave({
@@ -249,52 +250,60 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
           </label>
           <div className="severity-card-grid">
             {/* LOW */}
-            <div
+            <button
+              type="button"
+              aria-pressed={severity === 'LOW'}
               className={`severity-card low ${severity === 'LOW' ? 'selected' : ''}`}
               onClick={() => setSeverity('LOW')}
             >
-              <div className="severity-card-title">
+              <span className="severity-card-title">
                 <span style={{ color: severity === 'LOW' ? 'var(--rs-color-brand-cyan)' : 'var(--text-main)' }}>کم</span>
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-dim)' }}>جریمه ×۱</span>
-              </div>
-              <p className="severity-card-desc">اثر محدود روی تجربه مشتری</p>
-            </div>
+              </span>
+              <span className="severity-card-desc">اثر محدود روی تجربه مشتری</span>
+            </button>
 
             {/* MEDIUM */}
-            <div
+            <button
+              type="button"
+              aria-pressed={severity === 'MEDIUM'}
               className={`severity-card medium ${severity === 'MEDIUM' ? 'selected' : ''}`}
               onClick={() => setSeverity('MEDIUM')}
             >
-              <div className="severity-card-title">
+              <span className="severity-card-title">
                 <span style={{ color: severity === 'MEDIUM' ? 'var(--rs-color-warning)' : 'var(--text-main)' }}>متوسط</span>
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-dim)' }}>جریمه ×۲</span>
-              </div>
-              <p className="severity-card-desc">اثر محسوس بر ارزیابی و خرید</p>
-            </div>
+              </span>
+              <span className="severity-card-desc">اثر محسوس بر ارزیابی و خرید</span>
+            </button>
 
             {/* HIGH */}
-            <div
+            <button
+              type="button"
+              aria-pressed={severity === 'HIGH'}
               className={`severity-card high ${severity === 'HIGH' ? 'selected' : ''}`}
               onClick={() => setSeverity('HIGH')}
             >
-              <div className="severity-card-title">
+              <span className="severity-card-title">
                 <span style={{ color: severity === 'HIGH' ? '#EA580C' : 'var(--text-main)' }}>زیاد</span>
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-dim)' }}>جریمه ×۳</span>
-              </div>
-              <p className="severity-card-desc">مانع مهم تجربه مشتری و نارضایتی</p>
-            </div>
+              </span>
+              <span className="severity-card-desc">مانع مهم تجربه مشتری و نارضایتی</span>
+            </button>
 
             {/* CRITICAL */}
-            <div
+            <button
+              type="button"
+              aria-pressed={severity === 'CRITICAL'}
               className={`severity-card critical ${severity === 'CRITICAL' ? 'selected' : ''}`}
               onClick={() => setSeverity('CRITICAL')}
             >
-              <div className="severity-card-title">
+              <span className="severity-card-title">
                 <span style={{ color: severity === 'CRITICAL' ? 'var(--rs-color-error)' : 'var(--text-main)' }}>بحرانی</span>
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-dim)' }}>جریمه ×۴</span>
-              </div>
-              <p className="severity-card-desc">ریسک جدی، توقف تجربه یا نقص ایمنی</p>
-            </div>
+              </span>
+              <span className="severity-card-desc">ریسک جدی، توقف تجربه یا نقص ایمنی</span>
+            </button>
           </div>
         </div>
 
@@ -306,7 +315,7 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
             </label>
             {indicator.requiresPhoto && (
               <span style={{ fontSize: 11, color: 'var(--rs-color-brand-cyan)', fontWeight: 600 }}>
-                (اختیاری در نسخه آزمایشی میدانی)
+                {PHOTOS_REQUIRED ? '(الزامی)' : '(توصیه‌شده)'}
               </span>
             )}
           </div>

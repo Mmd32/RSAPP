@@ -16,6 +16,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { stageLabel } from '../utils/format';
+import { PHOTOS_REQUIRED } from '../config/policy';
 
 interface QuestionCardProps {
   indicator: Indicator;
@@ -204,7 +205,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           {indicator.requiresPhoto && (
             <div className="instrument-photo-req">
               <Camera size={13} />
-              <span>الزام ثبت تصویر</span>
+              <span>{PHOTOS_REQUIRED ? 'الزام ثبت تصویر' : 'عکس توصیه می‌شود'}</span>
             </div>
           )}
         </div>

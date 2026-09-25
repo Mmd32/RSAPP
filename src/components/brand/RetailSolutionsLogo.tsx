@@ -26,7 +26,7 @@ export const RetailSolutionsLogo: React.FC<RetailSolutionsLogoProps> = ({
   width,
   className = '',
   showSubbrand = false,
-  subbrandText = 'FR™ Platform',
+  subbrandText = 'ارزیابی تجربه مشتری',
 }) => {
   const isDark = colorScheme
     ? colorScheme === 'dark'
@@ -143,7 +143,7 @@ export const RetailSolutionsLogo: React.FC<RetailSolutionsLogoProps> = ({
         {showSubbrand && (
           <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'right', direction: 'rtl' }}>
             <span style={{ fontSize: 13, fontWeight: 800, color: isDark ? '#fff' : '#16213E' }}>
-              FR™
+              ارزیابی میدانی
             </span>
             <span style={{ fontSize: 10, color: subtextColor }}>
               {subbrandText}
@@ -220,20 +220,6 @@ export const RetailSolutionsLogo: React.FC<RetailSolutionsLogoProps> = ({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 800,
-                color: '#00B0F0',
-                background: 'rgba(0, 176, 240, 0.12)',
-                border: '1px solid rgba(0, 176, 240, 0.25)',
-                padding: '1px 6px',
-                borderRadius: 6,
-                letterSpacing: 0.5,
-              }}
-            >
-              FR™
-            </span>
             <span style={{ fontSize: 12, fontWeight: 700, color: isDark ? '#fff' : '#16213E' }}>
               ارزیابی میدانی
             </span>

@@ -3,7 +3,7 @@
 /* ==========================================================================
    RETAIL SOLUTIONS DESIGN SYSTEM (RSAPP)
    Official Brand Source of Truth: https://retail-sloution.vercel.app/
-   Enterprise Consulting Grade | FR™ Assessment Platform | Native RTL
+   Enterprise Consulting Grade | Customer Experience Assessment | Native RTL
    ========================================================================== */
 
 /* Fonts loaded via <link> in index.html — do NOT duplicate with @import here */
@@ -1545,6 +1545,9 @@ textarea:focus {
   cursor: pointer;
   transition: all var(--rs-duration-micro) var(--rs-ease-standard);
   text-align: right;
+  font: inherit;
+  width: 100%;
+  display: block;
 }
 
 .severity-card:hover {
@@ -1581,6 +1584,7 @@ textarea:focus {
 }
 
 .severity-card-desc {
+  display: block;
   font-size: 11px;
   color: var(--theme-text-muted);
   margin-top: 4px;

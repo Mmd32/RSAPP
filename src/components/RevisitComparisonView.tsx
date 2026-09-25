@@ -7,7 +7,10 @@ import {
   CorrectiveAction,
 } from '../types';
 import { ComparisonEngine } from '../engine/comparisonEngine';
+import { getVisitScore } from '../engine/scoringEngine';
 import { faDateShort, faPercent } from '../utils/format';
+
+const SEVERITY_FA: Record<string, string> = { LOW: 'کم', MEDIUM: 'متوسط', HIGH: 'زیاد', CRITICAL: 'بحرانی' };
 
 const ANSWER_LABEL: Record<string, string> = {
   UNANSWERED: 'پاسخ داده نشده',
@@ -208,7 +211,7 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
           >
             {branchVisits.map((v) => (
               <option key={v.id} value={v.id}>
-                {v.visitCode || v.id.slice(0, 8)} ({faDateShort(v.startedAt)}) — امتیاز: {faPercent(v.overallScore || 0)}
+                {v.visitCode || v.id.slice(0, 8)} ({faDateShort(v.startedAt)}) — امتیاز: {faPercent(getVisitScore(v))}
               </option>
             ))}
           </select>
@@ -225,7 +228,7 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
           >
             {branchVisits.map((v) => (
               <option key={v.id} value={v.id}>
-                {v.visitCode || v.id.slice(0, 8)} ({faDateShort(v.startedAt)}) — امتیاز: {faPercent(v.overallScore || 0)}
+                {v.visitCode || v.id.slice(0, 8)} ({faDateShort(v.startedAt)}) — امتیاز: {faPercent(getVisitScore(v))}
               </option>
             ))}
           </select>
@@ -514,7 +517,7 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
                       <td style={{ padding: '12px 14px', fontSize: 12 }}>
                         {item.previousAnswerState === 'FRICTION' ? (
                           <span style={{ color: 'var(--rs-color-error)', fontWeight: 700 }}>
-                            اصطکاک ({item.previousSeverity || 'متوسط'})
+                            اصطکاک ({SEVERITY_FA[item.previousSeverity || 'MEDIUM'] || item.previousSeverity})
                           </span>
                         ) : item.previousAnswerState === 'NO_FRICTION' ? (
                           <span style={{ color: 'var(--rs-color-success)', fontWeight: 600 }}>
@@ -531,7 +534,7 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
                       <td style={{ padding: '12px 14px', fontSize: 12 }}>
                         {item.currentAnswerState === 'FRICTION' ? (
                           <span style={{ color: 'var(--rs-color-error)', fontWeight: 700 }}>
-                            اصطکاک ({item.currentSeverity || 'متوسط'})
+                            اصطکاک ({SEVERITY_FA[item.currentSeverity || 'MEDIUM'] || item.currentSeverity})
                           </span>
                         ) : item.currentAnswerState === 'NO_FRICTION' ? (
                           <span style={{ color: 'var(--rs-color-success)', fontWeight: 700 }}>

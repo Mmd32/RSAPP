@@ -74,7 +74,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(0, 176, 240, 0.12)', padding: '3px 10px', borderRadius: '12px', marginBottom: 12 }}>
               <Sparkles size={14} color="var(--rs-color-brand-cyan)" />
               <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--rs-color-brand-cyan)', letterSpacing: '0.04em' }}>
-                FR™ ENTERPRISE EVALUATION PLATFORM
+                سامانه ارزیابی تجربه مشتری
               </span>
             </div>
 
@@ -105,7 +105,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--theme-card-inner)', border: '1px solid var(--theme-card-border)', padding: '4px 10px', borderRadius: 8 }}>
                 <Store size={13} color="var(--rs-color-brand-cyan)" />
                 <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--theme-text-muted)' }}>
-                  {savedStoresCount} شعبه ثبت‌شده در دیتابیس
+                  {faDigits(savedStoresCount)} شعبه ثبت‌شده
                 </span>
               </div>
             </div>
@@ -339,7 +339,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <section>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <h2 style={{ fontSize: 16, fontWeight: 800, color: 'var(--theme-text-primary)', margin: 0 }}>
-            ابعاد ۸گانه مدل ارزیابی تجربه مشتری (FR™ Framework)
+            ابعاد ۸گانه مدل ارزیابی تجربه مشتری
           </h2>
           <button
             type="button"
