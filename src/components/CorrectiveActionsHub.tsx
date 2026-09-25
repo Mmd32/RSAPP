@@ -145,11 +145,11 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
   const getPriorityBadge = (p: CorrectiveActionPriority) => {
     switch (p) {
       case 'CRITICAL':
-        return { label: 'بحرانی', bg: 'rgba(217, 74, 86, 0.15)', color: '#D94A56', border: '#D94A56' };
+        return { label: 'بحرانی', bg: 'var(--friction-critical-bg)', color: 'var(--friction-critical)', border: 'var(--friction-critical)' };
       case 'HIGH':
-        return { label: 'بالا', bg: 'rgba(234, 88, 12, 0.15)', color: '#EA580C', border: '#EA580C' };
+        return { label: 'بالا', bg: 'var(--friction-high-bg)', color: 'var(--friction-high)', border: 'var(--friction-high)' };
       case 'MEDIUM':
-        return { label: 'متوسط', bg: 'rgba(242, 181, 68, 0.15)', color: '#F2B544', border: '#F2B544' };
+        return { label: 'متوسط', bg: 'var(--friction-medium-bg)', color: 'var(--friction-medium)', border: 'var(--friction-medium)' };
       case 'LOW':
         return { label: 'پایین', bg: 'rgba(0, 176, 240, 0.15)', color: '#00B0F0', border: '#00B0F0' };
     }
@@ -158,21 +158,21 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
   const getStatusBadge = (s: CorrectiveActionStatus) => {
     switch (s) {
       case 'OPEN':
-        return { label: 'باز / جدید', bg: '#F1F2F5', color: '#16213E' };
+        return { label: 'باز / جدید', bg: 'var(--surface-chip)', color: 'var(--theme-text-primary)' };
       case 'ASSIGNED':
         return { label: 'ارجاع‌شده', bg: 'rgba(0, 176, 240, 0.12)', color: '#007DAA' };
       case 'IN_PROGRESS':
-        return { label: 'در حال انجام', bg: 'rgba(242, 181, 68, 0.15)', color: '#B45309' };
+        return { label: 'در حال انجام', bg: 'rgba(242, 181, 68, 0.15)', color: 'var(--friction-medium)' };
       case 'WAITING_REVIEW':
         return { label: 'در انتظار تایید', bg: 'rgba(139, 92, 246, 0.15)', color: '#7C3AED' };
       case 'RESOLVED':
         return { label: 'اصلاح‌شده', bg: 'rgba(45, 157, 120, 0.15)', color: '#2D9D78' };
       case 'VERIFIED':
-        return { label: 'تایید نهایی', bg: 'rgba(45, 157, 120, 0.25)', color: '#1E7E5E' };
+        return { label: 'تایید نهایی', bg: 'rgba(45, 157, 120, 0.25)', color: 'var(--friction-clean)' };
       case 'REOPENED':
-        return { label: 'بازگشایی مجدد', bg: 'rgba(217, 74, 86, 0.15)', color: '#D94A56' };
+        return { label: 'بازگشایی مجدد', bg: 'var(--friction-high-bg)', color: 'var(--friction-high)' };
       case 'CANCELLED':
-        return { label: 'لغوشده', bg: '#E2E5EC', color: '#646E8C' };
+        return { label: 'لغوشده', bg: 'var(--surface-chip)', color: 'var(--theme-text-muted)' };
     }
   };
 
@@ -200,24 +200,24 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--rs-color-text-ink)' }}>
+            <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--theme-text-primary)' }}>
               اقدامات اصلاحی
             </h1>
             <span
               style={{
                 fontSize: 12,
                 fontWeight: 700,
-                background: 'var(--rs-color-navy-50)',
+                background: 'var(--surface-sunken)',
                 color: 'var(--rs-color-action-primary)',
                 padding: '2px 8px',
                 borderRadius: 'var(--rs-radius-full)',
-                border: '1px solid var(--rs-color-border-line)',
+                border: '1px solid var(--theme-card-border)',
               }}
             >
               {actions.length} اقدام
             </span>
           </div>
-          <p style={{ fontSize: 13, color: 'var(--rs-color-text-muted)', marginTop: 4 }}>
+          <p style={{ fontSize: 13, color: 'var(--theme-text-secondary)', marginTop: 4 }}>
             مدیریت، پیگیری، بارگذاری مدارک قبل/بعد، و راستی‌آزمایی اقدامات بهبود مستمر ریتیل
           </p>
         </div>
@@ -280,7 +280,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
           flexWrap: 'wrap',
           gap: 10,
           alignItems: 'center',
-          background: 'var(--rs-color-surface-page)',
+          background: 'var(--theme-card-bg)',
         }}
       >
         <div style={{ flex: '1 1 200px', position: 'relative' }}>
@@ -291,7 +291,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
               right: 10,
               top: '50%',
               transform: 'translateY(-50%)',
-              color: 'var(--rs-color-text-faint)',
+              color: 'var(--theme-text-muted)',
             }}
           />
           <input
@@ -393,9 +393,9 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
             cursor: 'pointer',
             padding: '6px 10px',
             borderRadius: 'var(--rs-radius-control)',
-            background: onlyOverdue ? 'var(--rs-color-callout-crit)' : 'transparent',
-            color: onlyOverdue ? 'var(--rs-color-error)' : 'var(--rs-color-text-ink)',
-            border: `1px solid ${onlyOverdue ? 'var(--rs-color-error)' : 'var(--rs-color-border-line)'}`,
+            background: onlyOverdue ? 'var(--friction-high-bg)' : 'transparent',
+            color: onlyOverdue ? 'var(--rs-color-error)' : 'var(--theme-text-primary)',
+            border: `1px solid ${onlyOverdue ? 'var(--rs-color-error)' : 'var(--theme-card-border)'}`,
           }}
         >
           <input
@@ -413,32 +413,32 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
           <thead>
             <tr
               style={{
-                background: 'var(--rs-color-navy-50)',
-                borderBottom: '1px solid var(--rs-color-border-line)',
+                background: 'var(--surface-sunken)',
+                borderBottom: '1px solid var(--theme-card-border)',
               }}
             >
-              <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: 'var(--rs-color-text-muted)' }}>
+              <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: 'var(--theme-text-secondary)' }}>
                 کد / عنوان اقدام
               </th>
-              <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: 'var(--rs-color-text-muted)' }}>
+              <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: 'var(--theme-text-secondary)' }}>
                 شعبه / برند
               </th>
-              <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: 'var(--rs-color-text-muted)' }}>
+              <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: 'var(--theme-text-secondary)' }}>
                 اولویت
               </th>
-              <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: 'var(--rs-color-text-muted)' }}>
+              <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: 'var(--theme-text-secondary)' }}>
                 وضعیت
               </th>
-              <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: 'var(--rs-color-text-muted)' }}>
+              <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: 'var(--theme-text-secondary)' }}>
                 مسئول / واحد
               </th>
-              <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: 'var(--rs-color-text-muted)' }}>
+              <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: 'var(--theme-text-secondary)' }}>
                 مهلت
               </th>
-              <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: 'var(--rs-color-text-muted)' }}>
+              <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: 'var(--theme-text-secondary)' }}>
                 مدارک
               </th>
-              <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: 'var(--rs-color-text-muted)' }}>
+              <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: 'var(--theme-text-secondary)' }}>
                 عملیات
               </th>
             </tr>
@@ -515,14 +515,14 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                             fontSize: 11,
                             fontWeight: 700,
                             padding: '2px 6px',
-                            background: 'var(--rs-color-navy-50)',
-                            color: 'var(--rs-color-brand-navy)',
+                            background: 'var(--surface-sunken)',
+                            color: 'var(--theme-text-primary)',
                             borderRadius: 'var(--rs-radius-control)',
                           }}
                         >
                           {action.indicatorCode}
                         </span>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--rs-color-text-ink)' }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--theme-text-primary)' }}>
                           {action.title}
                         </span>
                         {action.reopenCount > 0 && (
@@ -530,7 +530,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                             style={{
                               fontSize: 10,
                               fontWeight: 700,
-                              background: 'var(--rs-color-callout-crit)',
+                              background: 'var(--friction-high-bg)',
                               color: 'var(--rs-color-error)',
                               padding: '1px 5px',
                               borderRadius: 'var(--rs-radius-full)',
@@ -544,7 +544,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                         <div
                           style={{
                             fontSize: 12,
-                            color: 'var(--rs-color-text-muted)',
+                            color: 'var(--theme-text-secondary)',
                             marginTop: 2,
                             maxWidth: 320,
                             whiteSpace: 'nowrap',
@@ -558,9 +558,9 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                     </td>
 
                     {/* Branch & Brand */}
-                    <td style={{ padding: '12px 14px', fontSize: 12, color: 'var(--rs-color-text-ink)' }}>
+                    <td style={{ padding: '12px 14px', fontSize: 12, color: 'var(--theme-text-primary)' }}>
                       <div style={{ fontWeight: 600 }}>{action.branchName}</div>
-                      <div style={{ fontSize: 11, color: 'var(--rs-color-text-faint)' }}>{action.brandName}</div>
+                      <div style={{ fontSize: 11, color: 'var(--theme-text-muted)' }}>{action.brandName}</div>
                     </td>
 
                     {/* Priority */}
@@ -598,10 +598,10 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
 
                     {/* Owner & Department */}
                     <td style={{ padding: '12px 14px', fontSize: 12 }}>
-                      <div style={{ fontWeight: 600, color: 'var(--rs-color-text-ink)' }}>
+                      <div style={{ fontWeight: 600, color: 'var(--theme-text-primary)' }}>
                         {action.owner || 'نامشخص'}
                       </div>
-                      <div style={{ fontSize: 11, color: 'var(--rs-color-text-faint)' }}>
+                      <div style={{ fontSize: 11, color: 'var(--theme-text-muted)' }}>
                         {departmentLabel(action.department)}
                       </div>
                     </td>
@@ -613,7 +613,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                           display: 'flex',
                           alignItems: 'center',
                           gap: 4,
-                          color: isOverdue ? 'var(--rs-color-error)' : 'var(--rs-color-text-muted)',
+                          color: isOverdue ? 'var(--rs-color-error)' : 'var(--theme-text-secondary)',
                           fontWeight: isOverdue ? 700 : 500,
                         }}
                       >
@@ -635,8 +635,8 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                           style={{
                             fontSize: 11,
                             padding: '1px 6px',
-                            background: 'var(--rs-color-callout-warn)',
-                            color: '#B45309',
+                            background: 'var(--friction-low-bg)',
+                            color: 'var(--friction-medium)',
                             borderRadius: 'var(--rs-radius-control)',
                           }}
                         >
@@ -647,8 +647,8 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                           style={{
                             fontSize: 11,
                             padding: '1px 6px',
-                            background: action.afterPhotos?.length > 0 ? 'var(--rs-color-callout-success)' : '#F1F2F5',
-                            color: action.afterPhotos?.length > 0 ? '#1E7E5E' : '#646E8C',
+                            background: action.afterPhotos?.length > 0 ? 'var(--friction-clean-bg)' : 'var(--surface-chip)',
+                            color: action.afterPhotos?.length > 0 ? 'var(--friction-clean)' : '#646E8C',
                             borderRadius: 'var(--rs-radius-control)',
                           }}
                         >
@@ -694,7 +694,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
           <div
             className="card-rs"
             style={{
-              background: '#FFFFFF',
+              background: 'var(--theme-modal-bg)',
               width: '100%',
               maxWidth: 780,
               maxHeight: '90vh',
@@ -708,7 +708,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'flex-start',
-                borderBottom: '1px solid var(--rs-color-border-line)',
+                borderBottom: '1px solid var(--theme-card-border)',
                 paddingBottom: 16,
                 marginBottom: 16,
               }}
@@ -720,19 +720,19 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                     style={{
                       fontSize: 12,
                       fontWeight: 700,
-                      background: 'var(--rs-color-navy-50)',
-                      color: 'var(--rs-color-brand-navy)',
+                      background: 'var(--surface-sunken)',
+                      color: 'var(--theme-text-primary)',
                       padding: '2px 8px',
                       borderRadius: 'var(--rs-radius-control)',
                     }}
                   >
                     {selectedAction.indicatorCode}
                   </span>
-                  <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--rs-color-text-ink)' }}>
+                  <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--theme-text-primary)' }}>
                     {selectedAction.title}
                   </h2>
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--rs-color-text-muted)', marginTop: 4 }}>
+                <div style={{ fontSize: 12, color: 'var(--theme-text-secondary)', marginTop: 4 }}>
                   {selectedAction.branchName} • برند: {selectedAction.brandName} • ثبت شده در تاریخ{' '}
                   <span className="ltr-code">{selectedAction.createdAt.slice(0, 10)}</span>
                 </div>
@@ -744,7 +744,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  color: 'var(--rs-color-text-faint)',
+                  color: 'var(--theme-text-muted)',
                 }}
               >
                 <X size={20} />
@@ -758,43 +758,43 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                 gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
                 gap: 12,
                 marginBottom: 20,
-                background: 'var(--rs-color-navy-50)',
+                background: 'var(--surface-sunken)',
                 padding: 12,
                 borderRadius: 'var(--rs-radius-card)',
               }}
             >
               <div>
-                <span style={{ fontSize: 11, color: 'var(--rs-color-text-muted)' }}>وضعیت جاری:</span>
-                <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--rs-color-text-ink)', marginTop: 2 }}>
+                <span style={{ fontSize: 11, color: 'var(--theme-text-secondary)' }}>وضعیت جاری:</span>
+                <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--theme-text-primary)', marginTop: 2 }}>
                   {getStatusBadge(selectedAction.status).label}
                 </div>
               </div>
               <div>
-                <span style={{ fontSize: 11, color: 'var(--rs-color-text-muted)' }}>اولویت:</span>
-                <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--rs-color-text-ink)', marginTop: 2 }}>
+                <span style={{ fontSize: 11, color: 'var(--theme-text-secondary)' }}>اولویت:</span>
+                <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--theme-text-primary)', marginTop: 2 }}>
                   {getPriorityBadge(selectedAction.priority).label}
                 </div>
               </div>
               <div>
-                <span style={{ fontSize: 11, color: 'var(--rs-color-text-muted)' }}>مسئول انجام:</span>
-                <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--rs-color-text-ink)', marginTop: 2 }}>
+                <span style={{ fontSize: 11, color: 'var(--theme-text-secondary)' }}>مسئول انجام:</span>
+                <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--theme-text-primary)', marginTop: 2 }}>
                   {selectedAction.owner || 'تعیین نشده'}
                 </div>
               </div>
               <div>
-                <span style={{ fontSize: 11, color: 'var(--rs-color-text-muted)' }}>دپارتمان:</span>
-                <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--rs-color-text-ink)', marginTop: 2 }}>
+                <span style={{ fontSize: 11, color: 'var(--theme-text-secondary)' }}>دپارتمان:</span>
+                <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--theme-text-primary)', marginTop: 2 }}>
                   {selectedAction.department}
                 </div>
               </div>
               <div>
-                <span style={{ fontSize: 11, color: 'var(--rs-color-text-muted)' }}>مهلت اجرا:</span>
+                <span style={{ fontSize: 11, color: 'var(--theme-text-secondary)' }}>مهلت اجرا:</span>
                 <div
                   className="ltr-code"
                   style={{
                     fontWeight: 700,
                     fontSize: 13,
-                    color: isOverdueAction(selectedAction) ? 'var(--rs-color-error)' : 'var(--rs-color-text-ink)',
+                    color: isOverdueAction(selectedAction) ? 'var(--rs-color-error)' : 'var(--theme-text-primary)',
                     marginTop: 2,
                   }}
                 >
@@ -802,8 +802,8 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                 </div>
               </div>
               <div>
-                <span style={{ fontSize: 11, color: 'var(--rs-color-text-muted)' }}>ریشه علت (Root Cause):</span>
-                <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--rs-color-text-ink)', marginTop: 2 }}>
+                <span style={{ fontSize: 11, color: 'var(--theme-text-secondary)' }}>ریشه علت (Root Cause):</span>
+                <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--theme-text-primary)', marginTop: 2 }}>
                   {selectedAction.rootCause || 'بررسی نشده'}
                 </div>
               </div>
@@ -812,10 +812,10 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
             {/* Description */}
             {selectedAction.description && (
               <div style={{ marginBottom: 20 }}>
-                <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--rs-color-text-ink)', marginBottom: 6 }}>
+                <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--theme-text-primary)', marginBottom: 6 }}>
                   شرح مشکل و اصطکاک ارزیابی:
                 </h4>
-                <p style={{ fontSize: 13, color: 'var(--rs-color-text-muted)', lineHeight: 1.6 }}>
+                <p style={{ fontSize: 13, color: 'var(--theme-text-secondary)', lineHeight: 1.6 }}>
                   {selectedAction.description}
                 </p>
               </div>
@@ -823,17 +823,17 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
 
             {/* Side-by-Side Before vs After Evidence Photos (Requirement 6) */}
             <div style={{ marginBottom: 24 }}>
-              <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--rs-color-text-ink)', marginBottom: 12 }}>
+              <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--theme-text-primary)', marginBottom: 12 }}>
                 مقایسه شواهد تصویری قبل و بعد (Before / After Evidence)
               </h4>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 {/* Before Box */}
                 <div
                   style={{
-                    border: '1px solid var(--rs-color-border-line)',
+                    border: '1px solid var(--theme-card-border)',
                     borderRadius: 'var(--rs-radius-card)',
                     padding: 12,
-                    background: 'var(--rs-color-surface-subtle)',
+                    background: 'var(--surface-chip)',
                   }}
                 >
                   <div
@@ -860,7 +860,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                             height: 100,
                             borderRadius: 'var(--rs-radius-control)',
                             overflow: 'hidden',
-                            border: '1px solid var(--rs-color-border-line)',
+                            border: '1px solid var(--theme-card-border)',
                           }}
                         >
                           <img
@@ -872,7 +872,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                       ))}
                     </div>
                   ) : (
-                    <div style={{ fontSize: 12, color: 'var(--rs-color-text-faint)', fontStyle: 'italic' }}>
+                    <div style={{ fontSize: 12, color: 'var(--theme-text-muted)', fontStyle: 'italic' }}>
                       عکس اولیه ثبت نشده است.
                     </div>
                   )}
@@ -881,13 +881,13 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                 {/* After Box */}
                 <div
                   style={{
-                    border: '1px solid var(--rs-color-border-line)',
+                    border: '1px solid var(--theme-card-border)',
                     borderRadius: 'var(--rs-radius-card)',
                     padding: 12,
                     background:
                       selectedAction.afterPhotos && selectedAction.afterPhotos.length > 0
-                        ? 'var(--rs-color-callout-success)'
-                        : 'var(--rs-color-surface-subtle)',
+                        ? 'var(--friction-clean-bg)'
+                        : 'var(--surface-chip)',
                   }}
                 >
                   <div
@@ -926,7 +926,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                       ))}
                     </div>
                   ) : (
-                    <div style={{ fontSize: 12, color: 'var(--rs-color-text-faint)', fontStyle: 'italic' }}>
+                    <div style={{ fontSize: 12, color: 'var(--theme-text-muted)', fontStyle: 'italic' }}>
                       هنوز تصویر اصلاح بارگذاری نشده است.
                     </div>
                   )}
@@ -938,21 +938,21 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
             {selectedAction.resolutionNote && (
               <div
                 style={{
-                  background: 'var(--rs-color-callout-success)',
+                  background: 'var(--friction-clean-bg)',
                   border: '1px solid var(--rs-color-success)',
                   borderRadius: 'var(--rs-radius-card)',
                   padding: 12,
                   marginBottom: 20,
                 }}
               >
-                <h5 style={{ fontSize: 12, fontWeight: 700, color: '#1E7E5E', marginBottom: 4 }}>
+                <h5 style={{ fontSize: 12, fontWeight: 700, color: 'var(--friction-clean)', marginBottom: 4 }}>
                   گزارش تکمیل اصلاحات توسط مسئول:
                 </h5>
-                <p style={{ fontSize: 12, color: 'var(--rs-color-text-ink)' }}>
+                <p style={{ fontSize: 12, color: 'var(--theme-text-primary)' }}>
                   {selectedAction.resolutionNote}
                 </p>
                 {selectedAction.completionDate && (
-                  <div style={{ fontSize: 10, color: '#1E7E5E', marginTop: 4 }}>
+                  <div style={{ fontSize: 10, color: 'var(--friction-clean)', marginTop: 4 }}>
                     تاریخ تکمیل:{' '}
                     <span className="ltr-code">{selectedAction.completionDate.slice(0, 10)}</span>
                   </div>
@@ -964,20 +964,20 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
             {selectedAction.verificationNote && (
               <div
                 style={{
-                  background: 'var(--rs-color-navy-50)',
-                  border: '1px solid var(--rs-color-border-line)',
+                  background: 'var(--surface-sunken)',
+                  border: '1px solid var(--theme-card-border)',
                   borderRadius: 'var(--rs-radius-card)',
                   padding: 12,
                   marginBottom: 20,
                 }}
               >
-                <h5 style={{ fontSize: 12, fontWeight: 700, color: 'var(--rs-color-brand-navy)', marginBottom: 4 }}>
+                <h5 style={{ fontSize: 12, fontWeight: 700, color: 'var(--theme-text-primary)', marginBottom: 4 }}>
                   تاییدیه ارزیاب / سرپرست:
                 </h5>
-                <p style={{ fontSize: 12, color: 'var(--rs-color-text-ink)' }}>
+                <p style={{ fontSize: 12, color: 'var(--theme-text-primary)' }}>
                   {selectedAction.verificationNote}
                 </p>
-                <div style={{ fontSize: 10, color: 'var(--rs-color-text-muted)', marginTop: 4 }}>
+                <div style={{ fontSize: 10, color: 'var(--theme-text-secondary)', marginTop: 4 }}>
                   تاییدکننده: {selectedAction.verifiedBy} در تاریخ{' '}
                   <span className="ltr-code">{selectedAction.verifiedAt?.slice(0, 10)}</span>
                 </div>
@@ -994,11 +994,11 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                   <div
                     key={rc.id}
                     style={{
-                      background: 'var(--rs-color-callout-crit)',
+                      background: 'var(--friction-high-bg)',
                       borderRadius: 'var(--rs-radius-control)',
                       padding: '6px 10px',
                       fontSize: 12,
-                      color: 'var(--rs-color-text-ink)',
+                      color: 'var(--theme-text-primary)',
                       marginBottom: 6,
                     }}
                   >
@@ -1019,7 +1019,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                 justifyContent: 'flex-end',
                 gap: 10,
                 marginTop: 24,
-                borderTop: '1px solid var(--rs-color-border-line)',
+                borderTop: '1px solid var(--theme-card-border)',
                 paddingTop: 16,
                 flexWrap: 'wrap',
               }}
@@ -1098,9 +1098,9 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
         >
           <div
             className="card-rs"
-            style={{ background: '#FFFFFF', width: '100%', maxWidth: 520, padding: 20 }}
+            style={{ background: 'var(--theme-modal-bg)', width: '100%', maxWidth: 520, padding: 20 }}
           >
-            <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--rs-color-text-ink)', marginBottom: 12 }}>
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--theme-text-primary)', marginBottom: 12 }}>
               ثبت گزارش رفع اصطکاک و اصلاح
             </h3>
 
@@ -1199,12 +1199,12 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
         >
           <div
             className="card-rs"
-            style={{ background: '#FFFFFF', width: '100%', maxWidth: 480, padding: 20 }}
+            style={{ background: 'var(--theme-modal-bg)', width: '100%', maxWidth: 480, padding: 20 }}
           >
             <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--rs-color-error)', marginBottom: 8 }}>
               بازگشایی مجدد اقدام (Reopen Action)
             </h3>
-            <p style={{ fontSize: 12, color: 'var(--rs-color-text-muted)', marginBottom: 12 }}>
+            <p style={{ fontSize: 12, color: 'var(--theme-text-secondary)', marginBottom: 12 }}>
               اگر بررسی نشان داد مشکل به درستی حل نشده یا مدارک کافی نیست، دلیل را یادداشت کنید:
             </p>
 
@@ -1257,9 +1257,9 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
         >
           <div
             className="card-rs"
-            style={{ background: '#FFFFFF', width: '100%', maxWidth: 560, padding: 24 }}
+            style={{ background: 'var(--theme-modal-bg)', width: '100%', maxWidth: 560, padding: 24 }}
           >
-            <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--rs-color-text-ink)', marginBottom: 16 }}>
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--theme-text-primary)', marginBottom: 16 }}>
               ثبت اقدام اصلاحی جدید (New Corrective Action)
             </h3>
 

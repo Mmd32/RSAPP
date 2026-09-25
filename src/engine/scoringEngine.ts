@@ -592,7 +592,7 @@ export function calculateVisitSummary(
   if (effectiveComparison.comparisonVisitScores) {
     radarSeries.push({
       id: 'comparison_visit',
-      label: 'شعبه مقایسه‌ای (Benchmark)',
+      label: 'شعبه مقایسه‌ای',
       color: '#F59E0B', // Amber
       scores: effectiveComparison.comparisonVisitScores,
       visible: false,

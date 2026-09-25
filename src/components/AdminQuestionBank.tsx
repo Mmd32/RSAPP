@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Indicator } from '../types';
 import { Database, Filter, Sliders, CheckCircle, AlertTriangle, Layers, Plus } from 'lucide-react';
+import { stageLabel } from '../utils/format';
 
 interface AdminQuestionBankProps {
   indicators: Indicator[];
@@ -132,7 +133,7 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
         style={{
           padding: 20,
           marginBottom: 20,
-          background: 'var(--rs-color-navy-800)',
+          background: 'var(--surface-emphasis)',
           border: '1px solid rgba(0, 176, 240, 0.3)',
           borderRadius: 'var(--rs-radius-card)',
         }}
@@ -144,15 +145,15 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
           </h3>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', fontSize: 13 }}>
-          <span style={{ background: 'var(--rs-color-navy-900)', padding: '4px 10px', borderRadius: 'var(--rs-radius-control)', color: 'var(--rs-color-brand-cyan)', fontWeight: 600 }}>نمایش بده اگر (SHOW IF)</span>
+          <span style={{ background: 'var(--surface-chip)', padding: '4px 10px', borderRadius: 'var(--rs-radius-control)', color: 'var(--rs-color-brand-cyan)', fontWeight: 600 }}>نمایش بده اگر (SHOW IF)</span>
           <span>صنف</span>
-          <span style={{ background: 'var(--rs-color-navy-700)', border: '1px solid var(--border-subtle)', padding: '3px 8px', borderRadius: 'var(--rs-radius-control)', fontWeight: 700 }}>Fashion</span>
+          <span style={{ background: 'var(--surface-chip)', border: '1px solid var(--border-subtle)', padding: '3px 8px', borderRadius: 'var(--rs-radius-control)', fontWeight: 700 }}>Fashion</span>
           <span style={{ color: 'var(--rs-color-warning)', fontWeight: 700 }}>AND</span>
           <span>محیط استقرار</span>
-          <span style={{ background: 'var(--rs-color-navy-700)', border: '1px solid var(--border-subtle)', padding: '3px 8px', borderRadius: 'var(--rs-radius-control)', fontWeight: 700 }}>Mall Store</span>
+          <span style={{ background: 'var(--surface-chip)', border: '1px solid var(--border-subtle)', padding: '3px 8px', borderRadius: 'var(--rs-radius-control)', fontWeight: 700 }}>Mall Store</span>
           <span style={{ color: 'var(--rs-color-warning)', fontWeight: 700 }}>AND</span>
           <span>ویژگی فیزیکی</span>
-          <span style={{ background: 'var(--rs-color-navy-700)', border: '1px solid var(--border-subtle)', padding: '3px 8px', borderRadius: 'var(--rs-radius-control)', fontWeight: 700 }}>Has Fitting Room = True</span>
+          <span style={{ background: 'var(--surface-chip)', border: '1px solid var(--border-subtle)', padding: '3px 8px', borderRadius: 'var(--rs-radius-control)', fontWeight: 700 }}>Has Fitting Room = True</span>
           <span style={{ color: 'var(--rs-color-success)', fontWeight: 700 }}>➔</span>
           <span style={{ color: 'var(--rs-color-success)', fontWeight: 600 }}>
             فعال‌سازی پرسش‌های <code className="ltr-code">FFR02</code> تا{' '}
@@ -172,7 +173,7 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
         <div style={{ overflowX: 'auto', maxHeight: '600px' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid var(--rs-color-navy-700)', color: 'var(--text-muted)', position: 'sticky', top: 0, background: 'var(--rs-color-navy-900)' }}>
+              <tr style={{ borderBottom: '1px solid var(--theme-card-border)', color: 'var(--text-muted)', position: 'sticky', top: 0, background: 'var(--surface-sunken)' }}>
                 <th style={{ textAlign: 'right', padding: '10px 8px' }}>کد شاخص</th>
                 <th style={{ textAlign: 'right', padding: '10px 8px' }}>گروه و موضوع</th>
                 <th style={{ textAlign: 'right', padding: '10px 8px' }}>متن استاندارد KPI</th>
@@ -201,7 +202,7 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
                     {ind.statement}
                   </td>
                   <td style={{ textAlign: 'center', padding: '10px 8px', fontSize: 11, color: 'var(--rs-color-brand-cyan)' }}>
-                    {ind.journeyStage}
+                    {stageLabel(ind.journeyStage)}
                   </td>
                   <td style={{ textAlign: 'center', padding: '10px 8px', fontFamily: 'var(--rs-font-en)' }}>
                     {ind.weight}

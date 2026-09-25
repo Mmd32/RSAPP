@@ -365,7 +365,7 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
 
           {/* Photo requirement blocker alert */}
           {photoError && (
-            <div style={{ background: 'rgba(217, 74, 86, 0.15)', border: '1px solid var(--rs-color-error)', borderRadius: 'var(--rs-radius-card)', padding: '8px 12px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#FCA5A5' }}>
+            <div style={{ background: 'rgba(217, 74, 86, 0.15)', border: '1px solid var(--rs-color-error)', borderRadius: 'var(--rs-radius-card)', padding: '8px 12px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--friction-high)' }}>
               <AlertCircle size={16} color="var(--rs-color-error)" />
               <span>{photoError}</span>
             </div>
@@ -483,7 +483,8 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
               flex: 1.5,
               minHeight: 48,
               justifyContent: 'center',
-              background: isPhotoBlocked ? 'var(--rs-color-navy-700)' : 'var(--rs-color-error)',
+              background: isPhotoBlocked ? 'var(--surface-disabled)' : 'var(--rs-color-error)',
+              color: isPhotoBlocked ? 'var(--text-on-disabled)' : '#fff',
               cursor: isPhotoBlocked ? 'not-allowed' : 'pointer',
               boxShadow: isPhotoBlocked ? 'none' : '0 4px 16px rgba(217, 74, 86, 0.4)',
             }}

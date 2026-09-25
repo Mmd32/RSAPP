@@ -1415,7 +1415,9 @@ textarea:focus {
 }
 
 .instrument-code {
-  font-family: var(--rs-font-latin);
+  font-family: var(--rs-font-code);
+  direction: ltr;
+  unicode-bidi: isolate;
   font-weight: 800;
   font-size: 13px;
   color: var(--rs-color-brand-cyan);

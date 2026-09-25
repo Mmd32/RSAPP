@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { VisitSession, QuestionResponse, Indicator, SeverityLevel } from '../types';
 import { calculateVisitSummary } from '../engine/scoringEngine';
+import { StatCard, StatRow } from './ui/StatCard';
+import { faDateTime, faDigits, faPercent, stageLabel } from '../utils/format';
 import {
   CheckCircle,
   XCircle,
@@ -122,13 +124,10 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span className="indicator-code-badge" style={{ background: 'var(--rs-color-brand-navy)', color: 'var(--rs-color-brand-cyan)', border: '1px solid rgba(0, 176, 240, 0.3)' }}>
-                کارتابل نظارت و کنترل کیفیت
-              </span>
               <h2 style={{ fontSize: 20, fontWeight: 700 }}>بررسی سرپرست: {visit.brandName} - {visit.branchName}</h2>
             </div>
             <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>
-              ارزیاب: {visit.auditorName} • کد پیگیری: <span className="ltr-code">{visit.visitCode}</span> • شروع: {new Date(visit.startedAt).toLocaleTimeString('fa-IR')}
+              ارزیاب: {visit.auditorName} • کد پیگیری: <span className="ltr-code">{visit.visitCode}</span> • شروع: {faDateTime(visit.startedAt)}
             </p>
           </div>
 
@@ -139,34 +138,14 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
         </div>
 
         {/* Section 26: Summary First */}
-        <div className="metric-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
-          <div className="metric-card">
-            <span className="metric-label">امتیاز اولیه سامانه</span>
-            <div className="metric-value" style={{ color: 'var(--rs-color-brand-cyan)' }}>{summary.overallScore} / ۱۰۰</div>
-          </div>
-          <div className="metric-card">
-            <span className="metric-label">کل اصطکاک‌ها</span>
-            <div className="metric-value" style={{ color: 'var(--rs-color-error)' }}>{summary.totalFrictions}</div>
-          </div>
-          <div className="metric-card">
-            <span className="metric-label">موارد بحرانی</span>
-            <div className="metric-value" style={{ color: 'var(--rs-color-error)' }}>{summary.criticalFrictions}</div>
-          </div>
-          <div className="metric-card">
-            <span className="metric-label">موارد شدید</span>
-            <div className="metric-value" style={{ color: '#EA580C' }}>{summary.highFrictions}</div>
-          </div>
-          <div className="metric-card">
-            <span className="metric-label">مدارک تصویری</span>
-            <div className="metric-value" style={{ color: 'var(--rs-color-brand-cyan)' }}>{summary.totalPhotos}</div>
-          </div>
-          <div className="metric-card">
-            <span className="metric-label">نیازمند اصلاح سرپرست</span>
-            <div className="metric-value" style={{ color: needsCorrectionCount > 0 ? 'var(--rs-color-warning)' : 'var(--text-dim)' }}>
-              {needsCorrectionCount}
-            </div>
-          </div>
-        </div>
+        <StatRow>
+          <StatCard label="امتیاز اولیه سامانه" value={faPercent(summary.overallScore)} />
+          <StatCard label="کل اصطکاک‌ها" value={faDigits(summary.totalFrictions)} />
+          <StatCard label="موارد بحرانی" value={faDigits(summary.criticalFrictions)} tone={summary.criticalFrictions > 0 ? 'alarm' : 'default'} />
+          <StatCard label="موارد شدید" value={faDigits(summary.highFrictions)} />
+          <StatCard label="مدارک تصویری" value={faDigits(summary.totalPhotos)} />
+          <StatCard label="نیازمند اصلاح" value={faDigits(needsCorrectionCount)} tone={needsCorrectionCount > 0 ? 'alarm' : 'default'} />
+        </StatRow>
 
         {/* Section 27: Supervisor Filters */}
         <div style={{ background: 'var(--bg-input)', padding: 14, borderRadius: 'var(--rs-radius-card)', margin: '20px 0 16px', border: '1px solid var(--border-subtle)' }}>
@@ -204,7 +183,7 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
               >
                 <option value="ALL">همه بخش‌ها</option>
                 {uniqueSections.map((sec) => (
-                  <option key={sec} value={sec}>{sec}</option>
+                  <option key={sec} value={sec}>{stageLabel(sec)}</option>
                 ))}
               </select>
             </div>
@@ -249,9 +228,9 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
                   minHeight: 34,
                   padding: '6px 12px',
                   borderRadius: 'var(--radius-sm)',
-                  border: `1px solid ${onlyNeedsCorrection ? '#F59E0B' : 'var(--border-subtle)'}`,
-                  background: onlyNeedsCorrection ? 'rgba(245, 158, 11, 0.2)' : '#1E293B',
-                  color: onlyNeedsCorrection ? '#FBBF24' : 'var(--text-muted)',
+                  border: `1px solid ${onlyNeedsCorrection ? 'var(--friction-low)' : 'var(--border-subtle)'}`,
+                  background: onlyNeedsCorrection ? 'var(--friction-low-bg)' : 'var(--surface-chip)',
+                  color: onlyNeedsCorrection ? 'var(--friction-low)' : 'var(--text-muted)',
                   fontSize: 12,
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -308,7 +287,7 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
                       </span>
                       <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{ind.subject}</span>
                       <span style={{ fontSize: 11, color: 'var(--text-muted)', background: 'rgba(255,255,255,0.06)', padding: '2px 8px', borderRadius: 'var(--rs-radius-control)' }}>
-                        {ind.journeyStage}
+                        {stageLabel(ind.journeyStage)}
                       </span>
                       <span
                         style={{
@@ -330,7 +309,7 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
                         type="button"
                         onClick={() => handleSetDecisionStatus(ind.id, 'APPROVED')}
                         style={{
-                          background: isApproved ? 'var(--rs-color-success)' : 'var(--rs-color-navy-800)',
+                          background: isApproved ? 'var(--rs-color-success)' : 'var(--surface-chip)',
                           color: isApproved ? '#fff' : 'var(--text-muted)',
                           border: `1px solid ${isApproved ? 'var(--rs-color-success)' : 'var(--border-subtle)'}`,
                           borderRadius: 'var(--rs-radius-control)',
@@ -352,7 +331,7 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
                         type="button"
                         onClick={() => handleSetDecisionStatus(ind.id, 'REQUEST_CHANGE')}
                         style={{
-                          background: isNeedsCorrection ? 'var(--rs-color-warning)' : 'var(--rs-color-navy-800)',
+                          background: isNeedsCorrection ? 'var(--rs-color-warning)' : 'var(--surface-chip)',
                           color: isNeedsCorrection ? '#16213E' : 'var(--text-muted)',
                           border: `1px solid ${isNeedsCorrection ? 'var(--rs-color-warning)' : 'var(--border-subtle)'}`,
                           borderRadius: 'var(--rs-radius-control)',
@@ -374,7 +353,7 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
                         type="button"
                         onClick={() => handleSetDecisionStatus(ind.id, 'REJECTED')}
                         style={{
-                          background: isRejected ? 'var(--rs-color-error)' : 'var(--rs-color-navy-800)',
+                          background: isRejected ? 'var(--rs-color-error)' : 'var(--surface-chip)',
                           color: isRejected ? '#fff' : 'var(--text-muted)',
                           border: `1px solid ${isRejected ? 'var(--rs-color-error)' : 'var(--border-subtle)'}`,
                           borderRadius: 'var(--rs-radius-control)',
@@ -425,8 +404,8 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
                   {/* Auditor Comment */}
                   {resp.comment && (
                     <div style={{ background: 'rgba(56, 189, 248, 0.08)', padding: '8px 12px', borderRadius: 'var(--radius-sm)', marginBottom: 8, border: '1px solid rgba(56, 189, 248, 0.2)' }}>
-                      <span style={{ fontSize: 12, color: '#93C5FD', fontWeight: 600 }}>گزارش ارزیاب: </span>
-                      <span style={{ fontSize: 12, color: '#E0F2FE' }}>{resp.comment}</span>
+                      <span style={{ fontSize: 12, color: 'var(--theme-text-secondary)', fontWeight: 600 }}>گزارش ارزیاب: </span>
+                      <span style={{ fontSize: 12, color: 'var(--theme-text-primary)' }}>{resp.comment}</span>
                     </div>
                   )}
 
@@ -445,7 +424,7 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
                       </span>
                       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                         {resp.photos.map((p) => (
-                          <div key={p.id} style={{ borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--border-subtle)', background: '#0F172A' }}>
+                          <div key={p.id} style={{ borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--border-subtle)', background: 'var(--surface-sunken)' }}>
                             <img src={p.url} alt={p.caption || 'مدرک تصویری'} style={{ width: 130, height: 90, objectFit: 'cover', display: 'block' }} />
                             {p.caption && (
                               <div style={{ fontSize: 11, color: 'var(--text-muted)', padding: '4px 6px', maxWidth: 130, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
@@ -462,7 +441,7 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
                   <div style={{ marginTop: 10 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                       <MessageSquare size={13} color="var(--text-dim)" />
-                      <label style={{ fontSize: 11, color: isNeedsCorrection ? '#FBBF24' : 'var(--text-muted)', fontWeight: 600 }}>
+                      <label style={{ fontSize: 11, color: isNeedsCorrection ? 'var(--friction-low)' : 'var(--text-muted)', fontWeight: 600 }}>
                         {isNeedsCorrection ? 'توضیحات و دلیل درخواست اصلاح (مشاهده در کارتابل ارزیاب):' : 'یادداشت یا بازخورد سرپرست برای این یافته:'}
                       </label>
                     </div>
@@ -501,8 +480,8 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
             className="btn-secondary"
             style={{
               justifyContent: 'center',
-              borderColor: '#F59E0B',
-              color: '#FBBF24',
+              borderColor: 'var(--friction-low)',
+              color: 'var(--friction-low)',
               background: 'rgba(245, 158, 11, 0.1)',
             }}
             onClick={() => onRequestRevision(supervisorNotes, findingDecisions)}

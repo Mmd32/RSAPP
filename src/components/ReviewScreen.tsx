@@ -161,7 +161,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
               <AlertCircle color="var(--rs-color-error)" size={20} />
-              <h4 style={{ fontSize: 15, fontWeight: 700, color: '#FCA5A5' }}>
+              <h4 style={{ fontSize: 15, fontWeight: 700, color: 'var(--friction-high)' }}>
                 نیازمند تکمیل ({validationProblems.length} مورد قبل از ارسال نهایی):
               </h4>
             </div>
@@ -175,7 +175,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
                   key={`${prob.indicator.id}-${prob.problemText}`}
                   onClick={() => onJumpToQuestion(prob.index)}
                   style={{
-                    background: 'var(--rs-color-navy-800)',
+                    background: 'var(--surface-chip)',
                     padding: '10px 14px',
                     borderRadius: 'var(--rs-radius-control)',
                     display: 'flex',
@@ -187,11 +187,11 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
                     transition: 'all var(--rs-duration-micro) var(--rs-ease-standard)',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'var(--rs-color-navy-700)';
+                    e.currentTarget.style.background = 'var(--surface-chip-hover)';
                     e.currentTarget.style.borderColor = 'var(--rs-color-error)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'var(--rs-color-navy-800)';
+                    e.currentTarget.style.background = 'var(--surface-chip)';
                     e.currentTarget.style.borderColor = 'var(--border-subtle)';
                   }}
                 >
@@ -246,7 +246,8 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
             style={{
               flex: 1.5,
               justifyContent: 'center',
-              background: canSubmit ? 'var(--rs-color-action-primary)' : 'var(--rs-color-navy-700)',
+              background: canSubmit ? 'var(--rs-color-action-primary)' : 'var(--surface-disabled)',
+              color: canSubmit ? '#fff' : 'var(--text-on-disabled)',
               cursor: canSubmit ? 'pointer' : 'not-allowed',
               boxShadow: canSubmit ? '0 4px 16px rgba(0, 125, 170, 0.35)' : 'none',
             }}
