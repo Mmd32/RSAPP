@@ -11,16 +11,18 @@ Rebuilds and migrates RSAPP SQLite Database to Architecture V2:
 """
 
 import os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+import os
 import re
 import json
 import sqlite3
 import openpyxl
 
-STORE_EXCEL_PATH = "/Users/mohammadreza/Desktop/RSAPP/data/reference/FR Checklist- Fashion-Nima.xlsx"
-MALL_EXCEL_PATH = "/Users/mohammadreza/Desktop/RSAPP/data/reference/FR_Report_Mall V2Final Version.xlsx"
-DB_PATH = "/Users/mohammadreza/Desktop/RSAPP/data/rsapp.db"
-CATALOG_PATH = "/Users/mohammadreza/Desktop/RSAPP/data/catalog.json"
-SRC_CATALOG_PATH = "/Users/mohammadreza/Desktop/RSAPP/src/data/catalog.json"
+STORE_EXCEL_PATH = os.path.join(ROOT, "data/reference/FR Checklist- Fashion-Nima.xlsx")
+MALL_EXCEL_PATH = os.path.join(ROOT, "data/reference/FR_Report_Mall V2Final Version.xlsx")
+DB_PATH = os.path.join(ROOT, "data/rsapp.db")
+CATALOG_PATH = os.path.join(ROOT, "data/catalog.json")
+SRC_CATALOG_PATH = os.path.join(ROOT, "src/data/catalog.json")
 
 def normalize_text(text):
     if not text:

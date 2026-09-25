@@ -105,15 +105,14 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                 colorScheme={themeMode}
                 size="md"
                 showSubbrand={true}
-                subbrandText="FR™ Platform"
               />
             </div>
           ) : (
             <div
               className="sidebar-brand-mini"
-              title="Retail Solutions FR™ Assessment"
+              title="Retail Solutions — ارزیابی تجربه مشتری"
             >
-              <span className="brand-logo-icon">FR</span>
+              <span className="brand-logo-icon">RS</span>
             </div>
           )}
 

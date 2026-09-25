@@ -8,12 +8,14 @@ Adds missing relational tables to rsapp.db:
 And seeds them with verified data.
 """
 
+import os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 import sqlite3
 import json
 import os
 
-DB_PATH = "/Users/mohammadreza/Desktop/RSAPP/data/rsapp.db"
-CATALOG_PATH = "/Users/mohammadreza/Desktop/RSAPP/data/catalog.json"
+DB_PATH = os.path.join(ROOT, "data/rsapp.db")
+CATALOG_PATH = os.path.join(ROOT, "data/catalog.json")
 
 def upgrade_and_seed():
     conn = sqlite3.connect(DB_PATH)

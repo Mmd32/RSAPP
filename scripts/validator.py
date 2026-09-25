@@ -8,12 +8,14 @@ Inspects database records, catalog, and rules for:
 - INFO: summary counts and operational metrics
 """
 
+import os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 import sqlite3
 import json
 import os
 
-DB_PATH = "/Users/mohammadreza/Desktop/RSAPP/data/rsapp.db"
-CATALOG_PATH = "/Users/mohammadreza/Desktop/RSAPP/data/catalog.json"
+DB_PATH = os.path.join(ROOT, "data/rsapp.db")
+CATALOG_PATH = os.path.join(ROOT, "data/catalog.json")
 
 def run_validation():
     print("=" * 80)

@@ -1,6 +1,12 @@
-import { faDate, faDigits, faPercent } from '../utils/format';
+import { faDate, faDigits, faPercent, stageLabel } from '../utils/format';
 
 const SEVERITY_FA: Record<string, string> = { LOW: 'کم', MEDIUM: 'متوسط', HIGH: 'زیاد', CRITICAL: 'بحرانی' };
+const ANSWER_FA: Record<string, string> = {
+  NO_FRICTION: 'مناسب',
+  FRICTION: 'اصطکاک',
+  NOT_APPLICABLE: 'غیرقابل ارزیابی',
+  UNANSWERED: 'بدون پاسخ',
+};
 import React, { useState, useMemo, useRef } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -17,6 +23,8 @@ import {
   STRICT_CRITICAL_PROFILE,
   SCORING_PROFILES_REGISTRY,
   CANONICAL_DIMENSIONS,
+  getVisitDimensionScores,
+  type ComparisonVisitContext,
 } from '../engine/scoringEngine';
 import { RadarChart } from './RadarChart';
 import { RetailSolutionsLogo } from './brand/RetailSolutionsLogo';
@@ -48,13 +56,26 @@ interface VisitReportViewProps {
   onBackToDashboard: () => void;
   onCreateCorrectiveAction?: (actionData: any) => void;
   comparisonVisit?: VisitSession;
+  /** Other saved visits, used to build real previous-visit and average series. */
+  historyVisits?: VisitSession[];
+  /** The built-in sample report: keeps its illustrative benchmark series. */
+  isSample?: boolean;
 }
+
+/** Illustrative benchmarks shown only on the built-in sample report. */
+const SAMPLE_COMPARISON: ComparisonVisitContext = {
+  previousVisitScores: { ACCESS: 72, NAVIGATION: 68, ENVIRONMENT: 75, PRODUCT: 64, PEOPLE: 70, SERVICE: 60, CHECKOUT: 74, AFTER_SALES: 65 },
+  brandAverageScores: { ACCESS: 82, NAVIGATION: 78, ENVIRONMENT: 80, PRODUCT: 76, PEOPLE: 84, SERVICE: 72, CHECKOUT: 79, AFTER_SALES: 71 },
+  branchAverageScores: { ACCESS: 75, NAVIGATION: 70, ENVIRONMENT: 72, PRODUCT: 68, PEOPLE: 73, SERVICE: 66, CHECKOUT: 76, AFTER_SALES: 68 },
+};
 
 export const VisitReportView: React.FC<VisitReportViewProps> = ({
   visit,
   onBackToDashboard,
   onCreateCorrectiveAction,
   comparisonVisit,
+  historyVisits = [],
+  isSample = false,
 }) => {
   const [selectedFrictionIds, setSelectedFrictionIds] = useState<Set<string>>(new Set());
   const [activeProfileId, setActiveProfileId] = useState<string>(DEFAULT_CONSULTING_PROFILE.id);
@@ -67,48 +88,40 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
 
   const activeProfile = SCORING_PROFILES_REGISTRY[activeProfileId] || DEFAULT_CONSULTING_PROFILE;
 
-  // Comparison context (Requirement 14, 15)
-  const comparisonContext = useMemo(() => {
-    // Generate realistic benchmark/previous scores based on visit
-    const previousVisitScores: Record<string, number> = {
-      ACCESS: 72,
-      NAVIGATION: 68,
-      ENVIRONMENT: 75,
-      PRODUCT: 64,
-      PEOPLE: 70,
-      SERVICE: 60,
-      CHECKOUT: 74,
-      AFTER_SALES: 65,
+  // Comparison context (Requirement 14, 15). Built only from real, finished
+  // visits; a series is omitted when there is nothing to compare against.
+  const comparisonContext = useMemo<ComparisonVisitContext>(() => {
+    if (isSample) return SAMPLE_COMPARISON;
+
+    const finished = historyVisits.filter(
+      (v) => v.id !== visit.id && (v.status === 'SUBMITTED' || v.status === 'APPROVED') && v.indicators?.length
+    );
+    const average = (visits: VisitSession[]) => {
+      const sums: Record<string, { total: number; n: number }> = {};
+      for (const v of visits) {
+        for (const [k, score] of Object.entries(getVisitDimensionScores(v, activeProfile))) {
+          sums[k] = sums[k] || { total: 0, n: 0 };
+          sums[k].total += score;
+          sums[k].n += 1;
+        }
+      }
+      const out: Record<string, number> = {};
+      for (const [k, { total, n }] of Object.entries(sums)) out[k] = Math.round(total / n);
+      return out;
     };
 
-    const brandAverageScores: Record<string, number> = {
-      ACCESS: 82,
-      NAVIGATION: 78,
-      ENVIRONMENT: 80,
-      PRODUCT: 76,
-      PEOPLE: 84,
-      SERVICE: 72,
-      CHECKOUT: 79,
-      AFTER_SALES: 71,
-    };
+    const sameBranch = finished
+      .filter((v) => v.brandName === visit.brandName && v.branchName === visit.branchName && v.startedAt < visit.startedAt)
+      .sort((a, b) => b.startedAt.localeCompare(a.startedAt));
+    const sameBrand = finished.filter((v) => v.brandName === visit.brandName);
 
-    const branchAverageScores: Record<string, number> = {
-      ACCESS: 75,
-      NAVIGATION: 70,
-      ENVIRONMENT: 72,
-      PRODUCT: 68,
-      PEOPLE: 73,
-      SERVICE: 66,
-      CHECKOUT: 76,
-      AFTER_SALES: 68,
-    };
-
-    return {
-      previousVisitScores,
-      brandAverageScores,
-      branchAverageScores,
-    };
-  }, []);
+    const context: ComparisonVisitContext = {};
+    if (sameBranch[0]) context.previousVisitScores = getVisitDimensionScores(sameBranch[0], activeProfile);
+    // An "average" of a single visit would just repeat the previous-visit line.
+    if (sameBrand.length >= 2) context.brandAverageScores = average(sameBrand);
+    if (finished.length >= 2) context.branchAverageScores = average(finished);
+    return context;
+  }, [isSample, historyVisits, visit.id, visit.brandName, visit.branchName, visit.startedAt, activeProfile]);
 
   // Compute Full Visit Summary using Active Profile
   const summary = useMemo(() => {
@@ -171,6 +184,9 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
         logging: false,
         backgroundColor: isLightMode ? '#F8F9FC' : '#0B132B',
         windowWidth: 1200,
+        // The PDF is a document, not the app: strip controls from the copy
+        // being captured (the live page is untouched).
+        onclone: (_doc, clonedRoot) => clonedRoot.classList.add('pdf-capture'),
       });
 
       const imgData = canvas.toDataURL('image/jpeg', 0.95);
@@ -218,10 +234,10 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
       const row = [
         `"${ind.code}"`,
         `"${(ind.subject || '').replace(/"/g, '""')}"`,
-        `"${(ind.reportingDimension || '').replace(/"/g, '""')}"`,
-        `"${(ind.journeyStage || '').replace(/"/g, '""')}"`,
-        `"${resp.answerState}"`,
-        `"${resp.severity || '-'}"`,
+        `"${(CANONICAL_DIMENSIONS.find((d) => d.key === ind.reportingDimension)?.nameFa || ind.reportingDimension || '').replace(/"/g, '""')}"`,
+        `"${stageLabel(ind.journeyStage).replace(/"/g, '""')}"`,
+        `"${ANSWER_FA[resp.answerState] || resp.answerState}"`,
+        `"${resp.answerState === 'FRICTION' ? SEVERITY_FA[resp.severity || ''] || '-' : '-'}"`,
         `"${finding ? finding.priorityIndex : '-'}"`,
         `"${(ind.statement || '').replace(/"/g, '""')}"`,
         `"${(resp.recommendation || '').replace(/"/g, '""')}"`,
@@ -338,7 +354,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
               colorScheme={isLightMode ? 'light' : 'dark'}
               size="lg"
               showSubbrand={true}
-              subbrandText="گزارش رسمی ممیزی و ارزیابی جامع تجربه مشتری (FR™)"
+              subbrandText="گزارش رسمی ارزیابی تجربه مشتری"
             />
 
             <div style={{ textAlign: 'left', direction: 'ltr' }}>
@@ -385,11 +401,11 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
               </div>
 
               <h1 style={{ fontSize: 26, fontWeight: 800, marginTop: 10, color: 'var(--theme-text-primary)' }}>
-                {visit.brandName} — شعبه {visit.branchName}
+                {visit.brandName} — {/^شعبه/.test(visit.branchName || '') ? visit.branchName : `شعبه ${visit.branchName}`}
               </h1>
               <p style={{ fontSize: 13, color: 'var(--theme-text-muted)', marginTop: 4 }}>
-                ارزیاب میدانی: <strong style={{ color: 'var(--theme-text-primary)' }}>{visit.auditorName}</strong> • سرپرست ممیزی:{' '}
-                <strong style={{ color: 'var(--theme-text-primary)' }}>{visit.supervisorName}</strong>
+                ارزیاب میدانی: <strong style={{ color: 'var(--theme-text-primary)' }}>{visit.auditorName || '—'}</strong> • سرپرست ممیزی:{' '}
+                <strong style={{ color: 'var(--theme-text-primary)' }}>{visit.supervisorName || (visit.status === 'APPROVED' ? '—' : 'در انتظار تأیید')}</strong>
               </p>
             </div>
 
@@ -417,19 +433,18 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
                   background: 'radial-gradient(circle, rgba(0, 176, 240, 0.35), transparent 70%)',
                   pointerEvents: 'none',
                 }}
+                className="decor-glow"
               />
               <span
                 style={{
                   fontSize: 11,
                   color: 'var(--rs-color-brand-cyan)',
                   fontWeight: 800,
-                  letterSpacing: '0.05em',
-                  textTransform: 'uppercase',
                   display: 'block',
                   marginBottom: 4,
                 }}
               >
-                شاخص کل اصطکاک و پاداش (FR™)
+                امتیاز کل تجربه مشتری
               </span>
               <div
                 style={{
@@ -550,7 +565,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
         {/* Radar Chart Section (Requirements 6, 7, 8, 9) */}
         <div style={{ marginBottom: 20 }}>
           <RadarChart
-            categories={summary.categoryScores}
+            categories={summary.categoryScores.filter((c) => c.totalQuestions > 0)}
             indicators={visit.indicators}
             responses={visit.responses}
             radarSeries={summary.radarSeries}
@@ -915,7 +930,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
               <ShieldCheck size={18} color="var(--rs-color-brand-cyan)" />
               <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--theme-text-primary)' }}>
-                تأییدیه رسمی متدولوژی ارزیابی تجربه مشتری ریتیل سلوشنز (FR™ Methodology Certification)
+                تأییدیه متدولوژی ارزیابی تجربه مشتری ریتیل سلوشنز
               </span>
             </div>
             <p style={{ fontSize: 11, color: 'var(--theme-text-muted)', maxWidth: 620, lineHeight: 1.6, margin: 0 }}>

@@ -337,6 +337,8 @@ app.delete(
   })
 );
 
+const VISIT_STATUSES = new Set(['IN_PROGRESS', 'SUBMITTED', 'APPROVED', 'REVISION_REQUESTED']);
+
 // ----------------------------------------------------------------------------
 // VISITS ENDPOINTS
 // ----------------------------------------------------------------------------
@@ -358,8 +360,20 @@ app.post(
   '/api/visits',
   route(async (req, res) => {
     const visitData = req.body;
-    if (!visitData || typeof visitData !== 'object') {
+    if (!visitData || typeof visitData !== 'object' || Array.isArray(visitData)) {
       return res.status(400).json({ error: 'A visit object is required.' });
+    }
+    // Reject shapes the app cannot open later: an archived visit without its
+    // store, questions or answers breaks the archive, report and comparison.
+    const problems: string[] = [];
+    if (typeof visitData.brandName !== 'string' || !visitData.brandName.trim()) problems.push('brandName');
+    if (typeof visitData.branchName !== 'string' || !visitData.branchName.trim()) problems.push('branchName');
+    if (!Array.isArray(visitData.indicators)) problems.push('indicators');
+    if (!visitData.responses || typeof visitData.responses !== 'object' || Array.isArray(visitData.responses)) problems.push('responses');
+    if (!VISIT_STATUSES.has(visitData.status)) problems.push('status');
+    if (typeof visitData.startedAt !== 'string') problems.push('startedAt');
+    if (problems.length) {
+      return res.status(400).json({ error: `Invalid visit: missing or invalid ${problems.join(', ')}.` });
     }
 
     const id = visitData.id || `visit_${Date.now()}`;
@@ -1010,9 +1024,16 @@ if (clientAvailable) {
 // ----------------------------------------------------------------------------
 // ERROR HANDLING & STARTUP
 // ----------------------------------------------------------------------------
-app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
-  logger.error('Unhandled request error', err, { method: req.method, path: req.path });
+app.use((err: Error & { type?: string; status?: number }, req: Request, res: Response, _next: NextFunction) => {
   if (res.headersSent) return;
+  // body-parser errors are the client's fault, not the server's.
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'Request body is not valid JSON.' });
+  }
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({ error: 'Request body is too large.' });
+  }
+  logger.error('Unhandled request error', err, { method: req.method, path: req.path });
   res.status(500).json({ error: 'Internal server error' });
 });
 

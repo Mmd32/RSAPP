@@ -157,14 +157,17 @@ const SEED_STORES: SavedStoreDirectoryItem[] = [
   },
 ];
 
+const SEED_IDS = new Set(SEED_STORES.map((s) => s.id));
+
 export const StoreService = {
   getLocalStores(): SavedStoreDirectoryItem[] {
     try {
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+        if (Array.isArray(parsed)) {
+          // Older builds cached the demo seeds alongside real stores.
+          return parsed.filter((s: SavedStoreDirectoryItem) => !SEED_IDS.has(s.id));
         }
       }
     } catch (e) {
@@ -187,12 +190,14 @@ export const StoreService = {
       const res = await apiFetch(STORES_ENDPOINT);
       if (res.ok) {
         const serverStores: SavedStoreDirectoryItem[] = await res.json();
-        if (Array.isArray(serverStores) && serverStores.length > 0) {
+        // The server is the source of truth whenever it answers, even with an
+        // empty list; demo seeds are only an offline first-run fallback.
+        if (Array.isArray(serverStores)) {
           // Merge unique server stores with local
           const map = new Map<string, SavedStoreDirectoryItem>();
           serverStores.forEach((s) => map.set(s.id, s));
           local.forEach((s) => {
-            if (!map.has(s.id)) map.set(s.id, s);
+            if (!SEED_IDS.has(s.id) && !map.has(s.id)) map.set(s.id, s);
           });
           const merged = Array.from(map.values());
           this.setLocalStores(merged);

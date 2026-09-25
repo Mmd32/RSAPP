@@ -34,6 +34,8 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
   onCreateCorrectiveAction,
 }) => {
   const summary = calculateVisitSummary(visit.indicators, visit.responses, visit.assessmentType);
+  // Only a visit the evaluator has submitted can be approved or sent back.
+  const canDecide = visit.status === 'SUBMITTED';
   const [supervisorNotes, setSupervisorNotes] = useState(visit.supervisorNotes || '');
 
   // Decisions map: indicatorId -> { status, comment }
@@ -474,6 +476,23 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
         </div>
 
         {/* Section 28: Return Visit vs Final Approval */}
+        {!canDecide && (
+          <div
+            role="status"
+            style={{
+              marginBottom: 12,
+              padding: '10px 14px',
+              borderRadius: 'var(--rs-radius-control)',
+              background: 'var(--friction-low-bg)',
+              color: 'var(--theme-text-primary)',
+              fontSize: 13,
+            }}
+          >
+            {visit.status === 'APPROVED'
+              ? 'این بازدید قبلاً تأیید نهایی شده است.'
+              : 'ارزیاب هنوز این بازدید را برای سرپرست ارسال نکرده است. تأیید یا بازگرداندن پس از ارسال از صفحهٔ «کنترل کیفیت» ممکن است.'}
+          </div>
+        )}
         <div className="sup-final-actions" style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: 12 }}>
           <button
             type="button"
@@ -485,6 +504,7 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
               background: 'rgba(245, 158, 11, 0.1)',
             }}
             onClick={() => onRequestRevision(supervisorNotes, findingDecisions)}
+            disabled={!canDecide}
           >
             <RotateCcw size={18} />
             <span>بازگرداندن به ارزیاب جهت اصلاح ({needsCorrectionCount} مورد)</span>
@@ -495,6 +515,7 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
             className="btn-primary"
             style={{ justifyContent: 'center', background: 'var(--status-clean)' }}
             onClick={() => onApproveVisit(supervisorNotes, findingDecisions)}
+            disabled={!canDecide}
           >
             <Award size={18} />
             <span>تأیید نهایی و صدور گزارش رسمی</span>

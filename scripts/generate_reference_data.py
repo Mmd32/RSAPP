@@ -5,10 +5,12 @@ Matches all real-world structures, codes, subjects, groups, and business types s
 """
 
 import os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+import os
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
-os.makedirs("/Users/mohammadreza/Desktop/RSAPP/data/reference", exist_ok=True)
+os.makedirs(os.path.join(ROOT, "data/reference"), exist_ok=True)
 
 header_fill = PatternFill(start_color="1E293B", end_color="1E293B", fill_type="solid")
 header_font = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
@@ -213,7 +215,7 @@ for col in ws_store.columns:
     col_letter = openpyxl.utils.get_column_letter(col[0].column)
     ws_store.column_dimensions[col_letter].width = min(max(max_len + 2, 10), 50)
 
-wb_store.save("/Users/mohammadreza/Desktop/RSAPP/data/reference/FR Checklist- Fashion-Nima.xlsx")
+wb_store.save(os.path.join(ROOT, "data/reference/FR Checklist- Fashion-Nima.xlsx"))
 print(f"Created Store Checklist with {len(all_store_items)} indicators.")
 
 
@@ -352,5 +354,5 @@ for col in ws_mall.columns:
     col_letter = openpyxl.utils.get_column_letter(col[0].column)
     ws_mall.column_dimensions[col_letter].width = min(max(max_len + 2, 10), 50)
 
-wb_mall.save("/Users/mohammadreza/Desktop/RSAPP/data/reference/FR_Report_Mall V2Final Version.xlsx")
+wb_mall.save(os.path.join(ROOT, "data/reference/FR_Report_Mall V2Final Version.xlsx"))
 print(f"Created Mall Checklist with {len(all_mall_items)} indicators.")

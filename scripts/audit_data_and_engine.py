@@ -6,15 +6,17 @@ Audits Excel files directly, checks formulas, rows, codes, applicability columns
 and reconciles the Fashion anomaly equation.
 """
 
+import os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 import openpyxl
 import re
 import os
 import sqlite3
 import json
 
-STORE_EXCEL_PATH = "/Users/mohammadreza/Desktop/RSAPP/data/reference/FR Checklist- Fashion-Nima.xlsx"
-MALL_EXCEL_PATH = "/Users/mohammadreza/Desktop/RSAPP/data/reference/FR_Report_Mall V2Final Version.xlsx"
-DB_PATH = "/Users/mohammadreza/Desktop/RSAPP/data/rsapp.db"
+STORE_EXCEL_PATH = os.path.join(ROOT, "data/reference/FR Checklist- Fashion-Nima.xlsx")
+MALL_EXCEL_PATH = os.path.join(ROOT, "data/reference/FR_Report_Mall V2Final Version.xlsx")
+DB_PATH = os.path.join(ROOT, "data/rsapp.db")
 
 def normalize_text(text):
     if not text:

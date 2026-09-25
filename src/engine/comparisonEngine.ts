@@ -7,6 +7,7 @@ import {
   CorrectiveAction,
   QuestionResponse,
 } from '../types';
+import { getVisitScore } from './scoringEngine';
 
 /**
  * Historical Revisit Comparison Engine
@@ -109,8 +110,8 @@ export class ComparisonEngine {
       });
     }
 
-    const prevScore = previousVisit.overallScore || 0;
-    const currScore = currentVisit.overallScore || 0;
+    const prevScore = getVisitScore(previousVisit);
+    const currScore = getVisitScore(currentVisit);
     const scoreDelta = Math.round((currScore - prevScore) * 10) / 10;
 
     return {
@@ -237,9 +238,9 @@ export class ComparisonEngine {
         new Date(b.completedAt || b.startedAt).getTime()
     );
 
-    const initialScore = sortedVisits.length > 0 ? sortedVisits[0].overallScore || 0 : 0;
+    const initialScore = sortedVisits.length > 0 ? getVisitScore(sortedVisits[0]) : 0;
     const currentScore =
-      sortedVisits.length > 0 ? sortedVisits[sortedVisits.length - 1].overallScore || 0 : 0;
+      sortedVisits.length > 0 ? getVisitScore(sortedVisits[sortedVisits.length - 1]) : 0;
     const scoreDelta = Math.round((currentScore - initialScore) * 10) / 10;
 
     let resolvedFrictionsCount = 0;
@@ -299,7 +300,7 @@ export class ComparisonEngine {
           visitId: v.id,
           visitCode: v.visitCode || v.id.slice(0, 8),
           date: v.completedAt || v.startedAt,
-          overallScore: v.overallScore || 0,
+          overallScore: getVisitScore(v),
           frictionCount: fCount,
           resolvedCount: rCount,
         };

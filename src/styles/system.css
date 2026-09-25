@@ -1035,3 +1035,12 @@ td.ltr-num, th.ltr-num { display: table-cell; }
   .actions-table tbody td[data-label=''] > * { width: 100%; justify-content: center; }
   .actions-table tbody td > * { align-self: flex-start; }
 }
+
+/* PDF export: html2canvas captures a cloned report tagged .pdf-capture. */
+.pdf-capture button:not(.radar__legend-item):not(.radar__row),
+.pdf-capture input[type='checkbox'],
+.pdf-capture .decor-glow { display: none !important; }
+/* Legend entries stay: they explain the dashed series. Hidden series drop out. */
+.pdf-capture .radar__legend-item.is-off { display: none !important; }
+/* html2canvas draws letter-spaced Persian as disconnected letters. */
+.pdf-capture, .pdf-capture * { letter-spacing: 0 !important; }

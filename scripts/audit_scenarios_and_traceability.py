@@ -6,10 +6,12 @@ Verifies domain separation between Store and Mall.
 Generates full audit report with Rule ID, Source, Status, and Reason for every inclusion/exclusion.
 """
 
+import os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 import json
 import os
 
-CATALOG_PATH = "/Users/mohammadreza/Desktop/RSAPP/data/catalog.json"
+CATALOG_PATH = os.path.join(ROOT, "data/catalog.json")
 
 with open(CATALOG_PATH, "r", encoding="utf-8") as f:
     catalog = json.load(f)

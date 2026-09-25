@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { VisitSession, VisitStatus } from '../types';
 import { visitProgress, visitFrictionCount } from '../services/visitService';
+import { getVisitScore } from '../engine/scoringEngine';
+import { faDigits } from '../utils/format';
 import {
   Archive,
   Search,
@@ -194,10 +196,10 @@ export const VisitArchive: React.FC<VisitArchiveProps> = ({
                     <AlertTriangle size={14} />
                     {frictions} اصطکاک
                   </span>
-                  {typeof visit.overallScore === 'number' && (
+                  {visit.status !== 'IN_PROGRESS' && (
                     <span className="archive-stat">
                       <CheckCircle2 size={14} />
-                      امتیاز {Math.round(visit.overallScore)}
+                      امتیاز {faDigits(Math.round(getVisitScore(visit)))}
                     </span>
                   )}
                 </div>

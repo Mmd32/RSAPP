@@ -10,6 +10,7 @@ import {
   MainFindingPrioritized,
   AssessmentType,
   RoundingMethod,
+  VisitSession,
 } from '../types.js';
 
 // ============================================================================
@@ -238,28 +239,9 @@ export function calculateVisitSummary(
   profile: ScoringProfile = DEFAULT_CONSULTING_PROFILE,
   comparisonContext?: ComparisonVisitContext
 ): VisitReportSummary {
-  const effectiveComparison: ComparisonVisitContext = comparisonContext || {
-    previousVisitScores: {
-      ACCESS: 72,
-      NAVIGATION: 68,
-      ENVIRONMENT: 75,
-      PRODUCT: 64,
-      PEOPLE: 70,
-      SERVICE: 60,
-      CHECKOUT: 74,
-      AFTER_SALES: 65,
-    },
-    brandAverageScores: {
-      ACCESS: 82,
-      NAVIGATION: 78,
-      ENVIRONMENT: 80,
-      PRODUCT: 76,
-      PEOPLE: 84,
-      SERVICE: 72,
-      CHECKOUT: 79,
-      AFTER_SALES: 71,
-    },
-  };
+  // No invented benchmarks: comparison series appear only when real history
+  // was supplied by the caller.
+  const effectiveComparison: ComparisonVisitContext = comparisonContext || {};
 
   const maxSeverityPenalty = profile.severityPenalties.CRITICAL || 4;
 
@@ -662,4 +644,27 @@ export function validateComparisonPopulation(
     severity: 'VALID',
     messageFa: 'جامعه آماری کاملاً همگن و قابل مقایسه است.',
   };
+}
+
+/**
+ * Overall score for a stored visit. Uses the score saved at submit/approve
+ * time and falls back to recomputing it for visits saved before that existed.
+ */
+export function getVisitScore(visit: VisitSession): number {
+  if (typeof visit.overallScore === 'number' && visit.overallScore > 0) return visit.overallScore;
+  if (!visit.indicators?.length) return visit.overallScore || 0;
+  return calculateVisitSummary(visit.indicators, visit.responses || {}, visit.assessmentType).overallScore;
+}
+
+/** Per-dimension scores (dimension key -> 0..100) for a stored visit. */
+export function getVisitDimensionScores(
+  visit: VisitSession,
+  profile: ScoringProfile = DEFAULT_CONSULTING_PROFILE
+): Record<string, number> {
+  const summary = calculateVisitSummary(visit.indicators || [], visit.responses || {}, visit.assessmentType, profile, {});
+  const scores: Record<string, number> = {};
+  for (const c of summary.categoryScores) {
+    if (c.dimensionKey && c.totalQuestions > 0) scores[c.dimensionKey] = c.score;
+  }
+  return scores;
 }

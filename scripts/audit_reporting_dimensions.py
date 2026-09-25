@@ -6,11 +6,13 @@ Proves that Radar Chart Reporting Dimensions represent deliberate customer journ
 rather than simple raw Excel groups.
 """
 
+import os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 import json
 import sqlite3
 
-CATALOG_PATH = "/Users/mohammadreza/Desktop/RSAPP/data/catalog.json"
-DB_PATH = "/Users/mohammadreza/Desktop/RSAPP/data/rsapp.db"
+CATALOG_PATH = os.path.join(ROOT, "data/catalog.json")
+DB_PATH = os.path.join(ROOT, "data/rsapp.db")
 
 with open(CATALOG_PATH, "r", encoding="utf-8") as f:
     catalog = json.load(f)
