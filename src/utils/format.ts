@@ -1,3 +1,4 @@
+import { MALL_JOURNEY_ORDER, STORE_JOURNEY_ORDER } from '../engine/ruleEngine';
 /**
  * Presentation helpers for Persian output.
  *
@@ -107,4 +108,10 @@ export const DEPARTMENT_LABEL: Record<string, string> = {
 export function departmentLabel(value?: string): string {
   if (!value) return '—';
   return DEPARTMENT_LABEL[value] || value;
+}
+
+/** Persian name for a customer-journey stage code (APPROACH, STAFF_INTERACTION…). */
+export function stageLabel(stage: string | undefined | null): string {
+  if (!stage) return '—';
+  return STORE_JOURNEY_ORDER[stage]?.labelFa || MALL_JOURNEY_ORDER[stage]?.labelFa || stage;
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   CategoryScore,
   Indicator,
@@ -6,22 +6,27 @@ import {
   RadarSeriesData,
   DimensionExplainabilityDetail,
 } from '../types';
-import {
-  AlertCircle,
-  AlertTriangle,
-  CheckCircle,
-  Info,
-  ChevronLeft,
-  MapPin,
-  Compass,
-  Store,
-  ShoppingBag,
-  Users,
-  Headphones,
-  CreditCard,
-  RefreshCw,
-  Sparkles,
-} from 'lucide-react';
+import { AlertTriangle, ArrowDown, ArrowUp, X } from 'lucide-react';
+import { faDigits } from '../utils/format';
+
+/*
+ * Customer-journey radar.
+ *
+ * The data has one subject -- this visit -- and up to four points of
+ * reference. That is the emphasis form: the current visit carries the only
+ * colour, everything else is recessive context. The previous chart gave every
+ * series its own saturated hue plus a gradient and a glow, so five lines
+ * competed equally and the one that mattered did not stand out.
+ *
+ * Context series are told apart by dash pattern as well as by the legend, so
+ * identity never rests on colour alone. Colour roles live in CSS
+ * (--chart-*), validated for both themes; series.color from the engine is
+ * deliberately ignored.
+ *
+ * A radar is good at shape and poor at precise values, so it is paired with a
+ * ranked list of the same eight dimensions. That list is also the chart's
+ * table view.
+ */
 
 interface RadarChartProps {
   categories: CategoryScore[];
@@ -32,645 +37,407 @@ interface RadarChartProps {
   onSelectDimension?: (dimKey: string) => void;
 }
 
+const PRIMARY_ID = 'current_visit';
+const PREVIOUS_ID = 'previous_visit';
+
+/** Dash patterns for the context series, keyed by series id. */
+const CONTEXT_DASH: Record<string, string> = {
+  previous_visit: '6 4',
+  brand_average: '1.5 4',
+  branch_average: '10 3 2 3',
+  comparison_visit: '3 3',
+};
+
+/** Below this a dimension is flagged for attention in the ranked list. */
+const ATTENTION_THRESHOLD = 60;
+
+const SEVERITY_LABEL: Record<string, string> = {
+  LOW: 'کم',
+  MEDIUM: 'متوسط',
+  HIGH: 'زیاد',
+  CRITICAL: 'بحرانی',
+};
+
+const dimKeyOf = (c: CategoryScore) => c.dimensionKey || c.category;
+
 export const RadarChart: React.FC<RadarChartProps> = ({
   categories,
-  indicators,
-  responses,
-  radarSeries: initialRadarSeries,
+  radarSeries,
   dimensionDetails,
   onSelectDimension,
 }) => {
-  const [selectedDimKey, setSelectedDimKey] = useState<string | null>(null);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  const [compact, setCompact] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 600px)').matches,
+  );
+  React.useEffect(() => {
+    const mq = window.matchMedia('(max-width: 600px)');
+    const onChange = () => setCompact(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
 
-  // Manage series visibility state
-  const [seriesList, setSeriesList] = useState<RadarSeriesData[]>(() => {
-    if (initialRadarSeries && initialRadarSeries.length > 0) {
-      return initialRadarSeries;
-    }
+  const [series, setSeries] = useState<RadarSeriesData[]>(() => {
+    if (radarSeries && radarSeries.length > 0) return radarSeries;
     const scores: Record<string, number> = {};
-    categories.forEach((c) => {
-      scores[c.dimensionKey || c.category] = c.score;
-    });
-    return [
-      {
-        id: 'current_visit',
-        label: 'ارزیابی فعلی',
-        color: '#00B0F0',
-        scores,
-        visible: true,
-      },
-    ];
+    categories.forEach((c) => (scores[dimKeyOf(c)] = c.score));
+    return [{ id: PRIMARY_ID, label: 'ارزیابی فعلی', color: '', scores, visible: true }];
   });
 
   React.useEffect(() => {
-    if (initialRadarSeries && initialRadarSeries.length > 0) {
-      setSeriesList(initialRadarSeries);
-    }
-  }, [initialRadarSeries]);
+    if (radarSeries && radarSeries.length > 0) setSeries(radarSeries);
+  }, [radarSeries]);
 
-  const toggleSeriesVisibility = (seriesId: string) => {
-    setSeriesList((prev) =>
-      prev.map((s) => (s.id === seriesId ? { ...s, visible: !s.visible } : s))
-    );
-  };
+  const previous = series.find((s) => s.id === PREVIOUS_ID);
 
-  if (!categories || categories.length === 0) {
-    return null;
-  }
-
-  // Generous SVG Canvas Dimensions to completely eliminate clipping & overlap
-  const svgSize = 560;
-  const center = svgSize / 2; // 280
-  const radius = 160;
-  const numAxes = categories.length;
-  const angleStep = (Math.PI * 2) / numAxes;
-
-  // Concentric Rings: 25%, 50%, 75%, 100%
-  const rings = [0.25, 0.5, 0.75, 1.0];
-
-  const activeDetail = dimensionDetails?.find(
-    (d) => d.dimensionKey === selectedDimKey || d.dimensionNameFa === selectedDimKey
+  const ranked = useMemo(
+    () => [...categories].sort((a, b) => a.score - b.score),
+    [categories]
   );
 
-  const activeCategory = categories.find(
-    (c) => c.dimensionKey === selectedDimKey || c.category === selectedDimKey
-  );
+  if (!categories || categories.length === 0) return null;
 
-  // Dimension Icon Mapping
-  const getDimensionIcon = (dimKey?: string) => {
-    switch (dimKey) {
-      case 'ACCESS':
-        return <MapPin size={16} />;
-      case 'NAVIGATION':
-        return <Compass size={16} />;
-      case 'ENVIRONMENT':
-        return <Store size={16} />;
-      case 'PRODUCT':
-        return <ShoppingBag size={16} />;
-      case 'PEOPLE':
-        return <Users size={16} />;
-      case 'SERVICE':
-        return <Headphones size={16} />;
-      case 'CHECKOUT':
-        return <CreditCard size={16} />;
-      case 'AFTER_SALES':
-        return <RefreshCw size={16} />;
-      default:
-        return <Sparkles size={16} />;
-    }
+  const select = (key: string) => {
+    const next = selectedKey === key ? null : key;
+    setSelectedKey(next);
+    if (next && onSelectDimension) onSelectDimension(next);
   };
+
+  const toggleSeries = (id: string) => {
+    // The current visit is the subject of the chart and cannot be hidden.
+    if (id === PRIMARY_ID) return;
+    setSeries((prev) => prev.map((s) => (s.id === id ? { ...s, visible: !s.visible } : s)));
+  };
+
+  // --- Geometry ------------------------------------------------------------
+  const W = 440;
+  const H = 400;
+  const cx = W / 2;
+  const cy = H / 2 + 4;
+  // On narrow screens the SVG is scaled down and labels are set larger, so
+  // shrink the plot to leave the long Persian axis names room at the edges.
+  const R = compact ? 100 : 128;
+  const n = categories.length;
+  const step = (Math.PI * 2) / n;
+  const angleAt = (i: number) => i * step - Math.PI / 2;
+  const pointAt = (i: number, value: number) => {
+    const r = (Math.max(0, Math.min(100, value)) / 100) * R;
+    return [cx + r * Math.cos(angleAt(i)), cy + r * Math.sin(angleAt(i))] as const;
+  };
+  // Rings share the data's shape: an octagon of data inside circular rings
+  // reads as two different geometries laid over each other.
+  const ringPath = (fraction: number) =>
+    categories
+      .map((_, i) => pointAt(i, fraction * 100))
+      .map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`)
+      .join(' ') + 'Z';
+
+  const seriesPath = (s: RadarSeriesData) =>
+    categories
+      .map((c, i) => pointAt(i, s.scores[dimKeyOf(c)] ?? c.score))
+      .map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`)
+      .join(' ') + 'Z';
+
+  const visibleContext = series.filter((s) => s.id !== PRIMARY_ID && s.visible);
+  const primary = series.find((s) => s.id === PRIMARY_ID) || series[0];
+
+  const wedgePath = (i: number) => {
+    const a0 = angleAt(i) - step / 2;
+    const a1 = angleAt(i) + step / 2;
+    const reach = R + 56;
+    return `M${cx},${cy} L${cx + reach * Math.cos(a0)},${cy + reach * Math.sin(a0)} A${reach},${reach} 0 0 1 ${
+      cx + reach * Math.cos(a1)
+    },${cy + reach * Math.sin(a1)} Z`;
+  };
+
+  const hovered = hoverIndex !== null ? categories[hoverIndex] : null;
+  const selectedCategory = categories.find((c) => dimKeyOf(c) === selectedKey);
+  const selectedDetail = dimensionDetails?.find(
+    (d) => d.dimensionKey === selectedKey || d.dimensionNameFa === selectedKey
+  );
 
   return (
-    <div className="radar-container media-frame" style={{ padding: 24, margin: '16px 0' }}>
-      {/* 1. Header & Series Toggles */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 12,
-          flexWrap: 'wrap',
-          gap: 12,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 800,
-              color: 'var(--rs-color-brand-cyan)',
-              background: 'rgba(0,176,240,0.12)',
-              padding: '2px 8px',
-              borderRadius: 'var(--rs-radius-control)',
-              letterSpacing: '0.04em',
-            }}
-          >
-            FR™ RADAR ENGINE
-          </span>
-          <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--theme-text-primary)', margin: 0 }}>
-            تحلیل چندبعدی رادار تجربه مشتری
+    <section className="radar" aria-labelledby="radar-title">
+      <header className="radar__header">
+        <div>
+          <h3 id="radar-title" className="radar__title">
+            رادار تجربهٔ مشتری
           </h3>
+          <p className="radar__subtitle">
+            امتیاز این بازدید در هشت بُعد سفر مشتری، در کنار نقاط مرجع. برای دیدن شاخص‌های هر بُعد، روی
+            آن کلیک کنید.
+          </p>
         </div>
 
-        {/* Series Toggles */}
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {seriesList.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => toggleSeriesVisibility(s.id)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '4px 10px',
-                borderRadius: '16px',
-                fontSize: 11,
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-                background: s.visible ? `${s.color}18` : 'var(--theme-card-bg)',
-                border: `1.5px solid ${s.visible ? s.color : 'var(--theme-card-border)'}`,
-                color: s.visible ? 'var(--theme-text-primary)' : 'var(--theme-text-muted)',
-              }}
-            >
-              <span
-                style={{
-                  width: 12,
-                  height: 3,
-                  borderRadius: 2,
-                  backgroundColor: s.visible ? s.color : 'gray',
-                  display: 'inline-block',
-                }}
-              />
-              <span>{s.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <p style={{ fontSize: 12, color: 'var(--theme-text-muted)', marginBottom: 20 }}>
-        برای مشاهده ریز محاسبات، وضعیت اصطکاک‌ها و موارد بحرانی هر بعد، روی محورهای رادار یا کارت‌های زیر کلیک کنید.
-      </p>
-
-      {/* 2. Visual Canvas & Drill-Down Layout */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'flex-start', justifyContent: 'center' }}>
-        {/* SVG Spider Chart */}
-        <div style={{ position: 'relative', width: '100%', maxWidth: 540, display: 'flex', justifyContent: 'center' }}>
-          <svg
-            viewBox={`0 0 ${svgSize} ${svgSize}`}
-            style={{
-              width: '100%',
-              maxWidth: `${svgSize}px`,
-              height: 'auto',
-              display: 'block',
-              overflow: 'visible',
-            }}
-          >
-            <defs>
-              <radialGradient id="radarMeshGradient" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#00B0F0" stopOpacity="0.45" />
-                <stop offset="60%" stopColor="#007DAA" stopOpacity="0.18" />
-                <stop offset="100%" stopColor="#007DAA" stopOpacity="0.04" />
-              </radialGradient>
-              <filter id="radarNeonGlow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="3" result="glow" />
-                <feMerge>
-                  <feMergeNode in="glow" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            </defs>
-
-            {/* Concentric Guide Circles & Percentage Rings */}
-            {rings.map((ringScale, rIdx) => {
-              const r = radius * ringScale;
+        {series.length > 1 && (
+          <div className="radar__legend" role="group" aria-label="سری‌های نمودار">
+            {series.map((s) => {
+              const isPrimary = s.id === PRIMARY_ID;
               return (
-                <g key={rIdx}>
-                  <circle
-                    cx={center}
-                    cy={center}
-                    r={r}
-                    fill="none"
-                    stroke={ringScale === 1.0 ? 'rgba(0, 176, 240, 0.45)' : 'var(--theme-card-border)'}
-                    strokeWidth={ringScale === 1.0 ? 1.5 : 1}
-                    strokeDasharray={ringScale < 1 ? '3 3' : 'none'}
-                    opacity={ringScale === 1.0 ? 0.9 : 0.6}
-                  />
-                  {/* Subtle scale percentage along top axis */}
-                  <text
-                    x={center}
-                    y={center - r - 3}
-                    textAnchor="middle"
-                    fill="var(--theme-text-muted)"
-                    fontSize="9.5"
-                    fontWeight="700"
-                    fontFamily="var(--rs-font-latin), monospace"
-                    opacity={0.8}
-                  >
-                    {Math.round(ringScale * 100)}%
-                  </text>
-                </g>
+                <button
+                  key={s.id}
+                  type="button"
+                  className={`radar__legend-item${s.visible ? '' : ' is-off'}`}
+                  aria-pressed={s.visible}
+                  disabled={isPrimary}
+                  onClick={() => toggleSeries(s.id)}
+                >
+                  <svg width="22" height="8" aria-hidden="true">
+                    <line
+                      x1="1"
+                      y1="4"
+                      x2="21"
+                      y2="4"
+                      className={isPrimary ? 'radar__swatch-primary' : 'radar__swatch-context'}
+                      strokeDasharray={isPrimary ? undefined : CONTEXT_DASH[s.id] || '4 3'}
+                    />
+                  </svg>
+                  {s.label}
+                </button>
               );
             })}
+          </div>
+        )}
+      </header>
 
-            {/* Spokes (Radial Axes) */}
-            {categories.map((cat, idx) => {
-              const angle = idx * angleStep - Math.PI / 2;
-              const x = center + radius * Math.cos(angle);
-              const y = center + radius * Math.sin(angle);
-              const isSelected = selectedDimKey === (cat.dimensionKey || cat.category);
+      <div className="radar__body">
+        {/* --- The chart ---------------------------------------------------- */}
+        <div className="radar__plot">
+          <svg
+            viewBox={`0 0 ${W} ${H}`}
+            className="radar__svg"
+            role="img"
+            aria-label={`نمودار رادار: ${categories
+              .map((c) => `${c.category} ${faDigits(c.score)} درصد`)
+              .join('، ')}`}
+            onMouseLeave={() => setHoverIndex(null)}
+          >
+            {[0.25, 0.5, 0.75, 1].map((f) => (
+              <path key={f} d={ringPath(f)} className={f === 1 ? 'radar__ring radar__ring--outer' : 'radar__ring'} />
+            ))}
 
+            {categories.map((c, i) => {
+              const [x, y] = pointAt(i, 100);
+              const active = hoverIndex === i || selectedKey === dimKeyOf(c);
               return (
                 <line
-                  key={cat.category}
-                  x1={center}
-                  y1={center}
+                  key={dimKeyOf(c)}
+                  x1={cx}
+                  y1={cy}
                   x2={x}
                   y2={y}
-                  stroke={isSelected ? 'var(--rs-color-brand-cyan)' : 'var(--theme-card-border)'}
-                  strokeWidth={isSelected ? 2 : 1}
-                  strokeDasharray={isSelected ? 'none' : '2 2'}
-                  opacity={isSelected ? 1 : 0.65}
+                  className={active ? 'radar__spoke is-active' : 'radar__spoke'}
                 />
               );
             })}
 
-            {/* Render Multiple Series Polygons */}
-            {seriesList
-              .filter((s) => s.visible)
-              .map((series, sIdx) => {
-                const points = categories.map((cat, idx) => {
-                  const angle = idx * angleStep - Math.PI / 2;
-                  const score = series.scores[cat.dimensionKey || cat.category] ?? cat.score;
-                  const r = Math.max(0, Math.min(100, score) / 100) * radius;
-                  const x = center + r * Math.cos(angle);
-                  const y = center + r * Math.sin(angle);
-                  return { x, y, score };
-                });
-
-                const polygonPath =
-                  points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x},${p.y}`).join(' ') + ' Z';
-
-                const isPrimary = series.id === 'current_visit';
-                const strokeDash = isPrimary ? 'none' : sIdx === 1 ? '6 4' : '3 3';
-
-                return (
-                  <g key={series.id}>
-                    <path
-                      d={polygonPath}
-                      fill={isPrimary ? 'url(#radarMeshGradient)' : `${series.color}15`}
-                      stroke={series.color}
-                      strokeWidth={isPrimary ? 2.5 : 1.8}
-                      strokeDasharray={strokeDash}
-                      filter={isPrimary ? 'url(#radarNeonGlow)' : 'none'}
-                    />
-                    {/* Vertices Markers */}
-                    {points.map((p, pIdx) => {
-                      const cat = categories[pIdx];
-                      const dimId = cat.dimensionKey || cat.category;
-                      const isDimSelected = selectedDimKey === dimId;
-
-                      return (
-                        <g
-                          key={pIdx}
-                          onClick={() => {
-                            const newKey = isDimSelected ? null : dimId;
-                            setSelectedDimKey(newKey);
-                            if (onSelectDimension && newKey) onSelectDimension(newKey);
-                          }}
-                          style={{ cursor: 'pointer' }}
-                        >
-                          <title>{`${series.label}: ${cat.category} (${p.score}%)`}</title>
-                          {isDimSelected && (
-                            <circle
-                              cx={p.x}
-                              cy={p.y}
-                              r={14}
-                              fill="none"
-                              stroke={series.color}
-                              strokeWidth={1.5}
-                              opacity={0.6}
-                            />
-                          )}
-                          <circle
-                            cx={p.x}
-                            cy={p.y}
-                            r={isDimSelected ? 6 : 4.5}
-                            fill={series.color}
-                            stroke="var(--theme-card-bg)"
-                            strokeWidth={2}
-                          />
-                        </g>
-                      );
-                    })}
-                  </g>
-                );
-              })}
-
-            {/* Smart Non-Overlapping Radial Dimension Labels */}
-            {categories.map((cat, idx) => {
-              const angle = idx * angleStep - Math.PI / 2;
-              const labelDist = radius + 32;
-              const x = center + labelDist * Math.cos(angle);
-              const y = center + labelDist * Math.sin(angle);
-              const dimId = cat.dimensionKey || cat.category;
-              const isSelected = selectedDimKey === dimId;
-
-              const cos = Math.cos(angle);
-              const sin = Math.sin(angle);
-
-              // Smart textAnchor to avoid boundary collisions
-              let textAnchor: 'start' | 'end' | 'middle' = 'middle';
-              let xOffset = 0;
-              let yOffset = 0;
-
-              if (cos > 0.3) {
-                textAnchor = 'start';
-                xOffset = 10;
-              } else if (cos < -0.3) {
-                textAnchor = 'end';
-                xOffset = -10;
-              }
-
-              if (sin > 0.6) {
-                yOffset = 8;
-              } else if (sin < -0.6) {
-                yOffset = -8;
-              }
-
+            {/* Scale, once, along the top spoke. */}
+            {[50, 100].map((v) => {
+              const [, y] = pointAt(0, v);
               return (
-                <g
-                  key={cat.category}
-                  onClick={() => {
-                    const newKey = isSelected ? null : dimId;
-                    setSelectedDimKey(newKey);
-                    if (onSelectDimension && newKey) onSelectDimension(newKey);
-                  }}
-                  style={{ cursor: 'pointer' }}
-                >
-                  {/* Dimension Name */}
-                  <text
-                    x={x + xOffset}
-                    y={y + yOffset}
-                    textAnchor={textAnchor}
-                    dominantBaseline="central"
-                    fill={isSelected ? 'var(--rs-color-brand-cyan)' : 'var(--theme-text-primary)'}
-                    fontSize="11.5"
-                    fontWeight={isSelected ? '800' : '700'}
-                    fontFamily="var(--rs-font-fa)"
-                  >
-                    {cat.category}
-                  </text>
-
-                  {/* Score Pill right next to or below label */}
-                  <text
-                    x={x + xOffset}
-                    y={y + yOffset + 14}
-                    textAnchor={textAnchor}
-                    dominantBaseline="central"
-                    fill={
-                      cat.score >= 80
-                        ? 'var(--rs-color-success)'
-                        : cat.score >= 60
-                        ? 'var(--rs-color-warning)'
-                        : 'var(--rs-color-error)'
-                    }
-                    fontSize="11"
-                    fontWeight="800"
-                    fontFamily="var(--rs-font-latin), monospace"
-                  >
-                    {cat.score}%
-                  </text>
-                </g>
+                <text key={v} x={cx + 4} y={y + 10} className="radar__scale">
+                  {faDigits(v)}
+                </text>
               );
             })}
+
+            {visibleContext.map((s) => (
+              <path
+                key={s.id}
+                d={seriesPath(s)}
+                className="radar__context"
+                strokeDasharray={CONTEXT_DASH[s.id] || '4 3'}
+              />
+            ))}
+
+            <path d={seriesPath(primary)} className="radar__primary" />
+
+            {categories.map((c, i) => {
+              const [x, y] = pointAt(i, primary.scores[dimKeyOf(c)] ?? c.score);
+              const active = hoverIndex === i || selectedKey === dimKeyOf(c);
+              return <circle key={dimKeyOf(c)} cx={x} cy={y} r={active ? 5.5 : 4} className="radar__dot" />;
+            })}
+
+            {categories.map((c, i) => {
+              const a = angleAt(i);
+              const lx = cx + (R + 22) * Math.cos(a);
+              const ly = cy + (R + 22) * Math.sin(a);
+              const cos = Math.cos(a);
+              const anchor = Math.abs(cos) < 0.2 ? 'middle' : cos > 0 ? 'start' : 'end';
+              const sin = Math.sin(a);
+              const dy = sin < -0.5 ? -8 : sin > 0.5 ? 12 : 2;
+              const active = hoverIndex === i || selectedKey === dimKeyOf(c);
+              return (
+                <text
+                  key={dimKeyOf(c)}
+                  x={lx}
+                  y={ly + dy}
+                  textAnchor={anchor}
+                  className={active ? 'radar__label is-active' : 'radar__label'}
+                >
+                  <tspan x={lx} className="radar__label-name">
+                    {c.category}
+                  </tspan>
+                  <tspan x={lx} dy="15" className="radar__label-value">
+                    {faDigits(c.score)}٪
+                  </tspan>
+                </text>
+              );
+            })}
+
+            {/* Hit areas are whole wedges, far larger than the marks. */}
+            {categories.map((c, i) => (
+              <path
+                key={dimKeyOf(c)}
+                d={wedgePath(i)}
+                className="radar__hit"
+                onMouseEnter={() => setHoverIndex(i)}
+                onFocus={() => setHoverIndex(i)}
+                onBlur={() => setHoverIndex(null)}
+                onClick={() => select(dimKeyOf(c))}
+                tabIndex={0}
+                role="button"
+                aria-label={`${c.category}: ${faDigits(c.score)} درصد`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    select(dimKeyOf(c));
+                  }
+                }}
+              />
+            ))}
           </svg>
+
+          {hovered && (
+            <div className="radar__tooltip" role="status">
+              <strong>{hovered.category}</strong>
+              {series
+                .filter((s) => s.visible)
+                .map((s) => (
+                  <span key={s.id} className="radar__tooltip-row">
+                    <span>{s.label}</span>
+                    <b>{faDigits(Math.round(s.scores[dimKeyOf(hovered)] ?? hovered.score))}٪</b>
+                  </span>
+                ))}
+            </div>
+          )}
         </div>
 
-        {/* Drill-Down Inspector Panel */}
-        <div
-          style={{
-            flex: '1 1 300px',
-            maxWidth: 380,
-            background: 'var(--theme-card-bg)',
-            border: `1.5px solid ${selectedDimKey ? 'var(--rs-color-brand-cyan)' : 'var(--theme-card-border)'}`,
-            borderRadius: '16px',
-            padding: 20,
-            boxShadow: selectedDimKey ? '0 8px 28px rgba(0, 176, 240, 0.18)' : 'var(--rs-shadow-card)',
-            transition: 'all 0.25s ease',
-          }}
-        >
-          {activeCategory ? (
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                <div>
-                  <span style={{ fontSize: 10, color: 'var(--rs-color-brand-cyan)', fontWeight: 800, textTransform: 'uppercase' }}>
-                    {activeDetail?.dimensionKey || 'DIMENSION DETAILS'}
-                  </span>
-                  <h4 style={{ fontSize: 16, fontWeight: 800, color: 'var(--theme-text-primary)', margin: '2px 0 0' }}>
-                    {activeCategory.category}
-                  </h4>
-                </div>
-                <div style={{ textAlign: 'left' }}>
-                  <span
-                    style={{
-                      fontSize: 24,
-                      fontWeight: 900,
-                      fontFamily: 'var(--rs-font-latin), monospace',
-                      color:
-                        activeCategory.score >= 80
-                          ? 'var(--rs-color-success)'
-                          : activeCategory.score >= 60
-                          ? 'var(--rs-color-warning)'
-                          : 'var(--rs-color-error)',
-                    }}
+        {/* --- Ranked list: the precise view, and the chart's table ---------- */}
+        <div className="radar__ranking">
+          <div className="radar__ranking-head">
+            <span>بُعد، از ضعیف‌ترین</span>
+            <span>امتیاز</span>
+          </div>
+          <ol className="radar__rows">
+            {ranked.map((c) => {
+              const key = dimKeyOf(c);
+              const prev = previous?.visible ? previous.scores[key] : undefined;
+              const delta = prev !== undefined ? Math.round(c.score - prev) : null;
+              const needsAttention = c.score < ATTENTION_THRESHOLD;
+              return (
+                <li key={key}>
+                  <button
+                    type="button"
+                    className={`radar__row${selectedKey === key ? ' is-selected' : ''}`}
+                    onClick={() => select(key)}
+                    onMouseEnter={() => setHoverIndex(categories.indexOf(c))}
+                    onMouseLeave={() => setHoverIndex(null)}
+                    aria-expanded={selectedKey === key}
                   >
-                    {activeCategory.score}%
-                  </span>
-                </div>
-              </div>
-
-              {/* Metric Highlights */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 14 }}>
-                <div style={{ background: 'var(--theme-card-inner)', padding: '8px 10px', borderRadius: 8, textAlign: 'center' }}>
-                  <span style={{ fontSize: 10, color: 'var(--theme-text-muted)', display: 'block' }}>کل شاخص‌ها</span>
-                  <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--theme-text-primary)' }}>{activeCategory.totalQuestions}</span>
-                </div>
-                <div style={{ background: 'var(--theme-card-inner)', padding: '8px 10px', borderRadius: 8, textAlign: 'center' }}>
-                  <span style={{ fontSize: 10, color: 'var(--theme-text-muted)', display: 'block' }}>اصطکاک</span>
-                  <span style={{ fontSize: 14, fontWeight: 800, color: activeCategory.frictionCount > 0 ? 'var(--rs-color-error)' : 'var(--theme-text-primary)' }}>
-                    {activeCategory.frictionCount}
-                  </span>
-                </div>
-                <div style={{ background: 'var(--theme-card-inner)', padding: '8px 10px', borderRadius: 8, textAlign: 'center' }}>
-                  <span style={{ fontSize: 10, color: 'var(--theme-text-muted)', display: 'block' }}>بحرانی</span>
-                  <span style={{ fontSize: 14, fontWeight: 800, color: (activeCategory.criticalCount || 0) > 0 ? 'var(--rs-color-error)' : 'var(--rs-color-success)' }}>
-                    {activeCategory.criticalCount || 0}
-                  </span>
-                </div>
-              </div>
-
-              {/* Underlying Indicators List */}
-              <div style={{ maxHeight: 220, overflowY: 'auto', paddingLeft: 4 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--theme-text-muted)', display: 'block', marginBottom: 6 }}>
-                  شاخص‌های ثبت‌شده در این بُعد:
-                </span>
-                {activeDetail?.underlyingIndicators && activeDetail.underlyingIndicators.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {activeDetail.underlyingIndicators.map((ind, i) => (
-                      <div
-                        key={i}
-                        style={{
-                          background: 'var(--theme-card-inner)',
-                          border: '1px solid var(--theme-card-border)',
-                          borderRadius: 8,
-                          padding: '7px 10px',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          gap: 8,
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
-                          <span className="ltr-code" style={{ fontSize: 10, color: 'var(--rs-color-brand-cyan)', fontWeight: 700 }}>
-                            {ind.code}
-                          </span>
-                          <span style={{ fontSize: 11, color: 'var(--theme-text-primary)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-                            {ind.subject}
-                          </span>
-                        </div>
-                        <span
-                          style={{
-                            fontSize: 10,
-                            padding: '2px 7px',
-                            borderRadius: 6,
-                            fontWeight: 700,
-                            whiteSpace: 'nowrap',
-                            background:
-                              ind.answerState === 'FRICTION'
-                                ? ind.severity === 'CRITICAL'
-                                  ? 'rgba(217, 74, 86, 0.2)'
-                                  : 'rgba(234, 88, 12, 0.2)'
-                                : ind.answerState === 'NOT_APPLICABLE'
-                                ? 'var(--theme-badge-bg)'
-                                : 'rgba(45, 157, 120, 0.18)',
-                            color:
-                              ind.answerState === 'FRICTION'
-                                ? ind.severity === 'CRITICAL'
-                                  ? 'var(--rs-color-error)'
-                                  : '#EA580C'
-                                : ind.answerState === 'NOT_APPLICABLE'
-                                ? 'var(--theme-text-muted)'
-                                : 'var(--rs-color-success)',
-                          }}
-                        >
-                          {ind.answerState === 'FRICTION'
-                            ? `اصطکاک ${ind.severity === 'CRITICAL' ? 'بحرانی' : ind.severity === 'HIGH' ? 'زیاد' : 'متوسط'}`
-                            : ind.answerState === 'NOT_APPLICABLE'
-                            ? 'N/A'
-                            : 'منطبق'}
+                    <span className="radar__row-name">
+                      {c.category}
+                      {needsAttention && (
+                        <span className="radar__attention">
+                          <AlertTriangle size={11} aria-hidden="true" />
+                          نیازمند توجه
                         </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p style={{ fontSize: 11, color: 'var(--theme-text-muted)' }}>
-                    نقص یا اصطکاکی در این بعد یافت نشد.
-                  </p>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setSelectedDimKey(null)}
-                className="btn-secondary"
-                style={{
-                  marginTop: 14,
-                  width: '100%',
-                  fontSize: 12,
-                  minHeight: 34,
-                }}
-              >
-                بستن جزئیات بُعد
-              </button>
-            </div>
-          ) : (
-            <div style={{ textAlign: 'center', padding: '36px 12px', color: 'var(--theme-text-muted)' }}>
-              <Info size={30} color="var(--rs-color-brand-cyan)" style={{ margin: '0 auto 10px', opacity: 0.7 }} />
-              <strong style={{ fontSize: 13, display: 'block', color: 'var(--theme-text-primary)', marginBottom: 4 }}>
-                راهنمای هوش تجاری رادار
-              </strong>
-              <p style={{ fontSize: 11, lineHeight: 1.6, margin: 0 }}>
-                روی هر یک از ۸ بعد رادار کلیک کنید تا نمره تفکیکی، مغایرت‌های مستند و شاخص‌های آن بعد را به تفکیک مشاهده نمایید.
-              </p>
-            </div>
+                      )}
+                    </span>
+                    <span className="radar__row-score">{faDigits(c.score)}</span>
+                    <span className="radar__row-bar" aria-hidden="true">
+                      <span className="radar__row-fill" style={{ inlineSize: `${c.score}%` }} />
+                      {prev !== undefined && (
+                        <span className="radar__row-ref" style={{ insetInlineStart: `${prev}%` }} />
+                      )}
+                    </span>
+                    <span className="radar__row-meta">
+                      {faDigits(c.totalQuestions)} شاخص ·{' '}
+                      {c.frictionCount > 0 ? `${faDigits(c.frictionCount)} اصطکاک` : 'بدون اصطکاک'}
+                      {delta !== null && delta !== 0 && (
+                        <span className={delta > 0 ? 'radar__delta is-up' : 'radar__delta is-down'}>
+                          {delta > 0 ? <ArrowUp size={11} aria-hidden="true" /> : <ArrowDown size={11} aria-hidden="true" />}
+                          {faDigits(Math.abs(delta))} نسبت به بازدید پیشین
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+          {previous?.visible && (
+            <p className="radar__ranking-note">
+              <span className="radar__row-ref radar__row-ref--legend" aria-hidden="true" /> خط عمودی: امتیاز بازدید پیشین
+            </p>
           )}
         </div>
       </div>
 
-      {/* 3. Executive 8-Dimension Matrix Grid Below the Radar (Zero Collision) */}
-      <div style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid var(--theme-card-border)' }}>
-        <h4 style={{ fontSize: 14, fontWeight: 800, color: 'var(--theme-text-primary)', marginBottom: 12 }}>
-          جدول عملکرد ابعاد ۸گانه تجربه مشتری:
-        </h4>
+      {/* --- Drill-down --------------------------------------------------- */}
+      {selectedCategory && (
+        <div className="radar__detail" aria-live="polite">
+          <div className="radar__detail-head">
+            <div>
+              <h4>{selectedCategory.category}</h4>
+              <span>
+                امتیاز {faDigits(selectedCategory.score)} از {faDigits(100)}
+              </span>
+            </div>
+            <button type="button" className="radar__close" onClick={() => setSelectedKey(null)} aria-label="بستن جزئیات">
+              <X size={16} />
+            </button>
+          </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
-          {categories.map((cat) => {
-            const dimId = cat.dimensionKey || cat.category;
-            const isSelected = selectedDimKey === dimId;
-            const isGood = cat.score >= 80;
-            const isWarning = cat.score >= 60 && cat.score < 80;
+          <dl className="radar__detail-stats">
+            <div>
+              <dt>کل شاخص‌ها</dt>
+              <dd>{faDigits(selectedCategory.totalQuestions)}</dd>
+            </div>
+            <div>
+              <dt>اصطکاک</dt>
+              <dd>{faDigits(selectedCategory.frictionCount)}</dd>
+            </div>
+            <div>
+              <dt>بحرانی</dt>
+              <dd>{faDigits(selectedCategory.criticalCount || 0)}</dd>
+            </div>
+          </dl>
 
-            return (
-              <div
-                key={dimId}
-                onClick={() => {
-                  const newKey = isSelected ? null : dimId;
-                  setSelectedDimKey(newKey);
-                  if (onSelectDimension && newKey) onSelectDimension(newKey);
-                }}
-                style={{
-                  background: isSelected ? 'rgba(0, 176, 240, 0.08)' : 'var(--theme-card-bg)',
-                  border: `1.5px solid ${isSelected ? 'var(--rs-color-brand-cyan)' : 'var(--theme-card-border)'}`,
-                  borderRadius: '12px',
-                  padding: '12px 14px',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                  boxShadow: isSelected ? '0 4px 14px rgba(0, 176, 240, 0.15)' : 'none',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <div
-                      style={{
-                        color: isSelected ? 'var(--rs-color-brand-cyan)' : 'var(--theme-text-muted)',
-                        display: 'flex',
-                        alignItems: 'center',
-                      }}
-                    >
-                      {getDimensionIcon(cat.dimensionKey)}
-                    </div>
-                    <strong style={{ fontSize: 12.5, color: 'var(--theme-text-primary)' }}>
-                      {cat.category}
-                    </strong>
-                  </div>
-
-                  <span
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 800,
-                      fontFamily: 'var(--rs-font-latin), monospace',
-                      color: isGood ? 'var(--rs-color-success)' : isWarning ? 'var(--rs-color-warning)' : 'var(--rs-color-error)',
-                    }}
-                  >
-                    {cat.score}%
-                  </span>
-                </div>
-
-                {/* Progress Mini Bar */}
-                <div style={{ height: 4, background: 'var(--theme-card-inner)', borderRadius: 2, overflow: 'hidden', marginBottom: 6 }}>
-                  <div
-                    style={{
-                      width: `${cat.score}%`,
-                      height: '100%',
-                      background: isGood ? 'var(--rs-color-success)' : isWarning ? 'var(--rs-color-warning)' : 'var(--rs-color-error)',
-                      borderRadius: 2,
-                    }}
-                  />
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 10, color: 'var(--theme-text-muted)' }}>
-                  <span>{cat.totalQuestions} شاخص</span>
-                  <span style={{ color: cat.frictionCount > 0 ? 'var(--rs-color-error)' : 'inherit', fontWeight: cat.frictionCount > 0 ? 700 : 400 }}>
-                    {cat.frictionCount > 0 ? `${cat.frictionCount} اصطکاک` : 'بدون اصطکاک'}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+          {selectedDetail?.underlyingIndicators && selectedDetail.underlyingIndicators.length > 0 ? (
+            <ul className="radar__indicators">
+              {selectedDetail.underlyingIndicators.map((ind, i) => (
+                <li key={`${ind.code}-${i}`}>
+                  <code className="ltr-code">{ind.code}</code>
+                  <span className="radar__indicator-subject">{ind.subject}</span>
+                  {ind.answerState === 'FRICTION' ? (
+                    <span className={`sev-chip sev-${(ind.severity || 'MEDIUM').toLowerCase()}`}>
+                      اصطکاک {SEVERITY_LABEL[ind.severity || 'MEDIUM']}
+                    </span>
+                  ) : ind.answerState === 'NOT_APPLICABLE' ? (
+                    <span className="sev-chip radar__chip-na">N/A</span>
+                  ) : (
+                    <span className="sev-chip sev-clean">منطبق</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="radar__empty">در این بُعد اصطکاکی ثبت نشده است.</p>
+          )}
         </div>
-      </div>
-    </div>
+      )}
+    </section>
   );
 };

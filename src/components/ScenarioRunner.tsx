@@ -300,14 +300,14 @@ export const ScenarioRunner: React.FC<ScenarioRunnerProps> = ({ indicators }) =>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 8, fontSize: 12 }}>
-                <div style={{ background: '#0F172A', padding: '8px 10px', borderRadius: 'var(--radius-sm)' }}>
-                  <span style={{ color: '#60A5FA', fontWeight: 600, display: 'block', marginBottom: 2 }}>{d.s1}:</span>
-                  <span style={{ color: '#34D399' }}>✓ {d.v1}</span>
+                <div style={{ background: 'var(--surface-sunken)', padding: '8px 10px', borderRadius: 'var(--radius-sm)' }}>
+                  <span style={{ color: 'var(--theme-text-secondary)', fontWeight: 600, display: 'block', marginBottom: 2 }}>{d.s1}:</span>
+                  <span style={{ color: 'var(--friction-clean)' }}>✓ {d.v1}</span>
                 </div>
 
-                <div style={{ background: '#0F172A', padding: '8px 10px', borderRadius: 'var(--radius-sm)' }}>
-                  <span style={{ color: '#F472B6', fontWeight: 600, display: 'block', marginBottom: 2 }}>{d.s2}:</span>
-                  <span style={{ color: '#F87171' }}>✗ {d.v2}</span>
+                <div style={{ background: 'var(--surface-sunken)', padding: '8px 10px', borderRadius: 'var(--radius-sm)' }}>
+                  <span style={{ color: 'var(--theme-text-secondary)', fontWeight: 600, display: 'block', marginBottom: 2 }}>{d.s2}:</span>
+                  <span style={{ color: 'var(--friction-high)' }}>✗ {d.v2}</span>
                 </div>
               </div>
             </div>

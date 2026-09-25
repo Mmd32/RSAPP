@@ -15,6 +15,7 @@ import {
   AlertCircle,
   Zap,
 } from 'lucide-react';
+import { stageLabel } from '../utils/format';
 
 interface QuestionCardProps {
   indicator: Indicator;
@@ -117,7 +118,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--rs-color-brand-cyan)', background: 'rgba(0, 176, 240, 0.12)', padding: '3px 8px', borderRadius: 'var(--rs-radius-control)' }}>
-            {sectionName || indicator.journeyStage}
+            {stageLabel(sectionName || indicator.journeyStage)}
           </span>
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
             پرسش <span className="ltr-num" style={{ fontWeight: 800, color: 'var(--theme-text-primary)' }}>{currentIndex + 1}</span> از <span className="ltr-num">{totalCount}</span>

@@ -29,10 +29,10 @@ const STATUS_LABELS: Record<VisitStatus, string> = {
 };
 
 const STATUS_STYLES: Record<VisitStatus, { bg: string; fg: string }> = {
-  IN_PROGRESS: { bg: '#FEF3C7', fg: '#92400E' },
-  SUBMITTED: { bg: '#DBEAFE', fg: '#1E40AF' },
-  APPROVED: { bg: '#D1FAE5', fg: '#065F46' },
-  REVISION_REQUESTED: { bg: '#FEE2E2', fg: '#991B1B' },
+  IN_PROGRESS: { bg: 'var(--friction-low-bg)', fg: 'var(--friction-low)' },
+  SUBMITTED: { bg: 'var(--theme-callout-obs-bg)', fg: 'var(--rs-color-brand-cyan)' },
+  APPROVED: { bg: 'var(--friction-clean-bg)', fg: 'var(--friction-clean)' },
+  REVISION_REQUESTED: { bg: 'var(--friction-high-bg)', fg: 'var(--friction-high)' },
 };
 
 function formatDate(value?: string): string {

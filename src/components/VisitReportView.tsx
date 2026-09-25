@@ -324,7 +324,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              borderBottom: '1px solid var(--rs-color-navy-700)',
+              borderBottom: '1px solid var(--theme-card-border)',
               paddingBottom: 16,
               marginBottom: 20,
               flexWrap: 'wrap',

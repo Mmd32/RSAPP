@@ -63,6 +63,7 @@ import {
   ChevronDown,
   Menu,
 } from 'lucide-react';
+import { stageLabel } from './utils/format';
 
 // Code Splitting for heavy secondary views (Audit Priority 3 / P2)
 const VisitReportView = React.lazy(() =>
@@ -1343,7 +1344,7 @@ export const App: React.FC = () => {
                           }}
                         >
                           <span style={{ fontSize: 12, fontWeight: isCurrent ? 700 : 500, color: isCurrent ? 'var(--rs-color-brand-cyan)' : 'var(--text-main)' }}>
-                            {st}
+                            {stageLabel(st)}
                           </span>
                           <span className="ltr-num" style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                             {countAns}/{countTotal}
