@@ -223,8 +223,8 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
     'مجموعه / برند',
     'شعبه محل ارزیابی',
     assessmentType === 'STORE' ? 'رسته کسب‌وکار' : 'مقیاس مرکز خرید',
-    'بافت موقعیتی (Location)',
-    'قالب فروشگاه (Format)',
+    'بافت موقعیتی',
+    'قالب فروشگاه',
     'ویژگی‌های فیزیکی محل',
     'پیش‌نمایش فرم و تایید',
   ];

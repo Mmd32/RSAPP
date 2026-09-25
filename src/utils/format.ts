@@ -87,3 +87,24 @@ export function faDueLabel(value: string | number | Date | null | undefined): {
   if (days <= 7) return { text: `${faDigits(days)} روز دیگر`, state: 'soon' };
   return { text: faDateShort(d), state: 'later' };
 }
+
+/**
+ * Departments, statuses and priorities are stored as English enum values
+ * because that is what the API and the database speak. What the auditor reads
+ * is a different question, so the display name lives here and the stored value
+ * never changes.
+ */
+export const DEPARTMENT_LABEL: Record<string, string> = {
+  'Branch Manager': 'مدیر شعبه',
+  Operations: 'عملیات',
+  Maintenance: 'تاسیسات و نگهداری',
+  Marketing: 'مارکتینگ و ویترین',
+  HR: 'منابع انسانی',
+  IT: 'فناوری اطلاعات',
+  Other: 'سایر',
+};
+
+export function departmentLabel(value?: string): string {
+  if (!value) return '—';
+  return DEPARTMENT_LABEL[value] || value;
+}

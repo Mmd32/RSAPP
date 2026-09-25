@@ -45,7 +45,7 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <Database color="var(--rs-color-brand-cyan)" size={24} />
             <div>
-              <h2 style={{ fontSize: 20, fontWeight: 700 }}>بانک مرکزی شاخص‌ها و موتور قوانین (Master Bank)</h2>
+              <h2 style={{ fontSize: 20, fontWeight: 700 }}>بانک مرکزی شاخص‌ها و موتور قوانین</h2>
               <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
                 مدیریت {indicators.length} شاخص استخراج‌شده از فایلهای مرجع اکسل بدون نیاز به تغییر در کد
               </p>
@@ -140,7 +140,7 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
           <Sliders color="var(--rs-color-brand-cyan)" size={18} />
           <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--rs-color-brand-cyan)' }}>
-            موتور ویژوال قوانین شرطی (Visual Rule Builder)
+            موتور ویژوال قوانین شرطی
           </h3>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', fontSize: 13 }}>

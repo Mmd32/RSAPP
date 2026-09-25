@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { faDateShort, faDigits, faPercent } from '../utils/format';
+import { faDateShort, faDigits, faPercent, departmentLabel, DEPARTMENT_LABEL } from '../utils/format';
 import { StatCard, StatRow } from './ui/StatCard';
 import {
   CorrectiveAction,
@@ -359,10 +359,10 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
           style={{ width: 'auto', minWidth: 120, fontSize: 13 }}
         >
           <option value="ALL">همه اولویت‌ها</option>
-          <option value="CRITICAL">بحرانی (Critical)</option>
-          <option value="HIGH">بالا (High)</option>
-          <option value="MEDIUM">متوسط (Medium)</option>
-          <option value="LOW">پایین (Low)</option>
+          <option value="CRITICAL">بحرانی</option>
+          <option value="HIGH">بالا</option>
+          <option value="MEDIUM">متوسط</option>
+          <option value="LOW">پایین</option>
         </select>
 
         {/* Filter Department */}
@@ -373,13 +373,13 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
           style={{ width: 'auto', minWidth: 130, fontSize: 13 }}
         >
           <option value="ALL">همه دپارتمان‌ها</option>
-          <option value="Branch Manager">مدیر شعبه</option>
-          <option value="Operations">عملیات</option>
-          <option value="Maintenance">تاسیسات و نگهداری</option>
-          <option value="Marketing">مارکتینگ و ویترین</option>
-          <option value="HR">منابع انسانی</option>
-          <option value="IT">فناوری اطلاعات</option>
-          <option value="Other">سایر</option>
+          {/* One source for these names, so the filter and the table can
+              never drift apart. */}
+          {Object.entries(DEPARTMENT_LABEL).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
         </select>
 
         {/* Overdue Checkbox */}
@@ -602,7 +602,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                         {action.owner || 'نامشخص'}
                       </div>
                       <div style={{ fontSize: 11, color: 'var(--rs-color-text-faint)' }}>
-                        {action.department}
+                        {departmentLabel(action.department)}
                       </div>
                     </td>
 
@@ -1056,7 +1056,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                     }}
                   >
                     <Check size={16} />
-                    تایید نهایی (Verify Resolution)
+                    تایید نهایی
                   </button>
 
                   <button
@@ -1119,7 +1119,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
 
             <div style={{ marginBottom: 12 }}>
               <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>
-                ریشه علت مشکل (Root Cause Category)
+                ریشه علت مشکل
               </label>
               <select
                 className="select-rs"
@@ -1328,10 +1328,10 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                   value={newActionPriority}
                   onChange={(e) => setNewActionPriority(e.target.value as CorrectiveActionPriority)}
                 >
-                  <option value="CRITICAL">بحرانی (Critical)</option>
-                  <option value="HIGH">بالا (High)</option>
-                  <option value="MEDIUM">متوسط (Medium)</option>
-                  <option value="LOW">پایین (Low)</option>
+                  <option value="CRITICAL">بحرانی</option>
+                  <option value="HIGH">بالا</option>
+                  <option value="MEDIUM">متوسط</option>
+                  <option value="LOW">پایین</option>
                 </select>
               </div>
             </div>

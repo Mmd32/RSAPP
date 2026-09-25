@@ -561,7 +561,7 @@ export function calculateVisitSummary(
   if (effectiveComparison.previousVisitScores) {
     radarSeries.push({
       id: 'previous_visit',
-      label: 'ارزیابی پیشین (Previous Visit)',
+      label: 'ارزیابی پیشین',
       color: '#A78BFA', // Lavender
       scores: effectiveComparison.previousVisitScores,
       isDashed: true,
@@ -572,7 +572,7 @@ export function calculateVisitSummary(
   if (effectiveComparison.brandAverageScores) {
     radarSeries.push({
       id: 'brand_average',
-      label: 'میانگین برند (Brand Average)',
+      label: 'میانگین برند',
       color: '#34D399', // Emerald
       scores: effectiveComparison.brandAverageScores,
       visible: true,
@@ -582,7 +582,7 @@ export function calculateVisitSummary(
   if (effectiveComparison.branchAverageScores) {
     radarSeries.push({
       id: 'branch_average',
-      label: 'میانگین شعب (Branch Average)',
+      label: 'میانگین شعب',
       color: '#FB923C', // Orange
       scores: effectiveComparison.branchAverageScores,
       visible: false,
