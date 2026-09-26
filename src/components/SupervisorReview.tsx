@@ -44,7 +44,6 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
   >(visit.findingDecisions || {});
 
   // Filters State
-  const [filterSeverity, setFilterSeverity] = useState<string>('ALL');
   const [filterSection, setFilterSection] = useState<string>('ALL');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [filterPhoto, setFilterPhoto] = useState<string>('ALL');
@@ -95,9 +94,6 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
         return dec && dec.status === 'REQUEST_CHANGE';
       }
 
-      if (filterSeverity !== 'ALL' && resp.severity !== filterSeverity) {
-        return false;
-      }
       if (filterSection !== 'ALL' && ind.journeyStage !== filterSection) {
         return false;
       }
@@ -113,7 +109,7 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
       }
       return true;
     });
-  }, [allFrictionItems, filterSeverity, filterSection, filterStatus, filterPhoto, onlyNeedsCorrection, findingDecisions]);
+  }, [allFrictionItems, filterSection, filterStatus, filterPhoto, onlyNeedsCorrection, findingDecisions]);
 
   const needsCorrectionCount = Object.values(findingDecisions).filter(
     (d) => d.status === 'REQUEST_CHANGE'
@@ -143,8 +139,6 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
         <StatRow>
           <StatCard label="امتیاز اولیه سامانه" value={faPercent(summary.overallScore)} />
           <StatCard label="کل اصطکاک‌ها" value={faDigits(summary.totalFrictions)} />
-          <StatCard label="موارد بحرانی" value={faDigits(summary.criticalFrictions)} tone={summary.criticalFrictions > 0 ? 'alarm' : 'default'} />
-          <StatCard label="موارد شدید" value={faDigits(summary.highFrictions)} />
           <StatCard label="مدارک تصویری" value={faDigits(summary.totalPhotos)} />
           <StatCard label="نیازمند اصلاح" value={faDigits(needsCorrectionCount)} tone={needsCorrectionCount > 0 ? 'alarm' : 'default'} />
         </StatRow>
@@ -157,23 +151,6 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
           </div>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-            {/* Severity Filter */}
-            <div>
-              <label style={{ fontSize: 11, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>شدت عارضه:</label>
-              <select
-                value={filterSeverity}
-                onChange={(e) => setFilterSeverity(e.target.value)}
-                className="friction-textarea"
-                style={{ minHeight: 34, padding: '4px 8px', fontSize: 12, borderRadius: 'var(--radius-sm)' }}
-              >
-                <option value="ALL">همه شدت‌ها</option>
-                <option value="CRITICAL">بحرانی</option>
-                <option value="HIGH">زیاد</option>
-                <option value="MEDIUM">متوسط</option>
-                <option value="LOW">کم</option>
-              </select>
-            </div>
-
             {/* Section Filter */}
             <div>
               <label style={{ fontSize: 11, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>بخش / مرحله:</label>
@@ -290,18 +267,6 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
                       <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{ind.subject}</span>
                       <span style={{ fontSize: 11, color: 'var(--text-muted)', background: 'var(--surface-chip)', padding: '2px 8px', borderRadius: 'var(--rs-radius-control)' }}>
                         {stageLabel(ind.journeyStage)}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: 11,
-                          padding: '2px 8px',
-                          borderRadius: 'var(--rs-radius-control)',
-                          background: getSevBg(resp.severity),
-                          color: getSevColor(resp.severity),
-                          fontWeight: 700,
-                        }}
-                      >
-                        شدت: {getSevLabel(resp.severity)}
                       </span>
                     </div>
 
@@ -525,24 +490,3 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
     </div>
   );
 };
-
-function getSevBg(sev?: string) {
-  if (sev === 'CRITICAL') return 'rgba(217, 74, 86, 0.2)';
-  if (sev === 'HIGH') return 'rgba(234, 88, 12, 0.2)';
-  if (sev === 'LOW') return 'rgba(0, 176, 240, 0.15)';
-  return 'rgba(242, 181, 68, 0.2)';
-}
-
-function getSevColor(sev?: string) {
-  if (sev === 'CRITICAL') return 'var(--rs-color-error)';
-  if (sev === 'HIGH') return '#EA580C';
-  if (sev === 'LOW') return 'var(--rs-color-brand-cyan)';
-  return 'var(--rs-color-warning)';
-}
-
-function getSevLabel(sev?: string) {
-  if (sev === 'CRITICAL') return 'بحرانی';
-  if (sev === 'HIGH') return 'زیاد';
-  if (sev === 'LOW') return 'کم';
-  return 'متوسط';
-}

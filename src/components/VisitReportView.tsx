@@ -1,6 +1,5 @@
 import { faDate, faDigits, faPercent, stageLabel } from '../utils/format';
 
-const SEVERITY_FA: Record<string, string> = { LOW: 'کم', MEDIUM: 'متوسط', HIGH: 'زیاد', CRITICAL: 'بحرانی' };
 const ANSWER_FA: Record<string, string> = {
   NO_FRICTION: 'مناسب',
   FRICTION: 'اصطکاک',
@@ -225,7 +224,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
   // CSV Export with UTF-8 BOM for Persian Excel compatibility (Requirement 23)
   const handleExportCsv = () => {
     let csv =
-      '\uFEFFکد شاخص,موضوع شاخص,بُعد ارزیابی,مرحله سفر,وضعیت پاسخ,شدت اصطکاک,امتیاز اولویت,شرح گزاره,پیشنهاد اصلاحی,توضیح ارزیاب\n';
+      '\uFEFFکد شاخص,موضوع شاخص,بُعد ارزیابی,مرحله سفر,وضعیت پاسخ,امتیاز اولویت,شرح گزاره,پیشنهاد اصلاحی,توضیح ارزیاب\n';
 
     visit.indicators.forEach((ind) => {
       const resp = visit.responses[ind.id];
@@ -237,7 +236,6 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
         `"${(CANONICAL_DIMENSIONS.find((d) => d.key === ind.reportingDimension)?.nameFa || ind.reportingDimension || '').replace(/"/g, '""')}"`,
         `"${stageLabel(ind.journeyStage).replace(/"/g, '""')}"`,
         `"${ANSWER_FA[resp.answerState] || resp.answerState}"`,
-        `"${resp.answerState === 'FRICTION' ? SEVERITY_FA[resp.severity || ''] || '-' : '-'}"`,
         `"${finding ? finding.priorityIndex : '-'}"`,
         `"${(ind.statement || '').replace(/"/g, '""')}"`,
         `"${(resp.recommendation || '').replace(/"/g, '""')}"`,
@@ -542,16 +540,8 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
               </div>
             </div>
             <div className="metric-card">
-              <span className="metric-label">اصطکاک‌های بحرانی</span>
-              <div className="metric-value" style={{ color: 'var(--rs-color-error)' }}>
-                {summary.criticalFrictions}
-              </div>
-            </div>
-            <div className="metric-card">
-              <span className="metric-label">اصطکاک‌های شدید</span>
-              <div className="metric-value" style={{ color: 'var(--friction-medium)' }}>
-                {summary.highFrictions}
-              </div>
+              <span className="metric-label">غیرقابل ارزیابی</span>
+              <div className="metric-value">{faDigits(Object.values(visit.responses || {}).filter((r) => r.answerState === 'NOT_APPLICABLE').length)}</div>
             </div>
             <div className="metric-card">
               <span className="metric-label">مدارک و تصاویر</span>
@@ -645,7 +635,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
           </div>
 
           <p style={{ fontSize: 13, color: 'var(--theme-text-muted)', marginBottom: 16, maxWidth: 680, lineHeight: 1.7 }}>
-            اولویت‌بندی صرفاً بر اساس شدت نیست، بلکه از ترکیب فرمول شفاف: <strong style={{ color: 'var(--rs-color-brand-cyan)' }}>شدت × ضریب اهمیت شاخص × وزن بُعد ارزیابی</strong> محاسبه شده است.
+            یافته‌ها بر اساس فرمول شفاف <strong style={{ color: 'var(--rs-color-brand-cyan)' }}>ضریب اهمیت شاخص × وزن بُعد ارزیابی</strong> مرتب شده‌اند؛ اصطکاک‌های تکرارشونده در بازدید مجدد اولویت بالاتری می‌گیرند.
           </p>
 
           {(!summary.prioritizedFindings || summary.prioritizedFindings.length === 0) ? (
@@ -655,14 +645,8 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
               {summary.prioritizedFindings.map((finding, idx) => {
                 const { indicator, response, priorityIndex, priorityFormula } = finding;
                 const isSelected = selectedFrictionIds.has(indicator.id);
-                const severityColor =
-                  response.severity === 'CRITICAL'
-                    ? '#D94A56'
-                    : response.severity === 'HIGH'
-                    ? '#EA580C'
-                    : response.severity === 'MEDIUM'
-                    ? '#F59E0B'
-                    : '#00B0F0';
+                // Frictions are yes/no; one colour for all of them.
+                const severityColor = 'var(--friction-high)';
 
                 return (
                   <div
@@ -698,7 +682,6 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
                             fontSize: 12,
                             fontWeight: 800,
                             fontFamily: 'var(--rs-font-latin)',
-                            boxShadow: `0 0 10px ${severityColor}66`,
                           }}
                         >
                           {idx + 1}
@@ -731,19 +714,6 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
                           <span>ضریب اولویت: {priorityIndex}</span>
                         </span>
 
-                        <span
-                          style={{
-                            background: `${severityColor}22`,
-                            color: severityColor,
-                            border: `1px solid ${severityColor}55`,
-                            fontSize: 11,
-                            padding: '3px 10px',
-                            borderRadius: '20px',
-                            fontWeight: 700,
-                          }}
-                        >
-                          شدت: {SEVERITY_FA[response.severity || ''] || response.severity}
-                        </span>
 
                         {onCreateCorrectiveAction && (
                           <button

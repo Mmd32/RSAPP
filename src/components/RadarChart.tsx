@@ -51,13 +51,6 @@ const CONTEXT_DASH: Record<string, string> = {
 /** Below this a dimension is flagged for attention in the ranked list. */
 const ATTENTION_THRESHOLD = 60;
 
-const SEVERITY_LABEL: Record<string, string> = {
-  LOW: 'کم',
-  MEDIUM: 'متوسط',
-  HIGH: 'زیاد',
-  CRITICAL: 'بحرانی',
-};
-
 const dimKeyOf = (c: CategoryScore) => c.dimensionKey || c.category;
 
 export const RadarChart: React.FC<RadarChartProps> = ({
@@ -411,8 +404,8 @@ export const RadarChart: React.FC<RadarChartProps> = ({
               <dd>{faDigits(selectedCategory.frictionCount)}</dd>
             </div>
             <div>
-              <dt>بحرانی</dt>
-              <dd>{faDigits(selectedCategory.criticalCount || 0)}</dd>
+              <dt>منطبق</dt>
+              <dd>{faDigits(selectedCategory.cleanCount || 0)}</dd>
             </div>
           </dl>
 
@@ -423,11 +416,9 @@ export const RadarChart: React.FC<RadarChartProps> = ({
                   <code className="ltr-code">{ind.code}</code>
                   <span className="radar__indicator-subject">{ind.subject}</span>
                   {ind.answerState === 'FRICTION' ? (
-                    <span className={`sev-chip sev-${(ind.severity || 'MEDIUM').toLowerCase()}`}>
-                      اصطکاک {SEVERITY_LABEL[ind.severity || 'MEDIUM']}
-                    </span>
+                    <span className="sev-chip sev-high">اصطکاک</span>
                   ) : ind.answerState === 'NOT_APPLICABLE' ? (
-                    <span className="sev-chip radar__chip-na">N/A</span>
+                    <span className="sev-chip radar__chip-na">غیرقابل ارزیابی</span>
                   ) : (
                     <span className="sev-chip sev-clean">منطبق</span>
                   )}

@@ -118,7 +118,7 @@ export const SYSTEM_RULES: Record<string, Rule> = {
   },
   RULE_LOC_FC_01: {
     id: 'RULE_LOC_FC_01',
-    name: 'حذف شاخص‌های خرده‌فروشی سنتی در غرفه فودکورت',
+    name: 'حذف شاخص‌های ریتیل سنتی در غرفه فودکورت',
     ruleType: 'EXCLUSION',
     ruleSource: 'MANUAL',
     status: 'APPROVED',

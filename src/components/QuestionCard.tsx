@@ -34,21 +34,6 @@ interface QuestionCardProps {
   supervisorNote?: string;
 }
 
-/** One vocabulary for severity, shared with the friction ramp in CSS. */
-const SEVERITY_LABEL: Record<string, string> = {
-  LOW: 'کم',
-  MEDIUM: 'متوسط',
-  HIGH: 'زیاد',
-  CRITICAL: 'بحرانی',
-};
-
-const SEVERITY_TONE: Record<string, string> = {
-  LOW: 'low',
-  MEDIUM: 'medium',
-  HIGH: 'high',
-  CRITICAL: 'critical',
-};
-
 export const QuestionCard: React.FC<QuestionCardProps> = ({
   indicator,
   response,
@@ -100,9 +85,10 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
     onAnswer('NO_FRICTION');
   };
 
+  // A friction is a yes/no answer: record it at once. Notes and photos are
+  // optional and reached from the summary below.
   const handleFrictionClick = () => {
     onAnswer('FRICTION');
-    onOpenFrictionSheet();
   };
 
   const handleNaClick = () => {
@@ -289,11 +275,11 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
         {/* Friction Details Capsule (if answer is FRICTION) */}
         {currentState === 'FRICTION' && (
           <div className="friction-summary">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>شدت:</span>
-              <span className={`sev-chip sev-${SEVERITY_TONE[response?.severity || 'LOW']}`}>
-                {SEVERITY_LABEL[response?.severity || 'LOW']}
-              </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span className="sev-chip sev-high">اصطکاک ثبت شد</span>
+              {response?.comment?.trim() && (
+                <span style={{ fontSize: 11, color: 'var(--theme-text-secondary)' }}>توضیح دارد</span>
+              )}
               {hasPhotos && (
                 <span style={{ fontSize: 11, color: 'var(--rs-color-brand-cyan)', display: 'flex', alignItems: 'center', gap: 3 }}>
                   <Image size={13} />
@@ -309,7 +295,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               style={{ padding: '6px 12px', fontSize: 12, minHeight: 34 }}
             >
               <Edit3 size={14} />
-              ویرایش جزئیات اصطکاک
+              {response?.comment?.trim() || hasPhotos ? 'ویرایش توضیح و عکس' : 'افزودن توضیح یا عکس (اختیاری)'}
             </button>
           </div>
         )}
