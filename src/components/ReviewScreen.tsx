@@ -6,7 +6,8 @@ import { faDigits } from '../utils/format';
 /** How many open problems to list before collapsing behind "show all". */
 const PROBLEM_PREVIEW = 12;
 import { AlertCircle, CheckCircle2, AlertTriangle, ArrowRight, Send, Camera, FileText } from 'lucide-react';
-import { PHOTOS_REQUIRED } from '../config/policy';
+import { DESCRIPTIONS_REQUIRED, PHOTOS_REQUIRED } from '../config/policy';
+import { StatCard, StatRow } from './ui/StatCard';
 
 interface ReviewScreenProps {
   indicators: Indicator[];
@@ -35,8 +36,6 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
   const missingCount = totalQuestions - answeredCount;
   const naCount = Object.values(responses).filter((r) => r.answerState === 'NOT_APPLICABLE').length;
   const frictionCount = Object.values(responses).filter((r) => r.answerState === 'FRICTION').length;
-  const highCount = Object.values(responses).filter((r) => r.answerState === 'FRICTION' && r.severity === 'HIGH').length;
-  const criticalCount = Object.values(responses).filter((r) => r.answerState === 'FRICTION' && r.severity === 'CRITICAL').length;
   const totalPhotos = Object.values(responses).reduce((sum, r) => sum + (r.photos?.length || 0), 0);
   const flagCount = Object.values(responses).filter((r) => r.isFlagged).length;
   const completionPercent = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
@@ -62,7 +61,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
           problemText: 'عکس ندارد',
         });
       }
-      if (ind.requiresComment && (!resp.comment || resp.comment.trim() === '')) {
+      if (DESCRIPTIONS_REQUIRED && ind.requiresComment && (!resp.comment || resp.comment.trim() === '')) {
         validationProblems.push({
           indicator: ind,
           index: idx,
@@ -116,43 +115,14 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
           </div>
         </div>
 
-        {/* 9 Metrics Grid (Section 23 Requirements) */}
-        <div className="metric-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10 }}>
-          <div className="metric-card">
-            <span className="metric-label">پاسخ‌داده‌شده</span>
-            <div className="metric-value" style={{ color: 'var(--rs-color-success)' }}>{answeredCount}</div>
-          </div>
-          <div className="metric-card">
-            <span className="metric-label">بی‌پاسخ</span>
-            <div className="metric-value" style={{ color: missingCount > 0 ? 'var(--rs-color-error)' : 'var(--text-dim)' }}>
-              {missingCount}
-            </div>
-          </div>
-          <div className="metric-card">
-            <span className="metric-label">غیرقابل بررسی</span>
-            <div className="metric-value" style={{ color: 'var(--text-muted)' }}>{naCount}</div>
-          </div>
-          <div className="metric-card">
-            <span className="metric-label">اصطکاک‌ها</span>
-            <div className="metric-value" style={{ color: 'var(--rs-color-error)' }}>{frictionCount}</div>
-          </div>
-          <div className="metric-card">
-            <span className="metric-label">موارد شدید</span>
-            <div className="metric-value" style={{ color: '#EA580C' }}>{highCount}</div>
-          </div>
-          <div className="metric-card">
-            <span className="metric-label">موارد بحرانی</span>
-            <div className="metric-value" style={{ color: 'var(--rs-color-error)' }}>{criticalCount}</div>
-          </div>
-          <div className="metric-card">
-            <span className="metric-label">مدارک تصویری</span>
-            <div className="metric-value" style={{ color: 'var(--rs-color-brand-cyan)' }}>{totalPhotos}</div>
-          </div>
-          <div className="metric-card">
-            <span className="metric-label">نشانه‌دارها</span>
-            <div className="metric-value" style={{ color: 'var(--rs-color-warning)' }}>{flagCount}</div>
-          </div>
-        </div>
+        <StatRow>
+          <StatCard label="پاسخ‌داده‌شده" value={faDigits(answeredCount)} />
+          <StatCard label="بی‌پاسخ" value={faDigits(missingCount)} tone={missingCount > 0 ? 'alarm' : 'default'} />
+          <StatCard label="اصطکاک‌ها" value={faDigits(frictionCount)} />
+          <StatCard label="غیرقابل بررسی" value={faDigits(naCount)} />
+          <StatCard label="مدارک تصویری" value={faDigits(totalPhotos)} />
+          <StatCard label="نشانه‌دارها" value={faDigits(flagCount)} />
+        </StatRow>
 
         {/* Validation Problems Section (Section 24: نیازمند تکمیل) */}
         {validationProblems.length > 0 ? (

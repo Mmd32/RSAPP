@@ -55,7 +55,7 @@ def evaluate_indicator(profile, ind):
                 return False, "تابلوی فروشگاه داخل مال در کریدور داخلی قرار دارد", "RULE_LOC_MALL_FS08", "MANUAL"
         elif loc == "FOOD_COURT":
             if code == "FS08" or any(w in subj for w in ["اتاق پرو", "مانکن", "ویترین"]):
-                return False, "غرفه فودکورت فاقد عناصر خرده‌فروشی سنتی است", "RULE_LOC_FC_01", "MANUAL"
+                return False, "غرفه فودکورت فاقد عناصر ریتیل سنتی است", "RULE_LOC_FC_01", "MANUAL"
 
         attrs = profile.get("attributes", {})
         has_fitting = attrs.get("has_fitting_room", attrs.get("hasFittingRoom", True))

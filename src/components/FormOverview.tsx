@@ -54,10 +54,6 @@ export const FormOverview: React.FC<FormOverviewProps> = ({
     (r) => r.answerState === 'FRICTION'
   ).length;
 
-  const criticalFrictions = Object.values(responses).filter(
-    (r) => r.answerState === 'FRICTION' && r.severity === 'CRITICAL'
-  ).length;
-
   const totalFlags = Object.values(responses).filter((r) => r.isFlagged).length;
 
   const orderMap = assessmentType === 'STORE' ? STORE_JOURNEY_ORDER : MALL_JOURNEY_ORDER;
@@ -208,12 +204,6 @@ export const FormOverview: React.FC<FormOverviewProps> = ({
             <AlertTriangle size={14} />
             <span>{totalFrictions} اصطکاک</span>
           </div>
-
-          {criticalFrictions > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--rs-color-error)', fontWeight: 700, background: 'rgba(217, 74, 86, 0.15)', padding: '2px 6px', borderRadius: 'var(--rs-radius-control)' }}>
-              <span>{criticalFrictions} بحرانی!</span>
-            </div>
-          )}
 
           {totalFlags > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--rs-color-warning)' }}>

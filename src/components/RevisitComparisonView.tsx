@@ -10,8 +10,6 @@ import { ComparisonEngine } from '../engine/comparisonEngine';
 import { getVisitScore } from '../engine/scoringEngine';
 import { faDateShort, faPercent } from '../utils/format';
 
-const SEVERITY_FA: Record<string, string> = { LOW: 'کم', MEDIUM: 'متوسط', HIGH: 'زیاد', CRITICAL: 'بحرانی' };
-
 const ANSWER_LABEL: Record<string, string> = {
   UNANSWERED: 'پاسخ داده نشده',
   NOT_APPLICABLE: 'غیرقابل اجرا',
@@ -517,7 +515,7 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
                       <td style={{ padding: '12px 14px', fontSize: 12 }}>
                         {item.previousAnswerState === 'FRICTION' ? (
                           <span style={{ color: 'var(--rs-color-error)', fontWeight: 700 }}>
-                            اصطکاک ({SEVERITY_FA[item.previousSeverity || 'MEDIUM'] || item.previousSeverity})
+                            اصطکاک
                           </span>
                         ) : item.previousAnswerState === 'NO_FRICTION' ? (
                           <span style={{ color: 'var(--rs-color-success)', fontWeight: 600 }}>
@@ -534,7 +532,7 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
                       <td style={{ padding: '12px 14px', fontSize: 12 }}>
                         {item.currentAnswerState === 'FRICTION' ? (
                           <span style={{ color: 'var(--rs-color-error)', fontWeight: 700 }}>
-                            اصطکاک ({SEVERITY_FA[item.currentSeverity || 'MEDIUM'] || item.currentSeverity})
+                            اصطکاک
                           </span>
                         ) : item.currentAnswerState === 'NO_FRICTION' ? (
                           <span style={{ color: 'var(--rs-color-success)', fontWeight: 700 }}>

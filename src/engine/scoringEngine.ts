@@ -360,7 +360,10 @@ export function calculateVisitSummary(
       totalFrictions += 1;
       dData.frictionCount += 1;
 
-      const sev = resp.severity || 'MEDIUM';
+      // Frictions are recorded as yes/no. Only visits recorded before that
+      // change carry a severity; without one, a friction is a full failure of
+      // the indicator.
+      const sev = resp.severity;
       if (sev === 'CRITICAL') {
         criticalFrictions += 1;
         dData.criticalCount += 1;
@@ -373,7 +376,7 @@ export function calculateVisitSummary(
         lowFrictions += 1;
       }
 
-      const penaltyValue = profile.severityPenalties[sev] || 2;
+      const penaltyValue = sev ? profile.severityPenalties[sev] || 2 : maxSeverityPenalty;
       const penalty = itemWeight * penaltyValue;
 
       dData.severityPenaltiesSum += penalty;
@@ -418,7 +421,9 @@ export function calculateVisitSummary(
         100 * (1 - dData.severityPenaltiesSum / dData.maxPossiblePenaltiesSum)
       );
     }
-    const normalizedScore = applyRounding(rawScore, profile.roundingMethod);
+    // Rounding must never turn a record with a friction into a perfect 100.
+    const normalizedScore =
+      dData.frictionCount > 0 ? Math.min(99, applyRounding(rawScore, profile.roundingMethod)) : applyRounding(rawScore, profile.roundingMethod);
 
     currentVisitRadarScores[dim.key] = normalizedScore;
 
@@ -487,21 +492,25 @@ export function calculateVisitSummary(
     }
   }
 
-  const overallScore = Math.max(0, Math.min(100, applyRounding(overallRawScore, profile.roundingMethod)));
+  const overallScore = Math.max(0, Math.min(totalFrictions > 0 ? 99 : 100, applyRounding(overallRawScore, profile.roundingMethod)));
 
   // Calculate Prioritized Findings (Requirement 11)
   // Priority Index = SeverityPenalty × IndicatorWeight × DimensionImportance × RecurrenceFactor
   const prioritizedFindings: MainFindingPrioritized[] = allFrictionItems.map((item) => {
-    const sev = item.response.severity || 'MEDIUM';
-    const sevPenalty = profile.severityPenalties[sev] || 2;
+    const sev = item.response.severity;
+    const sevPenalty = sev ? profile.severityPenalties[sev] || 2 : maxSeverityPenalty;
     const indWeight = item.indicator.weight || 1.0;
     const dimWeight = item.dimWeight;
     const isRecurring = effectiveComparison.recurringFindingCodes?.has(item.indicator.code) || false;
     const recurrenceFactor = isRecurring ? 1.25 : 1.0;
 
-    const priorityIndex = Math.round(sevPenalty * indWeight * dimWeight * recurrenceFactor * 10) / 10;
+    // Yes/no frictions have no severity factor: priority is how much the
+    // indicator and its dimension weigh (and whether it keeps coming back).
+    const severityFactor = sev ? sevPenalty : 1;
+    const priorityIndex = Math.round(severityFactor * indWeight * dimWeight * recurrenceFactor * 10) / 10;
     const recurrenceText = isRecurring ? ' × تکرار(۱.۲۵)' : '';
-    const priorityFormula = `شدت(${sevPenalty}) × وزن(${indWeight}) × اهمیت بعد(${dimWeight})${recurrenceText} = ${priorityIndex}`;
+    const severityText = sev ? `شدت(${sevPenalty}) × ` : '';
+    const priorityFormula = `${severityText}وزن(${indWeight}) × اهمیت بعد(${dimWeight})${recurrenceText} = ${priorityIndex}`;
 
     return {
       indicator: item.indicator,

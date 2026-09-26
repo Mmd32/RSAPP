@@ -415,7 +415,7 @@
     },
     {
       "id": "RULE_LOC_FC_01",
-      "name": "حذف شاخص‌های خرده‌فروشی سنتی در غرفه فودکورت",
+      "name": "حذف شاخص‌های ریتیل سنتی در غرفه فودکورت",
       "rule_type": "EXCLUSION",
       "rule_source": "MANUAL",
       "status": "APPROVED",

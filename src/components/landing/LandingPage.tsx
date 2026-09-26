@@ -83,7 +83,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
 
             <h1 style={{ fontSize: 26, fontWeight: 900, color: 'var(--theme-text-primary)', margin: '0 0 10px', lineHeight: 1.3 }}>
-              سامانه هوشمند ارزیابی اصطکاک و پاداش خرده‌فروشی
+              سامانه هوشمند ارزیابی اصطکاک و پاداش ریتیل
             </h1>
 
             <p style={{ fontSize: 14, color: 'var(--theme-text-muted)', lineHeight: 1.7, margin: 0 }}>
@@ -326,7 +326,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               ۲
             </span>
             <p style={{ fontSize: 12, color: 'var(--theme-text-secondary)', lineHeight: 1.6, margin: 0 }}>
-              <strong>ثبت اختیاری عکس:</strong> ثبت تصاویر در این فاز تست اختیاری است. می‌توانید اصطکاک‌ها را بدون الزام به بارگذاری عکس با انتخاب سطح شدت ثبت نمایید.
+              <strong>ثبت سریع اصطکاک:</strong> برای هر شاخص فقط مشخص کنید اصطکاک هست یا نیست. توضیح و عکس اختیاری است و بعداً هم می‌توانید اضافه کنید.
             </p>
           </div>
 

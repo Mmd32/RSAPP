@@ -1195,3 +1195,42 @@ td.ltr-num, th.ltr-num { display: table-cell; }
   font-size: var(--fs-small);
 }
 .app-notice button { border: 0; background: transparent; color: inherit; font-size: 20px; cursor: pointer; min-height: 0 !important; }
+
+/* --- Friction details sheet ------------------------------------------------
+   Never had styles before, so it rendered at the very bottom of the page.
+   Phone: a sheet rising from the bottom. Wider screens: a centred dialog. */
+.bottom-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+}
+.bottom-sheet-modal {
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  max-height: 90dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--sp-5, 20px) var(--sp-4) calc(var(--sp-5, 20px) + env(safe-area-inset-bottom, 0px));
+  background: var(--theme-modal-bg);
+  color: var(--theme-text-primary);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  box-shadow: var(--el-3);
+  animation: rs-sheet-in var(--t-base) var(--ease);
+}
+@media (min-width: 769px) {
+  .bottom-sheet-backdrop { align-items: center; padding: var(--sp-6); }
+  .bottom-sheet-modal { border-radius: var(--r-lg); padding: var(--sp-6); }
+}
+@keyframes rs-sheet-in {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bottom-sheet-modal { animation: none; }
+}

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Indicator, QuestionResponse, SeverityLevel, EvidencePhoto } from '../types';
+import { Indicator, QuestionResponse, EvidencePhoto } from '../types';
 import {
   X,
   Camera,
@@ -33,7 +33,6 @@ interface FrictionSheetProps {
   visitId?: string;
   onClose: () => void;
   onSave: (data: {
-    severity: SeverityLevel;
     comment: string;
     recommendation: string;
     photos: EvidencePhoto[];
@@ -52,9 +51,6 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  const [severity, setSeverity] = useState<SeverityLevel>(
-    currentResponse?.severity || 'MEDIUM'
-  );
   const [comment, setComment] = useState(currentResponse?.comment || '');
   const [recommendation, setRecommendation] = useState(
     currentResponse?.recommendation || ''
@@ -179,22 +175,19 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
     );
   };
 
+  // Escape closes the sheet, like any dialog.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
   const isPhotoBlocked = PHOTOS_REQUIRED && indicator.requiresPhoto && photos.length === 0;
 
   const handleFinalSave = () => {
     onSave({
-      severity,
-      comment,
-      recommendation,
-      photos,
-      isFlagged,
-    });
-    onClose();
-  };
-
-  const handleSaveDraft = () => {
-    onSave({
-      severity,
       comment,
       recommendation,
       photos,
@@ -207,8 +200,10 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
     <div className="bottom-sheet-backdrop" onClick={onClose}>
       <div
         className="bottom-sheet-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`جزئیات اصطکاک ${indicator.code}`}
         onClick={(e) => e.stopPropagation()}
-        style={{ maxHeight: '90vh', overflowY: 'auto' }}
       >
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -217,7 +212,7 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
               {indicator.code}
             </span>
             <div>
-              <h2 style={{ fontSize: 16, fontWeight: 800, color: 'var(--theme-text-primary)' }}>ثبت و تکمیل اصطکاک</h2>
+              <h2 style={{ fontSize: 16, fontWeight: 800, color: 'var(--theme-text-primary)' }}>جزئیات اصطکاک (اختیاری)</h2>
               <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{indicator.subject}</span>
             </div>
           </div>
@@ -241,70 +236,6 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
           >
             <X size={18} />
           </button>
-        </div>
-
-        {/* 1. SEVERITY SELECTION (4 explicit cards with microcopy) */}
-        <div style={{ marginBottom: 18 }}>
-          <label style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-main)', display: 'block', marginBottom: 4 }}>
-            سطح شدت اصطکاک:
-          </label>
-          <div className="severity-card-grid">
-            {/* LOW */}
-            <button
-              type="button"
-              aria-pressed={severity === 'LOW'}
-              className={`severity-card low ${severity === 'LOW' ? 'selected' : ''}`}
-              onClick={() => setSeverity('LOW')}
-            >
-              <span className="severity-card-title">
-                <span style={{ color: severity === 'LOW' ? 'var(--rs-color-brand-cyan)' : 'var(--text-main)' }}>کم</span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-dim)' }}>جریمه ×۱</span>
-              </span>
-              <span className="severity-card-desc">اثر محدود روی تجربه مشتری</span>
-            </button>
-
-            {/* MEDIUM */}
-            <button
-              type="button"
-              aria-pressed={severity === 'MEDIUM'}
-              className={`severity-card medium ${severity === 'MEDIUM' ? 'selected' : ''}`}
-              onClick={() => setSeverity('MEDIUM')}
-            >
-              <span className="severity-card-title">
-                <span style={{ color: severity === 'MEDIUM' ? 'var(--rs-color-warning)' : 'var(--text-main)' }}>متوسط</span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-dim)' }}>جریمه ×۲</span>
-              </span>
-              <span className="severity-card-desc">اثر محسوس بر ارزیابی و خرید</span>
-            </button>
-
-            {/* HIGH */}
-            <button
-              type="button"
-              aria-pressed={severity === 'HIGH'}
-              className={`severity-card high ${severity === 'HIGH' ? 'selected' : ''}`}
-              onClick={() => setSeverity('HIGH')}
-            >
-              <span className="severity-card-title">
-                <span style={{ color: severity === 'HIGH' ? '#EA580C' : 'var(--text-main)' }}>زیاد</span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-dim)' }}>جریمه ×۳</span>
-              </span>
-              <span className="severity-card-desc">مانع مهم تجربه مشتری و نارضایتی</span>
-            </button>
-
-            {/* CRITICAL */}
-            <button
-              type="button"
-              aria-pressed={severity === 'CRITICAL'}
-              className={`severity-card critical ${severity === 'CRITICAL' ? 'selected' : ''}`}
-              onClick={() => setSeverity('CRITICAL')}
-            >
-              <span className="severity-card-title">
-                <span style={{ color: severity === 'CRITICAL' ? 'var(--rs-color-error)' : 'var(--text-main)' }}>بحرانی</span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-dim)' }}>جریمه ×۴</span>
-              </span>
-              <span className="severity-card-desc">ریسک جدی، توقف تجربه یا نقص ایمنی</span>
-            </button>
-          </div>
         </div>
 
         {/* 2. EVIDENCE CAPTURE (Camera / Gallery / Thumbnails) */}
@@ -435,7 +366,7 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
         {/* 3. DESCRIPTION / COMMENT */}
         <div style={{ marginBottom: 14 }}>
           <label style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-main)', display: 'block', marginBottom: 4 }}>
-            شرح دقیق نقص و مشاهدات ارزیاب:
+            شرح نقص و مشاهدات ارزیاب (اختیاری):
           </label>
           <textarea
             value={comment}
@@ -477,11 +408,11 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
         <div style={{ display: 'flex', gap: 10, paddingTop: 12, borderTop: '1px solid var(--border-subtle)' }}>
           <button
             type="button"
-            onClick={handleSaveDraft}
+            onClick={onClose}
             className="btn-secondary"
             style={{ flex: 1, minHeight: 48, justifyContent: 'center' }}
           >
-            ذخیره پیش‌نویس
+            بستن
           </button>
 
           <button
@@ -499,7 +430,7 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
             }}
           >
             <CheckCircle2 size={18} />
-            تایید و ثبت اصطکاک
+            ذخیرهٔ جزئیات
           </button>
         </div>
       </div>

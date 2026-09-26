@@ -77,7 +77,25 @@ def test_scoring_audit():
 
     # 2. Test Backend API Scoring Endpoints (Requirements 1, 22)
     print("\n[Audit 2: Backend API Scoring Endpoints & Parity (Requirement 22)]")
-    api_base = "http://localhost:3001"
+    api_base = os.environ.get("RSAPP_API_BASE", "http://localhost:3001")
+
+    # The API requires a session. Sign in with a test account when one is
+    # given; otherwise skip the API audits rather than report a false failure.
+    email = os.environ.get("RSAPP_TEST_EMAIL")
+    password = os.environ.get("RSAPP_TEST_PASSWORD")
+    if not email or not password:
+        print("  - skipped: set RSAPP_TEST_EMAIL and RSAPP_TEST_PASSWORD to audit the running API")
+        print("\nENGINE AUDIT CHECKS PASSED (API audits skipped)")
+        return
+    import http.cookiejar
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+    urllib.request.install_opener(opener)
+    login = urllib.request.Request(
+        f"{api_base}/api/auth/login",
+        data=json.dumps({"email": email, "password": password}).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+    )
+    urllib.request.urlopen(login, timeout=10).read()
     
     # Test /api/scoring/profiles
     try:

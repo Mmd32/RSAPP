@@ -699,8 +699,8 @@ export const App: React.FC = () => {
     const updatedResponse: QuestionResponse = {
       ...existing,
       answerState: state,
-      // A severity only means something on a friction; don't leave a stale one behind.
-      severity: state === 'FRICTION' ? existing.severity : undefined,
+      // Frictions are recorded as yes/no; no severity is kept.
+      severity: undefined,
       answeredAt: new Date().toISOString(),
     };
 
@@ -760,7 +760,6 @@ export const App: React.FC = () => {
   };
 
   const handleSaveFriction = (data: {
-    severity: SeverityLevel;
     comment: string;
     recommendation: string;
     photos: EvidencePhoto[];
@@ -777,7 +776,8 @@ export const App: React.FC = () => {
     const updatedResponse: QuestionResponse = {
       ...existing,
       answerState: 'FRICTION',
-      severity: data.severity,
+      // Frictions are yes/no now; drop any severity from an older answer.
+      severity: undefined,
       comment: data.comment,
       recommendation: data.recommendation,
       photos: data.photos,
@@ -1069,7 +1069,7 @@ export const App: React.FC = () => {
       {/* 2. Main Content Canvas */}
       <div className="app-main-layout">
         {/* Semantic H1 for WCAG 2.1 Heading Hierarchy */}
-        <h1 className="visually-hidden">سامانه ارزیابی اصطکاک و پاداش خرده‌فروشی ریتیل سلوشنز</h1>
+        <h1 className="visually-hidden">سامانه ارزیابی اصطکاک و پاداش ریتیل سلوشنز</h1>
 
         {/* Minimal High-End Top Navbar */}
         <header className="app-top-navbar">
