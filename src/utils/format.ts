@@ -118,8 +118,9 @@ export function stageLabel(stage: string | undefined | null): string {
 
 const STORE_PROFILE_LABEL: Record<string, string> = {
   // Location context
-  STREET_STORE: 'فروشگاه خیابانی',
-  MALL_STORE: 'فروشگاه داخل مال',
+  STREET_STORE: 'فروشگاه واقع در خیابان',
+  MALL_STORE: 'فروشگاه داخل مرکز خرید',
+  // No longer offered in the wizard; kept so older visits still read well.
   FOOD_COURT: 'غرفه فودکورت',
   STANDALONE: 'فروشگاه مستقل بزرگ',
   // Store format (SHOP_IN_SHOP / KIOSK are shared with location)
@@ -127,7 +128,7 @@ const STORE_PROFILE_LABEL: Record<string, string> = {
   CHAIN: 'شعبه زنجیره‌ای',
   BOUTIQUE: 'بوتیک',
   SHOP_IN_SHOP: 'شاپ این شاپ',
-  KIOSK: 'کیوسک',
+  KIOSK: 'کیوسک / پاپ‌آپ',
   // Business type
   Fashion: 'پوشاک',
   Shoe_Bag: 'کیف و کفش',

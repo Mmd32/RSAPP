@@ -18,6 +18,13 @@ import {
   signSession,
   verifySession,
 } from './session.js';
+import {
+  Permission,
+  effectivePermissions,
+  hasPermission,
+  isCustomised,
+  isPermission,
+} from '../../../src/auth/permissions.js';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -58,6 +65,8 @@ export function publicUser(u: StoredUser) {
     email: u.email,
     name: u.name,
     role: u.role,
+    permissions: effectivePermissions(u),
+    customPermissions: isCustomised(u.role, u.permissions),
     isActive: u.isActive,
     mustChangePassword: !!u.mustChangePassword,
     lastLoginAt: u.lastLoginAt ?? null,
@@ -125,14 +134,22 @@ export function requireAuth(getStore: () => DataStore): RequestHandler {
   };
 }
 
-export function requireRole(...roles: Role[]): RequestHandler {
+/** Requires at least one of the given permissions. */
+export function requirePermission(...permissions: Permission[]): RequestHandler {
   return (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role as Role)) {
-      logger.security('Forbidden by role', { path: req.path, role: req.user?.role });
-      return res.status(403).json({ error: 'دسترسی به این بخش برای نقش شما مجاز نیست.', code: 'FORBIDDEN' });
+    if (!req.user || !permissions.some((p) => hasPermission(req.user, p))) {
+      logger.security('Forbidden by permission', { path: req.path, userId: req.user?.id, needs: permissions });
+      return res.status(403).json({ error: 'شما به این بخش دسترسی ندارید.', code: 'FORBIDDEN' });
     }
     next();
   };
+}
+
+/** Validates a permission list from a request body; null means "use the role's defaults". */
+function parsePermissions(value: unknown): string[] | null | 'invalid' {
+  if (value === null) return null;
+  if (!Array.isArray(value) || !value.every(isPermission)) return 'invalid';
+  return Array.from(new Set(value));
 }
 
 /**
@@ -297,7 +314,7 @@ export function registerAuthRoutes(app: Express, getStore: () => DataStore) {
 
   // --- user management (Admin) ------------------------------------------------
 
-  const admin = requireRole('Admin');
+  const admin = requirePermission('users.manage');
 
   app.get(
     '/api/users',
@@ -315,10 +332,12 @@ export function registerAuthRoutes(app: Express, getStore: () => DataStore) {
     admin,
     wrap(async (req, res) => {
       const store = getStore();
-      const { name, email, role } = req.body || {};
+      const { name, email, role, permissions } = req.body || {};
       if (!isName(name)) return res.status(400).json({ error: 'نام را کامل وارد کنید.' });
       if (!isEmail(email)) return res.status(400).json({ error: 'ایمیل معتبر نیست.' });
       if (!isRole(role)) return res.status(400).json({ error: 'نقش انتخاب‌شده معتبر نیست.' });
+      const parsed = permissions === undefined ? null : parsePermissions(permissions);
+      if (parsed === 'invalid') return res.status(400).json({ error: 'فهرست دسترسی‌ها معتبر نیست.' });
       if (await store.getUserByEmail(email)) {
         return res.status(409).json({ error: 'کاربری با این ایمیل وجود دارد.' });
       }
@@ -331,6 +350,8 @@ export function registerAuthRoutes(app: Express, getStore: () => DataStore) {
         passwordHash: await hashPassword(temporaryPassword),
         mustChangePassword: true,
       });
+      // Store an explicit list only when it differs from the role template.
+      user.permissions = parsed && isCustomised(role, parsed) ? parsed : null;
       await store.saveUser(user);
       logger.security('User created', { by: req.user!.id, userId: user.id, role });
       // The temporary password is shown to the admin once and never stored in clear.
@@ -348,12 +369,15 @@ export function registerAuthRoutes(app: Express, getStore: () => DataStore) {
     return target;
   }
 
-  /** Refuses changes that would leave the tenant without an active administrator. */
+  const canManage = (u: Pick<StoredUser, 'role' | 'permissions' | 'isActive'>) =>
+    u.isActive && hasPermission(u, 'users.manage');
+
+  /** Refuses changes that would leave the tenant with nobody able to manage users. */
   async function wouldRemoveLastAdmin(target: StoredUser, next: Partial<StoredUser>): Promise<boolean> {
-    const stillAdmin = (next.role ?? target.role) === 'Admin' && (next.isActive ?? target.isActive);
-    if (target.role !== 'Admin' || !target.isActive || stillAdmin) return false;
-    const admins = (await getStore().listUsers(target.tenantId)).filter((u) => u.role === 'Admin' && u.isActive);
-    return admins.length <= 1;
+    const after = { ...target, ...next };
+    if (!canManage(target) || canManage(after)) return false;
+    const managers = (await getStore().listUsers(target.tenantId)).filter(canManage);
+    return managers.length <= 1;
   }
 
   app.patch(
@@ -363,7 +387,7 @@ export function registerAuthRoutes(app: Express, getStore: () => DataStore) {
     wrap(async (req, res) => {
       const target = await loadTarget(req, res);
       if (!target) return;
-      const { name, role, isActive } = req.body || {};
+      const { name, role, isActive, permissions } = req.body || {};
       const changes: Partial<StoredUser> = {};
       if (name !== undefined) {
         if (!isName(name)) return res.status(400).json({ error: 'نام را کامل وارد کنید.' });
@@ -377,8 +401,20 @@ export function registerAuthRoutes(app: Express, getStore: () => DataStore) {
         if (typeof isActive !== 'boolean') return res.status(400).json({ error: 'وضعیت نامعتبر است.' });
         changes.isActive = isActive;
       }
+      if (permissions !== undefined) {
+        const parsed = parsePermissions(permissions);
+        if (parsed === 'invalid') return res.status(400).json({ error: 'فهرست دسترسی‌ها معتبر نیست.' });
+        const nextRole = (changes.role ?? target.role) as string;
+        changes.permissions = parsed && isCustomised(nextRole, parsed) ? parsed : null;
+      } else if (changes.role !== undefined && changes.role !== target.role) {
+        // Picking another role template resets to that role's permissions.
+        changes.permissions = null;
+      }
+      if (target.id === req.user!.id && !canManage({ ...target, ...changes })) {
+        return res.status(400).json({ error: 'نمی‌توانید دسترسی مدیریت کاربران را از خودتان بگیرید.' });
+      }
       if (await wouldRemoveLastAdmin(target, changes)) {
-        return res.status(400).json({ error: 'دست‌کم یک مدیر فعال باید باقی بماند.' });
+        return res.status(400).json({ error: 'دست‌کم یک نفر با دسترسی مدیریت کاربران باید فعال بماند.' });
       }
       const updated: StoredUser = {
         ...target,

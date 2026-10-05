@@ -20,18 +20,26 @@ export const ROLE_DESCRIPTION: Record<Role, string> = {
 
 export const ROLES: Role[] = ['Admin', 'Supervisor', 'Evaluator', 'Manager', 'Owner', 'Verifier'];
 
+import { hasPermission } from './permissions';
+
 /**
- * What each role sees in the interface. The server enforces the same rules;
- * this only keeps people from being offered things they would be refused.
+ * What a person sees in the interface, from their effective permissions.
+ * The server enforces the same rules; this only keeps people from being
+ * offered things they would be refused.
  */
-export function capabilities(role: string | undefined) {
-  const r = (role || '') as Role;
+export function capabilities(user: { role?: string; permissions?: string[] | null } | null | undefined) {
+  const has = (p: Parameters<typeof hasPermission>[1]) => hasPermission(user, p);
   return {
-    fieldWork: r === 'Admin' || r === 'Supervisor' || r === 'Evaluator',
-    review: r === 'Admin' || r === 'Supervisor',
-    adminTools: r === 'Admin' || r === 'Supervisor',
-    manageUsers: r === 'Admin',
-    // Mirrors canCreateActions in server/src/types/actions.ts.
-    createActions: r === 'Admin' || r === 'Supervisor' || r === 'Manager',
+    fieldWork: has('visits.fill'),
+    review: has('visits.review'),
+    reports: has('reports.view'),
+    actions: has('actions.view'),
+    createActions: has('actions.manage'),
+    resolveActions: has('actions.resolve') || has('actions.manage'),
+    verifyActions: has('actions.verify'),
+    adminTools: has('catalog.manage'),
+    manageUsers: has('users.manage'),
   };
 }
+
+export type Capabilities = ReturnType<typeof capabilities>;

@@ -29,6 +29,8 @@ export interface StoredUser {
   email: string;
   name: string;
   role: string;
+  /** Explicit permission list; null/absent means the role's defaults. */
+  permissions?: string[] | null;
   passwordHash: string;
   isActive: boolean;
   sessionVersion: number;

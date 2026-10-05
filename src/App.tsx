@@ -246,7 +246,7 @@ export const App: React.FC = () => {
   const { user, logout, signedIn } = useAuth();
   // AuthGate only renders App for a signed-in user.
   const currentUser = user!;
-  const can = capabilities(currentUser.role);
+  const can = capabilities(currentUser);
   // One draft per account, so a shared tablet never resumes someone else's visit.
   const activeVisitKey = `${LOCAL_STORAGE_KEY}:${currentUser.id}`;
   const allIndicators: Indicator[] = catalogData.indicators as any;
@@ -296,6 +296,8 @@ export const App: React.FC = () => {
     if (mode === 'SUPERVISOR') return can.review;
     if (mode === 'CATALOG' || mode === 'SCENARIOS') return can.adminTools;
     if (mode === 'USERS') return can.manageUsers;
+    if (mode === 'REPORT' || mode === 'ARCHIVE' || mode === 'REVISIT') return can.reports || can.fieldWork;
+    if (mode === 'ACTIONS') return can.actions;
     return true;
   };
   useEffect(() => {
@@ -1059,6 +1061,7 @@ export const App: React.FC = () => {
         onToggleTheme={toggleTheme}
         currentUserRole={currentUserRole}
         currentUserName={currentUserName}
+        can={can}
         onLogout={logout}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
@@ -1103,7 +1106,7 @@ export const App: React.FC = () => {
               {viewMode === 'ACTIONS' && 'کارتابل پیگیری اقدامات اصلاحی'}
               {viewMode === 'CATALOG' && 'بانک جامع شاخص‌های استاندارد'}
               {viewMode === 'SCENARIOS' && 'محیط تست و اجرای سناریوها'}
-              {viewMode === 'USERS' && 'مدیریت کاربران'}
+              {viewMode === 'USERS' && 'کاربران و دسترسی‌ها'}
               {viewMode === 'PASSWORD' && 'تغییر رمز عبور'}
               {viewMode === 'ARCHIVE' && 'بایگانی پرسشنامه‌ها'}
             </h2>
@@ -1282,6 +1285,8 @@ export const App: React.FC = () => {
         {viewMode === 'LANDING' && (
           <LandingPage
             canStartAudit={can.fieldWork}
+            canOpenReports={can.reports || can.fieldWork}
+            canOpenActions={can.actions}
             currentUserName={currentUserName}
             currentUserRole={currentUserRole}
             activeSession={activeSession}
@@ -1657,6 +1662,9 @@ export const App: React.FC = () => {
           {/* CORRECTIVE ACTIONS HUB (Prompt 4) */}
           {viewMode === 'ACTIONS' && (
             <CorrectiveActionsHub
+              canManageActions={can.createActions}
+              canResolveActions={can.resolveActions}
+              canVerifyActions={can.verifyActions}
               actions={actions}
               analytics={actionAnalytics}
               currentUserRole={currentUserRole}
@@ -1670,7 +1678,7 @@ export const App: React.FC = () => {
           )}
 
           {/* SAVED QUESTIONNAIRES */}
-          {viewMode === 'USERS' && can.manageUsers && <UserManagement currentUserId={currentUser.id} />}
+          {viewMode === 'USERS' && can.manageUsers && <UserManagement currentUserId={currentUser.id} onSelfUpdated={signedIn} />}
 
           {viewMode === 'PASSWORD' && (
             <ChangePasswordScreen
@@ -1771,6 +1779,8 @@ export const App: React.FC = () => {
           actionsCount={actions.length}
           onOpenMobileMenu={() => setIsMobileSidebarOpen(true)}
           canFieldWork={can.fieldWork}
+          canReports={can.reports || can.fieldWork}
+          canActions={can.actions}
         />
       </div>
     </div>

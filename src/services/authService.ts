@@ -1,5 +1,6 @@
 import { apiFetch } from './apiClient';
 import type { Role } from '../auth/roles';
+import type { Permission } from '../auth/permissions';
 
 export interface AuthUser {
   id: string;
@@ -7,6 +8,9 @@ export interface AuthUser {
   email: string;
   name: string;
   role: Role;
+  /** Effective permissions (role template or the person's custom list). */
+  permissions: Permission[];
+  customPermissions: boolean;
   isActive: boolean;
   mustChangePassword: boolean;
   lastLoginAt: string | null;
@@ -46,9 +50,12 @@ export const AuthService = {
     post<{ user: AuthUser }>('/auth/change-password', { currentPassword, newPassword }).then((r) => r.user),
 
   listUsers: () => call<AuthUser[]>('/users'),
-  createUser: (fields: { name: string; email: string; role: Role }) =>
+  createUser: (fields: { name: string; email: string; role: Role; permissions?: Permission[] }) =>
     post<{ user: AuthUser; temporaryPassword: string }>('/users', fields),
-  updateUser: (id: string, fields: Partial<Pick<AuthUser, 'name' | 'role' | 'isActive'>>) =>
+  updateUser: (
+    id: string,
+    fields: Partial<Pick<AuthUser, 'name' | 'role' | 'isActive'>> & { permissions?: Permission[] | null }
+  ) =>
     call<{ user: AuthUser }>(`/users/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(fields) }).then(
       (r) => r.user
     ),

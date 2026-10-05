@@ -815,12 +815,10 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {[
-                  { code: 'STREET_STORE', label: 'فروشگاه خیابانی (Street Store)', desc: 'واحد مستقل با دید مستقیم از پیاده‌رو شهری' },
-                  { code: 'MALL_STORE', label: 'فروشگاه داخل مال (Mall Store)', desc: 'واحد تجاری مستقر در راهروها یا طبقات مرکز خرید' },
-                  { code: 'FOOD_COURT', label: 'غرفه فودکورت (Food Court Unit)', desc: 'غرفه غذایی مستقر در سالن غذاخوری مجتمع تجاری' },
-                  { code: 'STANDALONE', label: 'فروشگاه مستقل بزرگ (Standalone)', desc: 'مجتمع مستقل حومه یا بزرگ‌مقیاس با محوطه باز' },
+                  { code: 'STREET_STORE', label: 'فروشگاه واقع در خیابان', desc: 'واحد مستقل با دید مستقیم از پیاده‌رو شهری' },
+                  { code: 'MALL_STORE', label: 'فروشگاه داخل مرکز خرید', desc: 'واحد تجاری مستقر در راهروها یا طبقات مرکز خرید' },
                   { code: 'SHOP_IN_SHOP', label: 'شاپ این شاپ (Shop-in-Shop)', desc: 'غرفه داخل دیپارتمنت‌استور یا فروشگاه زنجیره‌ای' },
-                  { code: 'KIOSK', label: 'کیوسک / غرفه جزیره‌ای (Kiosk)', desc: 'کیوسک مستقر در کریدور یا فضای باز' },
+                  { code: 'KIOSK', label: 'کیوسک / پاپ‌آپ', desc: 'کیوسک یا غرفهٔ پاپ‌آپ در کریدور یا فضای باز' },
                 ].map((lc) => (
                   <button
                     key={lc.code}

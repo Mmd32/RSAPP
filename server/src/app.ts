@@ -15,12 +15,12 @@ import {
 } from './config.js';
 import { defaultStorageProvider } from './storage/storageProvider.js';
 import { createDataStore, DataStore } from './store/index.js';
-import { registerAuthRoutes, requireAuth, requireRole } from './auth/routes.js';
+import { registerAuthRoutes, requireAuth, requirePermission } from './auth/routes.js';
+import { hasPermission } from '../../src/auth/permissions.js';
 import {
   CorrectiveAction,
   ActionAuditLog,
   UserRole,
-  ROLE_PERMISSIONS,
 } from './types/actions.js';
 import {
   calculateVisitSummary,
@@ -89,15 +89,13 @@ const tenantOf = (req: Request): string => req.user?.tenantId || DEFAULT_TENANT;
 const roleOf = (req: Request): UserRole => (req.user?.role as UserRole) || 'Evaluator';
 const userOf = (req: Request): string => req.user?.name || 'کاربر';
 
-/** Roles that review and approve questionnaires. */
-const REVIEWER_ROLES = new Set(['Admin', 'Supervisor']);
 
 /** Whether the signed-in user may read a visit. */
 function canSeeVisit(req: Request, visit: any): boolean {
   const user = req.user!;
   if ((visit.tenantId || DEFAULT_TENANT) !== user.tenantId) return false;
-  if (user.role !== 'Evaluator') return true;
-  // Evaluators see their own questionnaires only.
+  if (hasPermission(user, 'visits.viewAll') || hasPermission(user, 'visits.review')) return true;
+  // Everyone else sees their own questionnaires only.
   return visit.evaluatorId ? visit.evaluatorId === user.id : visit.auditorName === user.name;
 }
 
@@ -115,9 +113,9 @@ function visitWriteProblem(
   nextStatus: string
 ): { status: number; error: string; code: string } | null {
   const user = req.user!;
-  const isReviewer = REVIEWER_ROLES.has(user.role);
-  if (user.role !== 'Evaluator' && !isReviewer) {
-    return { status: 403, error: 'نقش شما اجازهٔ ثبت پرسشنامه را ندارد.', code: 'FORBIDDEN' };
+  const isReviewer = hasPermission(user, 'visits.review');
+  if (!hasPermission(user, 'visits.fill') && !isReviewer) {
+    return { status: 403, error: 'شما دسترسی ثبت پرسشنامه ندارید.', code: 'FORBIDDEN' };
   }
   if (existing && !canSeeVisit(req, existing)) {
     return { status: 403, error: 'این پرسشنامه متعلق به کاربر دیگری است.', code: 'FORBIDDEN' };
@@ -308,7 +306,7 @@ app.get(
 
 app.post(
   '/api/organizations',
-  requireRole('Admin'),
+  requirePermission('users.manage'),
   route(async (req, res) => {
     const { name, code, brands } = req.body;
     if (!name || !code) {
@@ -403,7 +401,7 @@ app.post(
 
 app.delete(
   '/api/stores/:id',
-  requireRole('Admin', 'Supervisor'),
+  requirePermission('visits.review', 'users.manage'),
   route(async (req, res) => {
     const removed = await store.deleteStore(req.params.id);
     if (!removed) {
@@ -473,8 +471,10 @@ app.post(
       id,
       tenantId,
       // Authorship is stamped by the server, not trusted from the client.
-      evaluatorId: existing?.evaluatorId || (user.role === 'Evaluator' ? user.id : visitData.evaluatorId || user.id),
-      auditorName: existing?.auditorName || (user.role === 'Evaluator' ? user.name : visitData.auditorName || user.name),
+      evaluatorId:
+        existing?.evaluatorId || (hasPermission(user, 'visits.review') ? visitData.evaluatorId || user.id : user.id),
+      auditorName:
+        existing?.auditorName || (hasPermission(user, 'visits.review') ? visitData.auditorName || user.name : user.name),
       ...(reviewed
         ? { supervisorId: user.id, supervisorName: user.name, reviewedAt: new Date().toISOString() }
         : {}),
@@ -608,6 +608,7 @@ async function writeAuditLog(
 // List actions with rich filtering
 app.get(
   '/api/actions',
+  requirePermission('actions.view'),
   route(async (req, res) => {
     const { brand, branch, owner, department, priority, status, overdue } = req.query;
     const activeTenant = tenantOf(req);
@@ -640,14 +641,9 @@ app.get(
 // Create corrective action (single or from finding)
 app.post(
   '/api/actions',
+  requirePermission('actions.manage'),
   route(async (req, res) => {
     const userRole = roleOf(req);
-    const perms = ROLE_PERMISSIONS[userRole] || ROLE_PERMISSIONS.Supervisor;
-
-    if (!perms.canCreateActions) {
-      logger.security('Forbidden action creation attempt', { userRole });
-      return res.status(403).json({ error: `Role ${userRole} is not permitted to create actions.` });
-    }
 
     const {
       findingId,
@@ -718,6 +714,7 @@ app.post(
 // Get action by ID with audit logs
 app.get(
   '/api/actions/:id',
+  requirePermission('actions.view'),
   route(async (req, res) => {
     const action = await actionFor(req);
     if (!action) {
@@ -730,6 +727,7 @@ app.get(
 // Update assignment, priority, due date, status
 app.patch(
   '/api/actions/:id',
+  requirePermission('actions.manage', 'actions.resolve'),
   route(async (req, res) => {
     const action = await actionFor(req);
     if (!action) {
@@ -761,6 +759,7 @@ app.patch(
 // Owner Resolution (Requirements 6-7)
 app.post(
   '/api/actions/:id/resolve',
+  requirePermission('actions.resolve', 'actions.manage'),
   route(async (req, res) => {
     const action = await actionFor(req);
     if (!action) {
@@ -806,6 +805,7 @@ app.post(
 // Verification Endpoint (Requirement 8: Resolver CANNOT self-verify)
 app.post(
   '/api/actions/:id/verify',
+  requirePermission('actions.verify'),
   route(async (req, res) => {
     const action = await actionFor(req);
     if (!action) {
@@ -828,10 +828,6 @@ app.post(
       return res.status(403).json({ error: 'Conflict of interest: The action owner cannot self-verify.' });
     }
 
-    const perms = ROLE_PERMISSIONS[userRole] || ROLE_PERMISSIONS.Supervisor;
-    if (!perms.canVerifyActions) {
-      return res.status(403).json({ error: `Role ${userRole} is not permitted to verify actions.` });
-    }
 
     const fromStatus = action.status;
     action.status = 'VERIFIED';
@@ -852,6 +848,7 @@ app.post(
 // Reopen Endpoint (Requirement 9: REOPEN with comment)
 app.post(
   '/api/actions/:id/reopen',
+  requirePermission('actions.verify', 'actions.manage'),
   route(async (req, res) => {
     const action = await actionFor(req);
     if (!action) {
@@ -891,6 +888,7 @@ app.post(
 // Action Analytics Endpoint (Requirement 18)
 app.get(
   '/api/actions-analytics',
+  requirePermission('actions.view'),
   route(async (req, res) => {
     const list = await store.listActions(tenantOf(req));
     const total = list.length;
