@@ -40,6 +40,10 @@ interface CorrectiveActionsHubProps {
   analytics: ActionAnalyticsSummary;
   currentUserRole: UserRole;
   currentUserName: string;
+  /** From the signed-in person's permissions; the server enforces the same. */
+  canManageActions?: boolean;
+  canResolveActions?: boolean;
+  canVerifyActions?: boolean;
   onUpdateAction: (id: string, updates: Partial<CorrectiveAction>) => void;
   onResolveAction: (
     id: string,
@@ -68,6 +72,9 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
   analytics,
   currentUserRole,
   currentUserName,
+  canManageActions = false,
+  canResolveActions = false,
+  canVerifyActions = false,
   onUpdateAction,
   onResolveAction,
   onVerifyAction,
@@ -234,9 +241,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
         </div>
 
         {/* Create Action Button (Allowed for Manager, Supervisor, Admin) */}
-        {(currentUserRole === 'Manager' ||
-          currentUserRole === 'Supervisor' ||
-          currentUserRole === 'Admin') && (
+        {canManageActions && (
           <button
             onClick={() => setShowCreateModal(true)}
             className="btn-rs btn-rs-primary"
@@ -1042,7 +1047,8 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
               }}
             >
               {/* Owner / Manager can resolve */}
-              {(selectedAction.status === 'OPEN' ||
+              {canResolveActions &&
+                (selectedAction.status === 'OPEN' ||
                 selectedAction.status === 'ASSIGNED' ||
                 selectedAction.status === 'IN_PROGRESS' ||
                 selectedAction.status === 'REOPENED') && (
@@ -1052,12 +1058,12 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                   style={{ display: 'flex', alignItems: 'center', gap: 6 }}
                 >
                   <CheckCircle2 size={16} />
-                  ثبت رفع اصطکاک (Resolve)
+                  ثبت رفع اصطکاک
                 </button>
               )}
 
               {/* Verifier / Supervisor / Evaluator can Verify (Requirement 8) */}
-              {selectedAction.status === 'WAITING_REVIEW' && (
+              {canVerifyActions && selectedAction.status === 'WAITING_REVIEW' && (
                 <>
                   <button
                     onClick={() => {
@@ -1082,7 +1088,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                     style={{ display: 'flex', alignItems: 'center', gap: 6 }}
                   >
                     <RotateCcw size={16} />
-                    رد و بازگشایی مجدد (Reopen)
+                    رد و بازگشایی مجدد
                   </button>
                 </>
               )}

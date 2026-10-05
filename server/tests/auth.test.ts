@@ -135,7 +135,13 @@ try {
     forged.cookie = 'rsapp_session=eyJzdWIiOiJ4Iiwic3YiOjEsImV4cCI6OTk5OTk5OTk5OX0.AAAA';
     assert.equal((await forged.req('GET', '/auth/me')).status, 401);
     const tampered = new Client();
-    tampered.cookie = admin.cookie.replace(/.$/, (c) => (c === 'A' ? 'B' : 'A'));
+    // Change the signed payload (the last base64url character of a signature
+    // can carry unused padding bits, so altering it is not a reliable test).
+    const [name, value] = admin.cookie.split('=');
+    const [payload, sig] = decodeURIComponent(value).split('.');
+    const claims = JSON.parse(Buffer.from(payload, 'base64url').toString());
+    claims.sub = 'usr_someone_else';
+    tampered.cookie = `${name}=${Buffer.from(JSON.stringify(claims)).toString('base64url')}.${sig}`;
     assert.equal((await tampered.req('GET', '/auth/me')).status, 401);
   });
 
@@ -239,6 +245,66 @@ try {
   await test('read-only roles cannot write visits', async () => {
     assert.equal((await manager.req('POST', '/visits', visit({ id: 'v2' }))).status, 403);
     assert.equal((await manager.req('GET', '/visits')).json.length, 1, 'but can read them');
+  });
+
+  console.log('custom permissions');
+
+  await test('users report their effective permissions', async () => {
+    const me = (await supervisor.req('GET', '/auth/me')).json.user;
+    assert.ok(me.permissions.includes('visits.review'));
+    assert.equal(me.customPermissions, false);
+  });
+
+  await test('admin can grant a single permission to one person', async () => {
+    const list = (await admin.req('GET', '/users')).json;
+    const m1 = list.find((u: any) => u.email === 'm1@test.ir');
+    const r = await admin.req('PATCH', `/users/${m1.id}`, { permissions: [...m1.permissions, 'visits.fill'] });
+    assert.equal(r.status, 200);
+    assert.equal(r.json.user.customPermissions, true);
+    // The manager can now write visits without changing role or signing in again.
+    assert.equal((await manager.req('POST', '/visits', visit({ id: 'v_mgr' }))).status, 201);
+  });
+
+  await test('removing a permission takes effect immediately', async () => {
+    const list = (await admin.req('GET', '/users')).json;
+    const m1 = list.find((u: any) => u.email === 'm1@test.ir');
+    await admin.req('PATCH', `/users/${m1.id}`, { permissions: m1.permissions.filter((p: string) => p !== 'actions.view') });
+    assert.equal((await manager.req('GET', '/actions')).status, 403);
+  });
+
+  await test('invalid permission names are refused', async () => {
+    const list = (await admin.req('GET', '/users')).json;
+    const m1 = list.find((u: any) => u.email === 'm1@test.ir');
+    assert.equal((await admin.req('PATCH', `/users/${m1.id}`, { permissions: ['root'] })).status, 400);
+  });
+
+  await test('choosing a role template resets custom permissions', async () => {
+    const list = (await admin.req('GET', '/users')).json;
+    const m1 = list.find((u: any) => u.email === 'm1@test.ir');
+    const r = await admin.req('PATCH', `/users/${m1.id}`, { role: 'Owner' });
+    assert.equal(r.json.user.customPermissions, false);
+    assert.ok(!r.json.user.permissions.includes('visits.fill'));
+  });
+
+  await test('a user created with custom permissions gets exactly those', async () => {
+    const r = await admin.req('POST', '/users', {
+      name: 'فقط گزارش',
+      email: 'viewer@test.ir',
+      role: 'Verifier',
+      permissions: ['reports.view'],
+    });
+    assert.equal(r.status, 201);
+    assert.deepEqual(r.json.user.permissions, ['reports.view']);
+    const c = new Client();
+    await c.req('POST', '/auth/login', { email: 'viewer@test.ir', password: r.json.temporaryPassword });
+    assert.equal((await c.req('GET', '/actions')).status, 403);
+    assert.equal((await c.req('POST', '/visits', visit({ id: 'v_view' }))).status, 403);
+  });
+
+  await test('an admin cannot take user management away from themselves', async () => {
+    const me = (await admin.req('GET', '/auth/me')).json.user;
+    const r = await admin.req('PATCH', `/users/${me.id}`, { permissions: ['reports.view'] });
+    assert.equal(r.status, 400);
   });
 
   console.log('admin controls');

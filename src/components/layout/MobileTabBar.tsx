@@ -19,6 +19,8 @@ interface MobileTabBarProps {
   onOpenMobileMenu: () => void;
   /** False for read-only roles, who get the archive and actions instead. */
   canFieldWork: boolean;
+  canReports: boolean;
+  canActions: boolean;
 }
 
 export const MobileTabBar: React.FC<MobileTabBarProps> = ({
@@ -28,6 +30,8 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({
   actionsCount,
   onOpenMobileMenu,
   canFieldWork,
+  canReports,
+  canActions,
 }) => {
   const answeredCount = activeSession
     ? Object.values(activeSession.responses).filter(
@@ -88,6 +92,7 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({
       ) : (
         <>
       {/* 2-3. Read-only roles: archive and actions */}
+      {canReports && (
       <button
         type="button"
         className={`mobile-tab-btn ${viewMode === 'ARCHIVE' ? 'active' : ''}`}
@@ -99,6 +104,8 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({
         </div>
         <span className="mobile-tab-label">بایگانی</span>
       </button>
+      )}
+      {canActions && (
       <button
         type="button"
         className={`mobile-tab-btn ${viewMode === 'ACTIONS' ? 'active' : ''}`}
@@ -111,9 +118,12 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({
         </div>
         <span className="mobile-tab-label">اقدامات</span>
       </button>
+      )}
         </>
       )}
 
+      {canReports && (
+        <>
       {/* 4. REPORT */}
       <button
         type="button"
@@ -126,6 +136,8 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({
         </div>
         <span className="mobile-tab-label">رادار ۳۶۰</span>
       </button>
+        </>
+      )}
 
       {/* 5. MENU / MORE */}
       <button

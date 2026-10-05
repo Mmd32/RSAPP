@@ -87,12 +87,20 @@ session. Sessions are an HMAC-signed, `HttpOnly`, `SameSite=Lax` cookie
 hashes. Identity, role and tenant always come from the session — the old
 `x-user-*` / `x-tenant-id` headers are ignored.
 
-| Role | Can |
+Access is a list of ten permissions per person (`src/auth/permissions.ts`,
+shared by server and app). A role is only a starting template; in
+**کاربران و دسترسی‌ها** an administrator can tick or untick any permission
+for any person, and the change applies on that person's next request.
+
+| Permission | Allows |
 | --- | --- |
-| مدیر سامانه (Admin) | everything, including user management |
-| سرپرست (Supervisor) | field work, review/approve/return submitted visits, admin tools, corrective actions |
-| ارزیاب (Evaluator) | create, fill and submit **their own** visits; locked once submitted |
-| مدیر شعبه / مسئول رفع نقص / راستی‌آزما | read reports and visits; corrective-action steps per their permissions |
+| `visits.fill` | start, fill and submit questionnaires (locked after submitting) |
+| `visits.viewAll` | see everyone's questionnaires (otherwise only your own) |
+| `visits.review` | approve or return a submitted questionnaire |
+| `reports.view` | report, archive, comparison |
+| `actions.view` / `actions.manage` / `actions.resolve` / `actions.verify` | corrective-action list / create & assign / mark resolved / verify & reopen |
+| `catalog.manage` | indicator bank and scenario tools |
+| `users.manage` | people and permissions (cannot be removed from yourself, and one active holder must remain) |
 
 Also enforced by the server: approval only of a submitted visit, the approver
 and evaluator recorded from the account, 5 wrong passwords lock an account for

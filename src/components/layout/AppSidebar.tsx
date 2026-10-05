@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { RetailSolutionsLogo } from '../brand/RetailSolutionsLogo';
 import { VisitSession, UserRole } from '../../types';
-import { ROLE_LABEL, Role, capabilities } from '../../auth/roles';
+import { ROLE_LABEL, Role, Capabilities } from '../../auth/roles';
 
 export type ViewMode =
   | 'LANDING'
@@ -51,6 +51,8 @@ interface AppSidebarProps {
   onToggleTheme: () => void;
   currentUserRole: UserRole;
   currentUserName: string;
+  /** What the signed-in person may use; menus follow it. */
+  can: Capabilities;
   onLogout: () => void;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
@@ -67,13 +69,13 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   onToggleTheme,
   currentUserRole,
   currentUserName,
+  can,
   onLogout,
   isCollapsed,
   onToggleCollapse,
   isMobileOpen,
   onCloseMobile,
 }) => {
-  const can = capabilities(currentUserRole);
   const answeredCount = activeSession
     ? Object.values(activeSession.responses).filter(
         (r) => r.answerState !== 'UNANSWERED'
@@ -246,6 +248,8 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
 
           <div className="sidebar-divider" />
 
+          {(can.reports || can.fieldWork) && (
+          <>
           {/* GROUP 2: INTELLIGENCE & REPORTING */}
           <div className="sidebar-nav-group">
             {!isCollapsed && (
@@ -297,7 +301,11 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
           </div>
 
           <div className="sidebar-divider" />
+          </>
+          )}
 
+          {can.actions && (
+          <>
           {/* GROUP 3: ACTION MANAGEMENT */}
           <div className="sidebar-nav-group">
             {!isCollapsed && (
@@ -327,6 +335,8 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
           </div>
 
           <div className="sidebar-divider" />
+          </>
+          )}
 
           {can.adminTools && (
           <>
@@ -364,12 +374,12 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                 type="button"
                 className={`sidebar-nav-item ${viewMode === 'USERS' ? 'active' : ''}`}
                 onClick={() => handleNavClick('USERS')}
-                title="مدیریت کاربران"
+                title="کاربران و دسترسی‌ها"
               >
                 <div className="nav-icon-wrap">
                   <Users size={18} />
                 </div>
-                {!isCollapsed && <span className="nav-item-label">مدیریت کاربران</span>}
+                {!isCollapsed && <span className="nav-item-label">کاربران و دسترسی‌ها</span>}
               </button>
             )}
           </div>

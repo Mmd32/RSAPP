@@ -33,6 +33,9 @@ interface LandingPageProps {
   onResumeAudit: () => void;
   onOpenReport: () => void;
   onOpenActions: () => void;
+  /** Hide entry points the person has no access to. */
+  canOpenReports?: boolean;
+  canOpenActions?: boolean;
   /** Omitted for roles without the admin tools. */
   onOpenCatalog?: () => void;
 }
@@ -48,6 +51,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onResumeAudit,
   onOpenReport,
   onOpenActions,
+  canOpenReports = true,
+  canOpenActions = true,
   onOpenCatalog,
 }) => {
   const answeredCount = activeSession
@@ -214,7 +219,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <ChevronLeft size={18} color="var(--rs-color-success)" />
               </div>
             </div>
-          ) : (
+          ) : canOpenReports ? (
             <div
               onClick={onOpenReport}
               style={{
@@ -248,9 +253,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <ChevronLeft size={18} color="var(--rs-color-brand-cyan)" />
               </div>
             </div>
-          )}
+          ) : null}
 
           {/* CARD 3: CORRECTIVE ACTIONS */}
+          {canOpenActions && (
           <div
             onClick={onOpenActions}
             style={{
@@ -291,6 +297,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <ChevronLeft size={18} color="#EA580C" />
             </div>
           </div>
+          )}
         </div>
       </section>
 
