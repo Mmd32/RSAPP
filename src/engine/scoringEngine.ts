@@ -129,7 +129,7 @@ export function mapToCanonicalDimension(ind: Indicator): string {
 
 export const DEFAULT_CONSULTING_PROFILE: ScoringProfile = {
   id: 'profile_rs_consulting_v1',
-  name: 'Retail Solutions Standard Consulting Profile (V1.0)',
+  name: 'استاندارد مشاوره‌ای (وزن‌دار)',
   version: 1,
   severityPenalties: {
     LOW: 1,
@@ -156,7 +156,7 @@ export const DEFAULT_CONSULTING_PROFILE: ScoringProfile = {
 
 export const UNWEIGHTED_SCORING_PROFILE: ScoringProfile = {
   id: 'profile_rs_unweighted_v1',
-  name: 'Retail Solutions Simple Average Profile (V1.0)',
+  name: 'میانگین ساده (هم‌وزن)',
   version: 1,
   severityPenalties: {
     LOW: 1,
@@ -183,7 +183,7 @@ export const UNWEIGHTED_SCORING_PROFILE: ScoringProfile = {
 
 export const STRICT_CRITICAL_PROFILE: ScoringProfile = {
   id: 'profile_rs_strict_v1',
-  name: 'Retail Solutions Strict Penalty Profile (V1.0)',
+  name: 'سخت‌گیرانه (جریمه تصاعدی)',
   version: 1,
   severityPenalties: {
     LOW: 1,

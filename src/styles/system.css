@@ -1268,3 +1268,60 @@ td.ltr-num, th.ltr-num { display: table-cell; }
   .perm-editor, .access-panel__top { grid-template-columns: 1fr; }
   .access-panel__actions > * { flex: 1 1 100%; justify-content: center; }
 }
+.app-notice.is-info { background: var(--theme-callout-obs-bg); margin: 0 0 var(--sp-3); }
+
+.assign-editor { margin-bottom: 20px; padding: 12px; border: var(--bw-hair) solid var(--theme-card-border); border-radius: var(--r-md); display: flex; flex-direction: column; gap: 10px; }
+.assign-editor h4 { font-size: 13px; font-weight: var(--fw-bold); color: var(--theme-text-primary); }
+.assign-editor__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.assign-editor .btn-primary { align-self: flex-start; }
+@media (max-width: 600px) { .assign-editor__grid { grid-template-columns: 1fr; } .assign-editor .btn-primary { align-self: stretch; justify-content: center; } }
+
+/* Top-bar "delete visit": quiet until hovered; red is reserved for the confirm. */
+.topbar-discard {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 36px; padding: 0 12px;
+  border-radius: var(--r-sm);
+  border: var(--bw-hair) solid var(--theme-card-border);
+  background: transparent; color: var(--theme-text-secondary);
+  font: inherit; font-size: var(--fs-small); font-weight: var(--fw-medium); cursor: pointer;
+}
+.topbar-discard:hover { color: var(--friction-high); border-color: var(--friction-high); }
+@media (max-width: 600px) {
+  /* Icon only on phones, away from accidental taps next to the menu. */
+  .topbar-discard { padding: 0 10px; }
+  .topbar-discard__label { display: none; }
+}
+
+/* Destructive button: same shape as the family, red only for the action. */
+.btn-danger {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  min-height: var(--control-h); padding: 0 var(--sp-4);
+  border-radius: var(--r-sm);
+  font-family: var(--rs-font-fa); font-size: var(--fs-small); font-weight: var(--fw-semibold); line-height: 1;
+  white-space: nowrap; cursor: pointer;
+  background: var(--friction-high); color: #fff; border: var(--bw-hair) solid var(--friction-high);
+}
+.btn-danger:hover { background: var(--friction-critical); border-color: var(--friction-critical); }
+.btn-danger:disabled, .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+@media (max-width: 768px) { .btn-danger { min-height: var(--control-h-touch); } }
+
+/* One look for indicator codes everywhere (was four: filled cyan, red, plain,
+   borderless). Neutral so the code never competes with status colours. */
+.indicator-code-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--r-sm);
+  background: var(--surface-chip);
+  color: var(--theme-text-primary);
+  border: var(--bw-hair) solid var(--theme-card-border);
+  font-family: var(--rs-font-code);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.02em;
+  line-height: 1.6;
+  direction: ltr;
+  unicode-bidi: isolate;
+  white-space: nowrap;
+}
+.indicator-code-badge.is-small { padding: 0 6px; font-size: var(--fs-micro); }

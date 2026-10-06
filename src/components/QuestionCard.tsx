@@ -183,7 +183,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
         {/* Instrument Badge Header */}
         <div className="instrument-header">
           <div className="instrument-badge">
-            <span className="instrument-code">{indicator.code}</span>
+            <span className="indicator-code-badge">{indicator.code}</span>
             <span className="instrument-dot">•</span>
             <span className="instrument-subject">{indicator.subject}</span>
           </div>

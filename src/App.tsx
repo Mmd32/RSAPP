@@ -294,7 +294,9 @@ export const App: React.FC = () => {
   const viewAllowed = (mode: ViewMode): boolean => {
     if (mode === 'WIZARD' || mode === 'AUDIT' || mode === 'REVIEW') return can.fieldWork;
     if (mode === 'SUPERVISOR') return can.review;
-    if (mode === 'CATALOG' || mode === 'SCENARIOS') return can.adminTools;
+    if (mode === 'CATALOG') return can.adminTools;
+    // Engineering tool: not in the menu, reachable by administrators at #scenarios.
+    if (mode === 'SCENARIOS') return can.manageUsers;
     if (mode === 'USERS') return can.manageUsers;
     if (mode === 'REPORT' || mode === 'ARCHIVE' || mode === 'REVISIT') return can.reports || can.fieldWork;
     if (mode === 'ACTIONS') return can.actions;
@@ -678,6 +680,17 @@ export const App: React.FC = () => {
     return list;
   }, [activeSession, searchQuery, auditFilter]);
 
+  // The report shows the visit being worked on, else the latest finished one.
+  // The built-in sample appears only when there is no real visit at all.
+  const latestFinishedVisit = useMemo(
+    () =>
+      [...pastVisits]
+        .filter((v) => (v.status === 'SUBMITTED' || v.status === 'APPROVED') && v.indicators?.length)
+        .sort((a, b) => (b.completedAt || b.startedAt).localeCompare(a.completedAt || a.startedAt))[0] || null,
+    [pastVisits]
+  );
+  const reportVisit: VisitSession = activeSession || latestFinishedVisit || SAMPLE_REAL_VISIT;
+
   const currentIndicator = displayedIndicators[currentQuestionIndex] || displayedIndicators[0] || activeSession?.indicators[0];
 
   // Update current stage chip when moving through questions
@@ -962,7 +975,17 @@ export const App: React.FC = () => {
 
   const handleUpdateCorrectiveAction = (id: string, updates: Partial<CorrectiveAction>) => {
     setActions((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, ...updates, updatedAt: new Date().toISOString() } : a))
+      prev.map((a) =>
+        a.id === id
+          ? {
+              ...a,
+              ...updates,
+              // Mirrors the server: assigning an owner moves a new action to ASSIGNED.
+              ...(updates.owner && a.status === 'OPEN' ? { status: 'ASSIGNED' as const } : {}),
+              updatedAt: new Date().toISOString(),
+            }
+          : a
+      )
     );
 
     syncAction(`/actions/${id}`, {
@@ -1061,6 +1084,7 @@ export const App: React.FC = () => {
         onToggleTheme={toggleTheme}
         currentUserRole={currentUserRole}
         currentUserName={currentUserName}
+        reportIsSample={!activeSession && !latestFinishedVisit}
         can={can}
         onLogout={logout}
         isCollapsed={isSidebarCollapsed}
@@ -1142,36 +1166,26 @@ export const App: React.FC = () => {
                 {isDesktopSplitView ? <Smartphone size={14} /> : <Monitor size={14} />}
                 <span>
                   {isDesktopSplitView
-                    ? 'نمای متمرکز (Focus)'
-                    : 'نمای سه ستونه (Split)'}
+                    ? 'نمای تک‌ستونه'
+                    : 'نمای سه‌ستونه'}
                 </span>
               </button>
             )}
 
-            {activeSession && (
+            {/* Discarding is only offered where the visit is being worked on,
+                and only while it can still be edited. */}
+            {activeSession &&
+              (viewMode === 'AUDIT' || viewMode === 'REVIEW') &&
+              (activeSession.status === 'IN_PROGRESS' || activeSession.status === 'REVISION_REQUESTED') && (
               <button
                 type="button"
                 onClick={() => setShowDiscardModal(true)}
-                style={{
-                  background: 'rgba(217, 74, 86, 0.1)',
-                  border: '1px solid rgba(217, 74, 86, 0.3)',
-                  color: 'var(--rs-color-error)',
-                  padding: '6px 12px',
-                  borderRadius: 'var(--rs-radius-control)',
-                  fontSize: 12,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  minHeight: 34,
-                  fontWeight: 600,
-                  transition: 'all var(--rs-duration-micro) var(--rs-ease-standard)',
-                }}
+                className="topbar-discard"
                 title="انصراف از بازدید و پاکسازی داده‌ها"
                 aria-label="انصراف از بازدید و پاکسازی داده‌ها"
               >
-                <Trash2 size={13} />
-                <span>انصراف</span>
+                <Trash2 size={14} />
+                <span className="topbar-discard__label">حذف بازدید</span>
               </button>
             )}
           </div>
@@ -1483,7 +1497,7 @@ export const App: React.FC = () => {
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
-                            <span className="indicator-code-badge" style={{ fontSize: 10, padding: '2px 6px' }}>
+                            <span className="indicator-code-badge is-small">
                               {ind.code}
                             </span>
                             <span style={{ fontSize: 12, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -1642,9 +1656,9 @@ export const App: React.FC = () => {
           {/* OFFICIAL AUDIT REPORT (With Radar Chart) */}
           {viewMode === 'REPORT' && (
             <VisitReportView
-              visit={activeSession || SAMPLE_REAL_VISIT}
+              visit={reportVisit}
               historyVisits={pastVisits}
-              isSample={!activeSession}
+              isSample={reportVisit === SAMPLE_REAL_VISIT}
               onBackToDashboard={() => setViewMode(activeSession ? 'AUDIT' : 'WIZARD')}
               onCreateCorrectiveAction={handleCreateCorrectiveAction}
             />

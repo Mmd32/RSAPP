@@ -208,7 +208,7 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span className="code-tag" style={{ background: 'rgba(217, 74, 86, 0.15)', color: 'var(--rs-color-error)', padding: '3px 8px', borderRadius: 'var(--rs-radius-control)', fontWeight: 800 }}>
+            <span className="indicator-code-badge">
               {indicator.code}
             </span>
             <div>
@@ -423,10 +423,10 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
               flex: 1.5,
               minHeight: 48,
               justifyContent: 'center',
-              background: isPhotoBlocked ? 'var(--surface-disabled)' : 'var(--rs-color-error)',
+              background: isPhotoBlocked ? 'var(--surface-disabled)' : 'var(--rs-color-action-primary)',
               color: isPhotoBlocked ? 'var(--text-on-disabled)' : '#fff',
               cursor: isPhotoBlocked ? 'not-allowed' : 'pointer',
-              boxShadow: isPhotoBlocked ? 'none' : '0 4px 16px rgba(217, 74, 86, 0.4)',
+              boxShadow: 'none',
             }}
           >
             <CheckCircle2 size={18} />

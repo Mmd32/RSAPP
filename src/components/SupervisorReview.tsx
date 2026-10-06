@@ -104,12 +104,15 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
         return false;
       }
       if (filterStatus !== 'ALL') {
-        const currentDec = findingDecisions[ind.id]?.status || 'APPROVED';
+        const currentDec = findingDecisions[ind.id]?.status || 'PENDING';
         if (currentDec !== filterStatus) return false;
       }
       return true;
     });
   }, [allFrictionItems, filterSection, filterStatus, filterPhoto, onlyNeedsCorrection, findingDecisions]);
+
+  // Every finding needs an explicit decision before final approval.
+  const pendingCount = allFrictionItems.filter(({ ind }) => !findingDecisions[ind.id]?.status).length;
 
   const needsCorrectionCount = Object.values(findingDecisions).filter(
     (d) => d.status === 'REQUEST_CHANGE'
@@ -137,7 +140,12 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
 
         {/* Section 26: Summary First */}
         <StatRow>
-          <StatCard label="امتیاز اولیه سامانه" value={faPercent(summary.overallScore)} />
+          <StatCard
+            label="امتیاز اولیه سامانه"
+            value={summary.answeredCount < visit.indicators.length ? '—' : faPercent(summary.overallScore)}
+            hint={summary.answeredCount < visit.indicators.length ? 'پس از تکمیل پرسشنامه محاسبه می‌شود' : undefined}
+          />
+          <StatCard label="بررسی‌نشده" value={faDigits(pendingCount)} tone={pendingCount > 0 ? 'alarm' : 'default'} />
           <StatCard label="کل اصطکاک‌ها" value={faDigits(summary.totalFrictions)} />
           <StatCard label="مدارک تصویری" value={faDigits(summary.totalPhotos)} />
           <StatCard label="نیازمند اصلاح" value={faDigits(needsCorrectionCount)} tone={needsCorrectionCount > 0 ? 'alarm' : 'default'} />
@@ -177,6 +185,7 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
                 style={{ minHeight: 34, padding: '4px 8px', fontSize: 12, borderRadius: 'var(--radius-sm)' }}
               >
                 <option value="ALL">همه وضعیت‌ها</option>
+                <option value="PENDING">بررسی‌نشده</option>
                 <option value="APPROVED">تأییدشده</option>
                 <option value="REQUEST_CHANGE">نیازمند اصلاح</option>
                 <option value="REJECTED">رد شده</option>
@@ -242,7 +251,8 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {filteredItems.map(({ ind, resp }) => {
-              const currentDec = findingDecisions[ind.id] || { status: 'APPROVED' };
+              // No decision until the supervisor makes one: nothing is pre-approved.
+              const currentDec: { status?: string; comment?: string } = findingDecisions[ind.id] || {};
               const isNeedsCorrection = currentDec.status === 'REQUEST_CHANGE';
               const isRejected = currentDec.status === 'REJECTED';
               const isApproved = currentDec.status === 'APPROVED';
@@ -261,7 +271,7 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
                   {/* Card Header */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                      <span className="indicator-code-badge" style={{ background: 'var(--rs-color-brand-cyan)', color: 'var(--rs-color-brand-navy)', fontWeight: 800 }}>
+                      <span className="indicator-code-badge">
                         {ind.code}
                       </span>
                       <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{ind.subject}</span>
@@ -346,7 +356,7 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
                               title: `رفع اصطکاک: ${ind.code} - ${ind.subject}`,
                               indicatorCode: ind.code,
                               description: ind.statement + (resp.comment ? `\nتوضیح ارزیاب: ${resp.comment}` : ''),
-                              priority: resp.severity === 'CRITICAL' ? 'CRITICAL' : 'HIGH',
+                              priority: 'MEDIUM', // set the real priority in the action hub
                               branchName: visit.branchName,
                               brandName: visit.brandName,
                               visitId: visit.id,
@@ -354,7 +364,7 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
                               department: 'Operations',
                             })
                           }
-                          className="btn-rs btn-rs-secondary"
+                          className="btn-secondary"
                           style={{ fontSize: 11, padding: '4px 8px' }}
                         >
                           ارجاع به اقدام اصلاحی
@@ -480,10 +490,15 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
             className="btn-primary"
             style={{ justifyContent: 'center', background: 'var(--status-clean)' }}
             onClick={() => onApproveVisit(supervisorNotes, findingDecisions)}
-            disabled={!canDecide}
+            disabled={!canDecide || pendingCount > 0}
+            title={pendingCount > 0 ? `${faDigits(pendingCount)} یافته هنوز بررسی نشده است` : undefined}
           >
             <Award size={18} />
-            <span>تأیید نهایی و صدور گزارش رسمی</span>
+            <span>
+              {pendingCount > 0 && canDecide
+                ? `ابتدا ${faDigits(pendingCount)} یافته را بررسی کنید`
+                : 'تأیید نهایی و صدور گزارش رسمی'}
+            </span>
           </button>
         </div>
       </div>

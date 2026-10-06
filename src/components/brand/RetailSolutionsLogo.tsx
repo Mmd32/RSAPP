@@ -109,7 +109,7 @@ export const RetailSolutionsLogo: React.FC<RetailSolutionsLogoProps> = ({
             >
               Retail Solutions
             </span>
-            <span style={{ fontSize: 10, color: '#00B0F0', fontWeight: 700, marginTop: 1 }}>
+            <span style={{ fontSize: 11, color: '#00B0F0', fontWeight: 700, marginTop: 1 }}>
               {subbrandText}
             </span>
           </div>
@@ -145,7 +145,7 @@ export const RetailSolutionsLogo: React.FC<RetailSolutionsLogoProps> = ({
             <span style={{ fontSize: 13, fontWeight: 800, color: isDark ? '#fff' : '#16213E' }}>
               ارزیابی میدانی
             </span>
-            <span style={{ fontSize: 10, color: subtextColor }}>
+            <span style={{ fontSize: 11, color: subtextColor }}>
               {subbrandText}
             </span>
           </div>
@@ -224,7 +224,7 @@ export const RetailSolutionsLogo: React.FC<RetailSolutionsLogoProps> = ({
               ارزیابی میدانی
             </span>
           </div>
-          <span style={{ fontSize: 10, color: subtextColor, marginTop: 2 }}>
+          <span style={{ fontSize: 11, color: subtextColor, marginTop: 2 }}>
             {subbrandText}
           </span>
         </div>

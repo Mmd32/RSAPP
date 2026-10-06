@@ -155,3 +155,17 @@ export function profileLabel(code: string | undefined | null): string {
   if (!code) return '—';
   return STORE_PROFILE_LABEL[code] || code;
 }
+
+/** Persian names for the indicator groups that the store catalog stores in English. */
+const GROUP_LABEL: Record<string, string> = {
+  FLOOR: 'سالن فروش',
+  TEAM: 'کارکنان',
+  PRODUCT: 'کالا',
+  CASH: 'صندوق',
+  SERVICES: 'خدمات',
+};
+
+export function groupLabel(group: string | undefined | null): string {
+  if (!group) return '—';
+  return GROUP_LABEL[group] || group;
+}

@@ -10,7 +10,6 @@ import {
   Archive,
   Target,
   Database,
-  FlaskConical,
   Sun,
   Moon,
   ChevronRight,
@@ -51,6 +50,8 @@ interface AppSidebarProps {
   onToggleTheme: () => void;
   currentUserRole: UserRole;
   currentUserName: string;
+  /** True when the report menu can only show the built-in sample. */
+  reportIsSample?: boolean;
   /** What the signed-in person may use; menus follow it. */
   can: Capabilities;
   onLogout: () => void;
@@ -69,6 +70,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   onToggleTheme,
   currentUserRole,
   currentUserName,
+  reportIsSample = false,
   can,
   onLogout,
   isCollapsed,
@@ -268,7 +270,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
               {!isCollapsed && (
                 <>
                   <span className="nav-item-label">گزارش و رادار</span>
-                  {!activeSession && (
+                  {reportIsSample && (
                     <span className="nav-item-tag">نمونه</span>
                   )}
                 </>
@@ -358,17 +360,6 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
               {!isCollapsed && <span className="nav-item-label">بانک شاخص‌ها</span>}
             </button>
 
-            <button
-              type="button"
-              className={`sidebar-nav-item ${viewMode === 'SCENARIOS' ? 'active' : ''}`}
-              onClick={() => handleNavClick('SCENARIOS')}
-              title="تست سناریوها"
-            >
-              <div className="nav-icon-wrap">
-                <FlaskConical size={18} />
-              </div>
-              {!isCollapsed && <span className="nav-item-label">تست سناریوها</span>}
-            </button>
                       {can.manageUsers && (
               <button
                 type="button"
