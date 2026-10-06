@@ -293,7 +293,7 @@ export const FormOverview: React.FC<FormOverviewProps> = ({
               }}
             >
               <span>{st.label}</span>
-              <span className="ltr-num" style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+              <span className="ltr-num" style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                 {st.answered}/{st.total}
               </span>
               {st.frictions > 0 && (

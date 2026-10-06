@@ -71,8 +71,8 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
 
   // Wizard fields state
   const [assessmentType, setAssessmentType] = useState<AssessmentType>('STORE');
-  const [brandName, setBrandName] = useState('زارا (Zara)');
-  const [branchName, setBranchName] = useState('شعبه خیابان ولیعصر');
+  const [brandName, setBrandName] = useState('زارا');
+  const [branchName, setBranchName] = useState('');
   const [businessType, setBusinessType] = useState<BusinessTypeCode>('Fashion');
   const [mallType, setMallType] = useState<MallTypeCode>('Regional');
   const [locationContext, setLocationContext] = useState<LocationContextCode>('STREET_STORE');
@@ -268,55 +268,6 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
           {/* ================================================================ */}
           {step === 1 && (
             <div>
-              {/* Executive Demo Banner */}
-              <div
-                style={{
-                  marginBottom: 16,
-                  padding: '12px 16px',
-                  background: 'linear-gradient(135deg, rgba(0, 176, 240, 0.12) 0%, var(--theme-card-bg) 100%)',
-                  border: '1px solid rgba(0, 176, 240, 0.35)',
-                  borderRadius: '14px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: 10,
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: '50%',
-                      background: 'rgba(0, 176, 240, 0.18)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Sparkles size={18} color="var(--rs-color-brand-cyan)" />
-                  </div>
-                  <div>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--theme-text-primary)', display: 'block' }}>
-                      مشاهده نمونه گزارش کامل ارزیابی
-                    </span>
-                    <span style={{ fontSize: 11, color: 'var(--theme-text-muted)' }}>
-                      ۶۵ شاخص، ۱۶ اصطکاک مستند، تصاویر و تحلیل رادار ۳۶۰°
-                    </span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => onStartVisit(SAMPLE_REAL_VISIT)}
-                  className="btn-primary"
-                  style={{ fontSize: 11, padding: '7px 14px', minHeight: 34 }}
-                >
-                  بارگذاری ارزیابی نمونه
-                </button>
-              </div>
-
               {/* Toggle Between Saved Directory and New Store */}
               <div
                 style={{
@@ -473,7 +424,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3, flexWrap: 'wrap' }}>
                                 <span
                                   style={{
-                                    fontSize: 10,
+                                    fontSize: 11,
                                     background: 'var(--theme-badge-bg)',
                                     color: 'var(--theme-text-muted)',
                                     padding: '1px 6px',
@@ -485,13 +436,13 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                                 </span>
 
                                 {store.storeFormat && (
-                                  <span style={{ fontSize: 10, color: 'var(--theme-text-muted)' }}>
+                                  <span style={{ fontSize: 11, color: 'var(--theme-text-muted)' }}>
                                     {profileLabel(store.storeFormat)}
                                   </span>
                                 )}
 
                                 {store.lastVisitedAt && (
-                                  <span style={{ fontSize: 10, color: 'var(--rs-color-brand-cyan)', direction: 'rtl' }}>
+                                  <span style={{ fontSize: 11, color: 'var(--rs-color-brand-cyan)', direction: 'rtl' }}>
                                     آخرین ارزیابی: {new Date(store.lastVisitedAt).toLocaleDateString('fa-IR')}
                                   </span>
                                 )}
@@ -580,7 +531,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                       </div>
                       <div>
                         <strong style={{ fontSize: 14, display: 'block', fontWeight: 800 }}>ارزیابی فروشگاه</strong>
-                        <span style={{ fontSize: 11, color: 'var(--theme-text-muted)', marginTop: 2, display: 'block' }}>Store Assessment</span>
+                        <span style={{ fontSize: 11, color: 'var(--theme-text-muted)', marginTop: 2, display: 'block' }}>ارزیابی یک واحد فروشگاهی</span>
                       </div>
                     </button>
 
@@ -617,7 +568,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                       </div>
                       <div>
                         <strong style={{ fontSize: 14, display: 'block', fontWeight: 800 }}>ارزیابی مرکز خرید</strong>
-                        <span style={{ fontSize: 11, color: 'var(--theme-text-muted)', marginTop: 2, display: 'block' }}>Mall Infrastructure</span>
+                        <span style={{ fontSize: 11, color: 'var(--theme-text-muted)', marginTop: 2, display: 'block' }}>ارزیابی زیرساخت کل مجتمع</span>
                       </div>
                     </button>
                   </div>
@@ -651,7 +602,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
               </div>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
-                {['زارا (Zara)', 'ال‌سی وایکیکی', 'مانگو (Mango)', 'هایپراستار', 'مرکز خرید کوروش', 'ایران مال', 'پالادیوم'].map((b) => (
+                {['زارا', 'ال‌سی وایکیکی', 'مانگو', 'هایپراستار', 'مرکز خرید کوروش', 'ایران مال', 'پالادیوم'].map((b) => (
                   <button
                     key={b}
                     type="button"
@@ -733,20 +684,20 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
               </p>
 
               {assessmentType === 'STORE' ? (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, maxHeight: 250, overflowY: 'auto' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
                   {[
-                    { code: 'Fashion', label: 'پوشاک (Fashion)' },
-                    { code: 'Shoe_Bag', label: 'کیف و کفش (Shoe & Bag)' },
-                    { code: 'Watch_Jewelry', label: 'ساعت و طلا (Jewelry)' },
-                    { code: 'FMCG', label: 'تندمصرف (FMCG)' },
-                    { code: 'F_B', label: 'کافه و غذا (F&B)' },
-                    { code: 'Hardware', label: 'ابزار و یراق (Hardware)' },
-                    { code: 'Homeware', label: 'لوازم خانگی (Homeware)' },
-                    { code: 'Beauty_Cosmetics', label: 'آرایشی و زیبایی (Beauty)' },
+                    { code: 'Fashion', label: 'پوشاک' },
+                    { code: 'Shoe_Bag', label: 'کیف و کفش' },
+                    { code: 'Watch_Jewelry', label: 'ساعت و طلا' },
+                    { code: 'FMCG', label: 'تندمصرف' },
+                    { code: 'F_B', label: 'کافه و غذا' },
+                    { code: 'Hardware', label: 'ابزار و یراق' },
+                    { code: 'Homeware', label: 'لوازم خانگی' },
+                    { code: 'Beauty_Cosmetics', label: 'آرایشی و زیبایی' },
                     { code: 'Electronics', label: 'الکترونیک و دیجیتال' },
                     { code: 'Entertainment', label: 'سرگرمی و اسباب‌بازی' },
-                    { code: 'Sports', label: 'لوازم ورزشی (Sports)' },
-                    { code: 'Specialty', label: 'کالای تخصصی (Specialty)' },
+                    { code: 'Sports', label: 'لوازم ورزشی' },
+                    { code: 'Specialty', label: 'کالای تخصصی' },
                     { code: 'Services', label: 'خدمات و پشتیبانی' },
                   ].map((bt) => (
                     <button
@@ -773,11 +724,11 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {[
-                    { code: 'SM', label: 'مرکز خرید محلی / پایه (SM)', sub: 'پارکینگ و خدمات ساده' },
-                    { code: 'Neighborhood', label: 'مرکز تجاری محله‌ای (Neighborhood)', sub: 'تأمین روزمره با تنوع متوسط' },
-                    { code: 'Community', label: 'مرکز خرید منطقه‌ای (Community)', sub: 'خدمات کامل منطقه‌ای' },
-                    { code: 'Regional', label: 'مرکز خرید منطقه‌ای بزرگ (Regional)', sub: 'مگامال کامل با پارکینگ ۲۱ گانه' },
-                    { code: 'Super_Regional', label: 'ابر مرکز خرید فرامنطقه‌ای (Super Regional)', sub: 'کامل‌ترین مقیاس تجاری و رفاهی' },
+                    { code: 'SM', label: 'مرکز خرید محلی / پایه', sub: 'پارکینگ و خدمات ساده' },
+                    { code: 'Neighborhood', label: 'مرکز تجاری محله‌ای', sub: 'تأمین روزمره با تنوع متوسط' },
+                    { code: 'Community', label: 'مرکز خرید منطقه‌ای', sub: 'خدمات کامل منطقه‌ای' },
+                    { code: 'Regional', label: 'مرکز خرید منطقه‌ای بزرگ', sub: 'مگامال کامل با پارکینگ ۲۱ گانه' },
+                    { code: 'Super_Regional', label: 'ابر مرکز خرید فرامنطقه‌ای', sub: 'کامل‌ترین مقیاس تجاری و رفاهی' },
                   ].map((mt) => (
                     <button
                       key={mt.code}
@@ -808,7 +759,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
           {/* ================================================================ */}
           {step === 5 && (
             <div>
-              <h2 style={{ fontSize: 17, fontWeight: 800, marginBottom: 6 }}>مرحله ۵: بافت موقعیتی (Location Context)</h2>
+              <h2 style={{ fontSize: 17, fontWeight: 800, marginBottom: 6 }}>مرحله ۵: بافت موقعیتی</h2>
               <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
                 موقعیت استقرار واحد را تعیین کنید تا شاخص‌های متناسب خیابانی یا درون مجتمع اعمال شوند.
               </p>
@@ -817,7 +768,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                 {[
                   { code: 'STREET_STORE', label: 'فروشگاه واقع در خیابان', desc: 'واحد مستقل با دید مستقیم از پیاده‌رو شهری' },
                   { code: 'MALL_STORE', label: 'فروشگاه داخل مرکز خرید', desc: 'واحد تجاری مستقر در راهروها یا طبقات مرکز خرید' },
-                  { code: 'SHOP_IN_SHOP', label: 'شاپ این شاپ (Shop-in-Shop)', desc: 'غرفه داخل دیپارتمنت‌استور یا فروشگاه زنجیره‌ای' },
+                  { code: 'SHOP_IN_SHOP', label: 'شاپ این شاپ', desc: 'غرفه داخل دیپارتمنت‌استور یا فروشگاه زنجیره‌ای' },
                   { code: 'KIOSK', label: 'کیوسک / پاپ‌آپ', desc: 'کیوسک یا غرفهٔ پاپ‌آپ در کریدور یا فضای باز' },
                 ].map((lc) => (
                   <button
@@ -855,11 +806,11 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {[
-                  { code: 'FLAGSHIP', label: 'شعبه پرچمدار (Flagship)', desc: 'بزرگ‌ترین مقیاس و کامل‌ترین خدمات برند' },
-                  { code: 'CHAIN', label: 'شعبه استاندارد زنجیره‌ای (Standard Chain)', desc: 'قالب استاندارد شعبات درون‌شهری' },
-                  { code: 'BOUTIQUE', label: 'بوتیک و فروشگاه جمع‌وجور (Boutique)', desc: 'مساحت محدود با تمرکز بر گلچین محصولات' },
-                  { code: 'SHOP_IN_SHOP', label: 'شاپ این شاپ (Corner / Shop-in-Shop)', desc: 'کانتر اختصاصی برند در یک مجموعه بزرگ‌تر' },
-                  { code: 'KIOSK', label: 'کیوسک موقت یا دائمی (Kiosk)', desc: 'غرفه کوچک جزیره‌ای' },
+                  { code: 'FLAGSHIP', label: 'شعبه پرچمدار', desc: 'بزرگ‌ترین مقیاس و کامل‌ترین خدمات برند' },
+                  { code: 'CHAIN', label: 'شعبه استاندارد زنجیره‌ای', desc: 'قالب استاندارد شعبات درون‌شهری' },
+                  { code: 'BOUTIQUE', label: 'بوتیک و فروشگاه جمع‌وجور', desc: 'مساحت محدود با تمرکز بر گلچین محصولات' },
+                  { code: 'SHOP_IN_SHOP', label: 'شاپ این شاپ', desc: 'کانتر اختصاصی برند در یک مجموعه بزرگ‌تر' },
+                  { code: 'KIOSK', label: 'کیوسک موقت یا دائمی', desc: 'غرفه کوچک جزیره‌ای' },
                 ].map((sf) => (
                   <button
                     key={sf.code}
@@ -889,12 +840,12 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
           {/* ================================================================ */}
           {step === 7 && (
             <div>
-              <h2 style={{ fontSize: 17, fontWeight: 800, marginBottom: 6 }}>مرحله ۷: ویژگی‌های فیزیکی محل (Attributes)</h2>
+              <h2 style={{ fontSize: 17, fontWeight: 800, marginBottom: 6 }}>مرحله ۷: ویژگی‌های فیزیکی محل</h2>
               <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>
                 امکانات موجود در این شعبه را تیک بزنید تا سؤالات بر اساس امکانات واقعی فیلتر شوند.
               </p>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8, maxHeight: 260, overflowY: 'auto' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}>
                 {[
                   { key: 'has_window_display', compat: 'hasShowcase', label: 'ویترین شیشه‌ای و مانکن رو به بیرون', desc: 'کدهای FW02-06 در صورت عدم وجود حذف می‌شوند' },
                   { key: 'has_fitting_room', compat: 'hasFittingRoom', label: 'اتاق پرو لباس', desc: 'کدهای FFR02-06 در صورت عدم وجود حذف می‌شوند' },
@@ -992,28 +943,28 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                   <span className="metric-value ltr-num" style={{ fontSize: 18, color: 'var(--rs-color-brand-cyan)' }}>
                     {previewIndicators.length}
                   </span>
-                  <span className="metric-label" style={{ fontSize: 10 }}>کل شاخص‌ها</span>
+                  <span className="metric-label" style={{ fontSize: 11 }}>کل شاخص‌ها</span>
                 </div>
 
                 <div className="metric-card" style={{ padding: 8, textAlign: 'center' }}>
                   <span className="metric-value ltr-num" style={{ fontSize: 18, color: 'var(--rs-color-success)' }}>
                     {uniqueSectionsCount}
                   </span>
-                  <span className="metric-label" style={{ fontSize: 10 }}>بخش سفر</span>
+                  <span className="metric-label" style={{ fontSize: 11 }}>بخش سفر</span>
                 </div>
 
                 <div className="metric-card" style={{ padding: 8, textAlign: 'center' }}>
                   <span className="metric-value ltr-num" style={{ fontSize: 18, color: 'var(--rs-color-warning)' }}>
                     {mandatoryPhotoCount}
                   </span>
-                  <span className="metric-label" style={{ fontSize: 10 }}>{PHOTOS_REQUIRED ? 'عکس الزامی' : 'عکس توصیه‌شده'}</span>
+                  <span className="metric-label" style={{ fontSize: 11 }}>{PHOTOS_REQUIRED ? 'عکس الزامی' : 'عکس توصیه‌شده'}</span>
                 </div>
 
                 <div className="metric-card" style={{ padding: 8, textAlign: 'center' }}>
                   <span className="metric-value ltr-num" style={{ fontSize: 18, color: 'var(--rs-color-action-primary)' }}>
                     ~{estimatedMinutes}
                   </span>
-                  <span className="metric-label" style={{ fontSize: 10 }}>دقیقه تخمینی</span>
+                  <span className="metric-label" style={{ fontSize: 11 }}>دقیقه تخمینی</span>
                 </div>
               </div>
 
@@ -1090,6 +1041,8 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
             <button
               type="button"
               onClick={() => setStep((s) => Math.min(8, s + 1))}
+              // Brand and branch are required: a visit without them cannot be saved.
+              disabled={(step === 2 && !brandName.trim()) || (step === 3 && !branchName.trim())}
               className="btn-primary"
               style={{ minHeight: 44, padding: '8px 18px', fontSize: 13 }}
             >

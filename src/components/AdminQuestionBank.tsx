@@ -1,11 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Indicator } from '../types';
-import { Database, Filter, Sliders, CheckCircle, AlertTriangle, Layers, Plus } from 'lucide-react';
-import { stageLabel } from '../utils/format';
+import { Database, Filter, CheckCircle, AlertTriangle, Layers, Plus } from 'lucide-react';
+import { stageLabel, groupLabel, faDigits } from '../utils/format';
 
 interface AdminQuestionBankProps {
   indicators: Indicator[];
 }
+
+const PAGE_SIZE = 100;
 
 export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators }) => {
   const [templateFilter, setTemplateFilter] = useState<'ALL' | 'STORE' | 'MALL'>('ALL');
@@ -13,6 +15,9 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
   const [filterNeedsReview, setFilterNeedsReview] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedIndicator, setSelectedIndicator] = useState<Indicator | null>(null);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  // A new filter starts from the first page again.
+  useEffect(() => setVisibleCount(PAGE_SIZE), [templateFilter, selectedGroup, filterNeedsReview, searchQuery]);
 
   // Extract unique groups
   const groups = useMemo(() => {
@@ -81,8 +86,8 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
               onChange={(e) => setTemplateFilter(e.target.value as any)}
             >
               <option value="ALL">همه خانواده‌ها</option>
-              <option value="STORE">فروشگاه (Store)</option>
-              <option value="MALL">مرکز خرید (Mall)</option>
+              <option value="STORE">فروشگاه</option>
+              <option value="MALL">مرکز خرید</option>
             </select>
           </div>
 
@@ -96,7 +101,7 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
             >
               <option value="ALL">همه گروه‌ها</option>
               {groups.map((g) => (
-                <option key={g} value={g}>{g}</option>
+                <option key={g} value={g}>{groupLabel(g)}</option>
               ))}
             </select>
           </div>
@@ -127,41 +132,6 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
         </div>
       </div>
 
-      {/* Visual Rule Builder Concept Card */}
-      <div
-        className="glass-panel"
-        style={{
-          padding: 20,
-          marginBottom: 20,
-          background: 'var(--surface-emphasis)',
-          border: '1px solid rgba(0, 176, 240, 0.3)',
-          borderRadius: 'var(--rs-radius-card)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-          <Sliders color="var(--rs-color-brand-cyan)" size={18} />
-          <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--rs-color-brand-cyan)' }}>
-            موتور ویژوال قوانین شرطی
-          </h3>
-        </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', fontSize: 13 }}>
-          <span style={{ background: 'var(--surface-chip)', padding: '4px 10px', borderRadius: 'var(--rs-radius-control)', color: 'var(--rs-color-brand-cyan)', fontWeight: 600 }}>نمایش بده اگر (SHOW IF)</span>
-          <span>صنف</span>
-          <span style={{ background: 'var(--surface-chip)', border: '1px solid var(--border-subtle)', padding: '3px 8px', borderRadius: 'var(--rs-radius-control)', fontWeight: 700 }}>Fashion</span>
-          <span style={{ color: 'var(--rs-color-warning)', fontWeight: 700 }}>AND</span>
-          <span>محیط استقرار</span>
-          <span style={{ background: 'var(--surface-chip)', border: '1px solid var(--border-subtle)', padding: '3px 8px', borderRadius: 'var(--rs-radius-control)', fontWeight: 700 }}>Mall Store</span>
-          <span style={{ color: 'var(--rs-color-warning)', fontWeight: 700 }}>AND</span>
-          <span>ویژگی فیزیکی</span>
-          <span style={{ background: 'var(--surface-chip)', border: '1px solid var(--border-subtle)', padding: '3px 8px', borderRadius: 'var(--rs-radius-control)', fontWeight: 700 }}>Has Fitting Room = True</span>
-          <span style={{ color: 'var(--rs-color-success)', fontWeight: 700 }}>➔</span>
-          <span style={{ color: 'var(--rs-color-success)', fontWeight: 600 }}>
-            فعال‌سازی پرسش‌های <code className="ltr-code">FFR02</code> تا{' '}
-            <code className="ltr-code">FFR06</code>
-          </span>
-        </div>
-      </div>
-
       {/* Indicators Table */}
       <div className="glass-panel" style={{ padding: 20 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -183,7 +153,7 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
               </tr>
             </thead>
             <tbody>
-              {filteredIndicators.slice(0, 100).map((ind) => (
+              {filteredIndicators.slice(0, visibleCount).map((ind) => (
                 <tr
                   key={ind.id}
                   style={{ borderBottom: '1px solid var(--theme-card-border)', cursor: 'pointer', transition: 'background var(--rs-duration-micro) var(--rs-ease-standard)' }}
@@ -196,7 +166,7 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
                   </td>
                   <td style={{ padding: '10px 8px' }}>
                     <div style={{ fontWeight: 600 }}>{ind.subject}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-dim)' }}>{ind.group}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-dim)' }}>{groupLabel(ind.group)}</div>
                   </td>
                   <td style={{ padding: '10px 8px', maxWidth: 360, color: 'var(--text-main)', lineHeight: 1.5 }}>
                     {ind.statement}
@@ -219,10 +189,13 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
             </tbody>
           </table>
         </div>
-        {filteredIndicators.length > 100 && (
-          <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-dim)', marginTop: 12 }}>
-            ۱۰۰ ردیف نخست نمایش داده شده است. از فیلترها برای پالایش استفاده فرمایید.
-          </p>
+        {filteredIndicators.length > visibleCount && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 12 }}>
+            <button type="button" className="btn-secondary" onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}>
+              نمایش {faDigits(Math.min(PAGE_SIZE, filteredIndicators.length - visibleCount))} شاخص دیگر (
+              {faDigits(filteredIndicators.length - visibleCount)} باقی‌مانده)
+            </button>
+          </div>
         )}
       </div>
     </div>

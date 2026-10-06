@@ -158,9 +158,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
       title,
       indicatorCode: codes,
       description: desc,
-      priority: selectedFrictions.some((f) => f.response.severity === 'CRITICAL')
-        ? 'CRITICAL'
-        : 'HIGH',
+      priority: 'MEDIUM', // set the real priority in the action hub
       branchName: visit.branchName,
       brandName: visit.brandName,
       visitId: visit.id,
@@ -323,6 +321,13 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
       </div>
 
       {/* Main Report Container (Rendered into PDF) */}
+      {isSample && (
+        <div className="app-notice is-info" role="status">
+          <span>
+            این یک <strong>گزارش نمونه</strong> برای آشنایی است. پس از ارسال اولین پرسشنامه، گزارش واقعی همین‌جا نمایش داده می‌شود.
+          </span>
+        </div>
+      )}
       <div id="official-report-content" ref={reportRef} style={{ background: 'transparent', borderRadius: 12, padding: '4px 0' }}>
         {/* Cover Page / Header with Retail Solutions Branding (Requirements 10, 18, 20) */}
         <div
@@ -355,9 +360,9 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
               subbrandText="گزارش رسمی ارزیابی تجربه مشتری"
             />
 
-            <div style={{ textAlign: 'left', direction: 'ltr' }}>
-              <span style={{ fontSize: 11, color: 'var(--rs-color-brand-cyan)', fontWeight: 700, display: 'block' }}>
-                RETAIL SOLUTIONS AUDIT REPORT
+            <div style={{ textAlign: 'left' }}>
+              <span style={{ fontSize: 12, color: 'var(--rs-color-brand-cyan)', fontWeight: 700, display: 'block' }}>
+                کد گزارش
               </span>
               <span className="ltr-code" style={{ fontSize: 13, color: 'var(--theme-text-primary)', fontWeight: 600 }}>
                 {visit.visitCode}
@@ -394,7 +399,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
                     fontWeight: 600,
                   }}
                 >
-                  پروفایل: <span className="latin-digits">{activeProfile.name}</span>
+                  روش امتیازدهی: <span>{activeProfile.name}</span>
                 </span>
               </div>
 
@@ -626,7 +631,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
             {onCreateCorrectiveAction && selectedFrictionIds.size > 0 && (
               <button
                 onClick={handleBatchCreateAction}
-                className="btn-rs btn-rs-primary"
+                className="btn-primary"
                 style={{ fontSize: 12, padding: '6px 14px' }}
               >
                 ایجاد اقدام اصلاحی برای ({selectedFrictionIds.size}) مورد انتخاب‌شده
@@ -723,7 +728,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
                                 title: `رفع اصطکاک: ${indicator.code} - ${indicator.subject}`,
                                 indicatorCode: indicator.code,
                                 description: indicator.statement + (response.comment ? `\nتوضیح ارزیاب: ${response.comment}` : ''),
-                                priority: response.severity === 'CRITICAL' ? 'CRITICAL' : 'HIGH',
+                                priority: 'MEDIUM', // set the real priority in the action hub
                                 branchName: visit.branchName,
                                 brandName: visit.brandName,
                                 visitId: visit.id,
@@ -779,7 +784,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
                               <Maximize2 size={10} color="#fff" />
                             </div>
                             {p.caption && (
-                              <span style={{ position: 'absolute', bottom: 0, right: 0, left: 0, fontSize: 9, background: 'rgba(0,0,0,0.8)', color: '#fff', padding: '2px 4px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                              <span style={{ position: 'absolute', bottom: 0, right: 0, left: 0, fontSize: 11, background: 'rgba(0,0,0,0.8)', color: '#fff', padding: '2px 4px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                                 {p.caption}
                               </span>
                             )}
@@ -833,7 +838,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
                     <tr key={dim.dimensionKey}>
                       <td>
                         <strong style={{ fontSize: 13, color: 'var(--theme-text-primary)', display: 'block' }}>{dim.dimensionNameFa}</strong>
-                        <span style={{ fontSize: 10, color: 'var(--rs-color-brand-cyan)' }}>
+                        <span style={{ fontSize: 11, color: 'var(--rs-color-brand-cyan)' }}>
                           ضریب وزن در نمره کل: {dim.dimensionWeight}
                         </span>
                       </td>
@@ -908,12 +913,12 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
             </p>
           </div>
 
-          <div style={{ textAlign: 'left', direction: 'ltr' }}>
+          <div style={{ textAlign: 'left' }}>
             <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--theme-text-primary)', display: 'block' }}>
-              Retail Solutions Consulting
+              ریتیل سلوشنز
             </span>
             <span style={{ fontSize: 11, color: 'var(--rs-color-brand-cyan)' }}>
-              Audit Engine V2.5 • Persian RTL Core
+              گزارش تولیدشده توسط سامانه ارزیابی تجربه مشتری
             </span>
             <span style={{ fontSize: 11, color: 'var(--theme-text-muted)', display: 'block', marginTop: 2 }}>
               info@retailsolutions.ir • retailsolutions.ir

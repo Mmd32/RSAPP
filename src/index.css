@@ -529,7 +529,7 @@ button, input, optgroup, select, textarea {
 }
 
 .nav-item-tag {
-  font-size: 10px;
+  font-size: var(--fs-micro);
   padding: 1px 6px;
   border-radius: 6px;
   background: rgba(0, 176, 240, 0.15);
@@ -833,7 +833,7 @@ button, input, optgroup, select, textarea {
 }
 
 .mobile-tab-label {
-  font-size: 10px;
+  font-size: var(--fs-micro);
   font-weight: 700;
   font-family: var(--rs-font-fa);
   white-space: nowrap;
@@ -996,7 +996,7 @@ button, input, optgroup, select, textarea {
 }
 
 .nav-tab-group-label {
-  font-size: 10px;
+  font-size: var(--fs-micro);
   font-weight: 700;
   color: var(--theme-text-muted);
   text-transform: uppercase;
@@ -2310,7 +2310,7 @@ button:active:not(:disabled),
   padding: 4px;
   background: rgba(7, 11, 20, 0.62);
   color: #fff;
-  font-size: 0.68rem;
+  font-size: var(--fs-micro);
   font-family: inherit;
   text-align: center;
   border: none;
@@ -2344,7 +2344,7 @@ button.photo-thumb-overlay {
   gap: 3px;
   padding: 2px 6px;
   border-radius: 6px;
-  font-size: 0.62rem;
+  font-size: var(--fs-micro);
   font-weight: 600;
   background: rgba(7, 11, 20, 0.72);
   color: #fff;

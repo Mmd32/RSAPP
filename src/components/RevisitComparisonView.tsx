@@ -363,7 +363,7 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
           {onNavigateToActions && (
             <button
               onClick={onNavigateToActions}
-              className="btn-rs btn-rs-secondary"
+              className="btn-secondary"
               style={{ fontSize: 12 }}
             >
               مشاهده اقدامات اصلاحی این شعبه
@@ -473,24 +473,12 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
                     >
                       {/* Code */}
                       <td style={{ padding: '12px 14px' }}>
-                        <span
-                          className="ltr-code"
-                          style={{
-                            fontSize: 11,
-                            fontWeight: 700,
-                            padding: '2px 6px',
-                            borderRadius: 'var(--rs-radius-control)',
-                            background: 'var(--surface-sunken)',
-                            color: 'var(--theme-text-primary)',
-                          }}
-                        >
-                          {item.indicatorCode}
-                        </span>
+                        <span className="indicator-code-badge">{item.indicatorCode}</span>
                         {item.isRecurring && (
                           <span
                             style={{
                               display: 'block',
-                              fontSize: 10,
+                              fontSize: 11,
                               fontWeight: 700,
                               color: 'var(--friction-medium)',
                               marginTop: 4,

@@ -20,6 +20,7 @@ import {
 import { RetailSolutionsLogo } from '../brand/RetailSolutionsLogo';
 import { VisitSession, UserRole } from '../../types';
 import { faDigits } from '../../utils/format';
+import { CANONICAL_DIMENSIONS } from '../../engine/scoringEngine';
 
 interface LandingPageProps {
   /** False for read-only roles: no entry point to start a visit. */
@@ -88,11 +89,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
 
             <h1 style={{ fontSize: 26, fontWeight: 900, color: 'var(--theme-text-primary)', margin: '0 0 10px', lineHeight: 1.3 }}>
-              سامانه هوشمند ارزیابی اصطکاک و پاداش ریتیل
+              ارزیابی تجربه مشتری در شعب
             </h1>
 
             <p style={{ fontSize: 14, color: 'var(--theme-text-muted)', lineHeight: 1.7, margin: 0 }}>
-              سلام <strong style={{ color: 'var(--theme-text-primary)' }}>{currentUserName}</strong> عزیز، خوش آمدید. آماده اجرای اولین ممیزی میدانی شعب با موتور قطعی قوانین و مدل تحلیلی ۸ بعدی ریتیل سلوشنز هستید.
+              سلام <strong style={{ color: 'var(--theme-text-primary)' }}>{currentUserName}</strong>، خوش آمدید.{' '}
+              {[
+                canStartAudit && 'شروع ارزیابی',
+                canOpenReports && 'گزارش‌ها',
+                canOpenActions && 'پیگیری اصلاحات',
+              ]
+                .filter(Boolean)
+                .join('، ')}{' '}
+              از همین صفحه در دسترس است.
             </p>
 
             {/* Field Status Telemetry Pills */}
@@ -120,10 +129,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
           </div>
 
-          {/* Brand Emblem */}
-          <div style={{ alignSelf: 'center' }}>
-            <RetailSolutionsLogo variant="badge" size="lg" colorScheme="light" />
-          </div>
         </div>
       </section>
 
@@ -200,7 +205,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <h3 style={{ fontSize: 17, fontWeight: 800, color: 'var(--theme-text-primary)', margin: 0 }}>
                     ادامه ارزیابی فعال
                   </h3>
-                  <span style={{ fontSize: 10, background: 'var(--rs-color-success)', color: '#fff', padding: '1px 6px', borderRadius: 4, fontWeight: 800 }}>
+                  <span style={{ fontSize: 11, background: 'var(--rs-color-success)', color: '#fff', padding: '1px 6px', borderRadius: 4, fontWeight: 800 }}>
                     در حال اجرا
                   </span>
                 </div>
@@ -242,7 +247,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   گزارش رسمی و رادار ۳۶۰°
                 </h3>
                 <p style={{ fontSize: 12, color: 'var(--theme-text-muted)', lineHeight: 1.6, margin: 0 }}>
-                  مشاهده نمونه گزارش کامل مدیریتی، تحلیل نمودار عنکبوتی رادار، خروجی PDF رسمی و استخراج فایل اکسل.
+                  آخرین گزارش ارزیابی: امتیاز کل، رادار تجربه مشتری، یافته‌های اولویت‌دار و خروجی PDF و اکسل.
                 </p>
               </div>
 
@@ -280,7 +285,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   کارتابل اقدامات اصلاحی
                 </h3>
                 {actionsCount > 0 && (
-                  <span style={{ fontSize: 10, background: 'rgba(217, 74, 86, 0.15)', color: 'var(--rs-color-error)', padding: '1px 6px', borderRadius: 4, fontWeight: 800 }}>
+                  <span style={{ fontSize: 11, background: 'rgba(217, 74, 86, 0.15)', color: 'var(--rs-color-error)', padding: '1px 6px', borderRadius: 4, fontWeight: 800 }}>
                     {actionsCount} اقدام فعال
                   </span>
                 )}
@@ -367,16 +372,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10 }}>
-          {[
-            { key: 'ACCESS', label: 'دسترسی و ورود', desc: 'دید معبر، ورودی، تابلو و پارکینگ' },
-            { key: 'NAVIGATION', label: 'ناوبری و گردش', desc: 'مسیرهای حرکتی و راهنمای فضا' },
-            { key: 'ENVIRONMENT', label: 'محیط و فضا', desc: 'نور، دما، نظافت و موسیقی' },
-            { key: 'PRODUCT', label: 'کالا و چیدمان', desc: 'ویترین، دسترسی‌پذیری و برچسب قیمت' },
-            { key: 'PEOPLE', label: 'پرسنل و تعامل', desc: 'استقبال، دانش و پوشش کارکنان' },
-            { key: 'SERVICE', label: 'خدمت و تسهیلات', desc: 'اتاق پرو، مشاور فروش و امکانات رفاهی' },
-            { key: 'CHECKOUT', label: 'تسویه و خروج', desc: 'سرعت صندوق، صف و بسته‌بندی' },
-            { key: 'AFTER_SALES', label: 'وفاداری و پس از فروش', desc: 'تعویض کالا، بازخورد و ارتباط پایدار' },
-          ].map((dim, i) => (
+          {CANONICAL_DIMENSIONS.map((d) => ({ key: d.key, label: d.nameFa, desc: d.descriptionFa })).map((dim, i) => (
             <div
               key={dim.key}
               style={{

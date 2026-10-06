@@ -106,13 +106,15 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
   // Create Modal State
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newActionTitle, setNewActionTitle] = useState('');
-  const [newActionCode, setNewActionCode] = useState('FS02');
-  const [newActionBranch, setNewActionBranch] = useState('شعبه ونک');
-  const [newActionBrand, setNewActionBrand] = useState('ZARA');
+  const [newActionCode, setNewActionCode] = useState('');
+  const [newActionBranch, setNewActionBranch] = useState('');
+  const [newActionBrand, setNewActionBrand] = useState('');
   const [newActionDept, setNewActionDept] = useState<ActionDepartment>('Maintenance');
   const [newActionPriority, setNewActionPriority] = useState<CorrectiveActionPriority>('HIGH');
   const [newActionDesc, setNewActionDesc] = useState('');
-  const [newActionDueDate, setNewActionDueDate] = useState('2026-10-01');
+  // Due date as a number of days from today, shown in the Persian calendar;
+  // the browser's date picker is Gregorian-only.
+  const [newActionDueDays, setNewActionDueDays] = useState(7);
 
   // Unique Brands & Branches for Filter Dropdowns
   const brands = useMemo(() => Array.from(new Set(actions.map((a) => a.brandName))), [actions]);
@@ -244,7 +246,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
         {canManageActions && (
           <button
             onClick={() => setShowCreateModal(true)}
-            className="btn-rs btn-rs-primary"
+            className="btn-primary"
             style={{ display: 'flex', alignItems: 'center', gap: 6 }}
           >
             <Plus size={16} />
@@ -268,9 +270,9 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
           tone={analytics.overdueActions > 0 ? 'alarm' : 'default'}
         />
         <StatCard
-          label="اصطکاک‌های بحرانی"
+          label="اقدامات فوری"
           value={faDigits(analytics.criticalActions)}
-          hint="اولویت اول اصلاح"
+          hint="اقدامات با اولویت بحرانی"
           tone={analytics.criticalActions > 0 ? 'alarm' : 'default'}
         />
         <StatCard
@@ -525,26 +527,14 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                     {/* Title & Code */}
                     <td data-label="اقدام" style={{ padding: '12px 14px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span
-                          className="ltr-code"
-                          style={{
-                            fontSize: 11,
-                            fontWeight: 700,
-                            padding: '2px 6px',
-                            background: 'var(--surface-sunken)',
-                            color: 'var(--theme-text-primary)',
-                            borderRadius: 'var(--rs-radius-control)',
-                          }}
-                        >
-                          {action.indicatorCode}
-                        </span>
+                        <span className="indicator-code-badge">{action.indicatorCode}</span>
                         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--theme-text-primary)' }}>
                           {action.title}
                         </span>
                         {action.reopenCount > 0 && (
                           <span
                             style={{
-                              fontSize: 10,
+                              fontSize: 11,
                               fontWeight: 700,
                               background: 'var(--friction-high-bg)',
                               color: 'var(--rs-color-error)',
@@ -641,7 +631,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                         <span>{faDateShort(action.dueDate)}</span>
                       </div>
                       {isOverdue && (
-                        <span style={{ fontSize: 10, color: 'var(--rs-color-error)', fontWeight: 700 }}>
+                        <span style={{ fontSize: 11, color: 'var(--rs-color-error)', fontWeight: 700 }}>
                           منقضی شده
                         </span>
                       )}
@@ -683,7 +673,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                     <td data-label="" style={{ padding: '12px 14px' }}>
                       <button
                         onClick={() => setSelectedAction(action)}
-                        className="btn-rs btn-rs-secondary"
+                        className="btn-secondary"
                         style={{ padding: '5px 10px', fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}
                       >
                         <Eye size={14} />
@@ -737,19 +727,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
             >
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span
-                    className="ltr-code"
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 700,
-                      background: 'var(--surface-sunken)',
-                      color: 'var(--theme-text-primary)',
-                      padding: '2px 8px',
-                      borderRadius: 'var(--rs-radius-control)',
-                    }}
-                  >
-                    {selectedAction.indicatorCode}
-                  </span>
+                  <span className="indicator-code-badge">{selectedAction.indicatorCode}</span>
                   <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--theme-text-primary)' }}>
                     {selectedAction.title}
                   </h2>
@@ -830,6 +808,22 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                 </div>
               </div>
             </div>
+
+            {/* Assignment: priority, owner and due date can change after creation. */}
+            {canManageActions && selectedAction.status !== 'VERIFIED' && selectedAction.status !== 'CANCELLED' && (
+              <AssignmentEditor
+                key={selectedAction.id}
+                action={selectedAction}
+                onSave={(updates) => {
+                  onUpdateAction(selectedAction.id, updates);
+                  setSelectedAction({
+                    ...selectedAction,
+                    ...updates,
+                    ...(updates.owner && selectedAction.status === 'OPEN' ? { status: 'ASSIGNED' as const } : {}),
+                  });
+                }}
+              />
+            )}
 
             {/* Description */}
             {selectedAction.description && (
@@ -974,7 +968,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                   {selectedAction.resolutionNote}
                 </p>
                 {selectedAction.completionDate && (
-                  <div style={{ fontSize: 10, color: 'var(--friction-clean)', marginTop: 4 }}>
+                  <div style={{ fontSize: 11, color: 'var(--friction-clean)', marginTop: 4 }}>
                     تاریخ تکمیل:{' '}
                     {faDateShort(selectedAction.completionDate)}
                   </div>
@@ -999,7 +993,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                 <p style={{ fontSize: 12, color: 'var(--theme-text-primary)' }}>
                   {selectedAction.verificationNote}
                 </p>
-                <div style={{ fontSize: 10, color: 'var(--theme-text-secondary)', marginTop: 4 }}>
+                <div style={{ fontSize: 11, color: 'var(--theme-text-secondary)', marginTop: 4 }}>
                   تاییدکننده: {selectedAction.verifiedBy} در تاریخ{' '}
                   {faDateShort(selectedAction.verifiedAt)}
                 </div>
@@ -1025,7 +1019,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                     }}
                   >
                     <div>{rc.comment}</div>
-                    <div style={{ fontSize: 10, color: 'var(--rs-color-error)', marginTop: 2 }}>
+                    <div style={{ fontSize: 11, color: 'var(--rs-color-error)', marginTop: 2 }}>
                       توسط: {rc.reopenedBy} •{' '}
                       {faDateShort(rc.timestamp)}
                     </div>
@@ -1054,7 +1048,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                 selectedAction.status === 'REOPENED') && (
                 <button
                   onClick={() => setShowResolveModal(true)}
-                  className="btn-rs btn-rs-primary"
+                  className="btn-primary"
                   style={{ display: 'flex', alignItems: 'center', gap: 6 }}
                 >
                   <CheckCircle2 size={16} />
@@ -1070,7 +1064,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                       onVerifyAction(selectedAction.id, 'اصلاح با موفقیت تایید شد.');
                       setSelectedAction(null);
                     }}
-                    className="btn-rs btn-rs-primary"
+                    className="btn-primary"
                     style={{
                       background: 'var(--rs-color-success)',
                       display: 'flex',
@@ -1084,7 +1078,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
 
                   <button
                     onClick={() => setShowReopenModal(true)}
-                    className="btn-rs btn-rs-danger"
+                    className="btn-danger"
                     style={{ display: 'flex', alignItems: 'center', gap: 6 }}
                   >
                     <RotateCcw size={16} />
@@ -1095,7 +1089,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
 
               <button
                 onClick={() => setSelectedAction(null)}
-                className="btn-rs btn-rs-secondary"
+                className="btn-secondary"
               >
                 بستن
               </button>
@@ -1176,7 +1170,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button
                 onClick={() => setShowResolveModal(false)}
-                className="btn-rs btn-rs-secondary"
+                className="btn-secondary"
               >
                 انصراف
               </button>
@@ -1196,7 +1190,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                   setShowResolveModal(false);
                   setSelectedAction(null);
                 }}
-                className="btn-rs btn-rs-primary"
+                className="btn-primary"
               >
                 ثبت و ارسال جهت تایید
               </button>
@@ -1243,7 +1237,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button
                 onClick={() => setShowReopenModal(false)}
-                className="btn-rs btn-rs-secondary"
+                className="btn-secondary"
               >
                 انصراف
               </button>
@@ -1254,7 +1248,7 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                   setShowReopenModal(false);
                   setSelectedAction(null);
                 }}
-                className="btn-rs btn-rs-danger"
+                className="btn-danger"
               >
                 بازگشایی اقدام
               </button>
@@ -1289,25 +1283,50 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
               <div>
                 <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>
-                  کد شاخص
+                  کد شاخص *
                 </label>
                 <input
                   type="text"
                   className="input-rs ltr-code"
+                  placeholder="مثلاً FS01"
                   value={newActionCode}
                   onChange={(e) => setNewActionCode(e.target.value)}
                 />
               </div>
               <div>
                 <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>
-                  نام شعبه
+                  نام شعبه *
                 </label>
                 <input
                   type="text"
                   className="input-rs"
+                  list="rs-branch-options"
+                  placeholder="مثلاً شعبه مرکزی"
                   value={newActionBranch}
                   onChange={(e) => setNewActionBranch(e.target.value)}
                 />
+                <datalist id="rs-branch-options">
+                  {branches.map((b) => (
+                    <option key={b} value={b} />
+                  ))}
+                </datalist>
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>
+                  برند
+                </label>
+                <input
+                  type="text"
+                  className="input-rs"
+                  list="rs-brand-options"
+                  value={newActionBrand}
+                  onChange={(e) => setNewActionBrand(e.target.value)}
+                />
+                <datalist id="rs-brand-options">
+                  {brands.map((b) => (
+                    <option key={b} value={b} />
+                  ))}
+                </datalist>
               </div>
             </div>
 
@@ -1363,12 +1382,17 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
               <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>
                 مهلت انجام
               </label>
-              <input
-                type="date"
-                className="input-rs ltr-code"
-                value={newActionDueDate}
-                onChange={(e) => setNewActionDueDate(e.target.value)}
-              />
+              <select
+                className="select-rs"
+                value={newActionDueDays}
+                onChange={(e) => setNewActionDueDays(Number(e.target.value))}
+              >
+                {[3, 7, 14, 30, 60].map((d) => (
+                  <option key={d} value={d}>
+                    {faDigits(d)} روز دیگر ({faDateShort(new Date(Date.now() + d * 86400000).toISOString())})
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div style={{ marginBottom: 16 }}>
@@ -1387,12 +1411,12 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="btn-rs btn-rs-secondary"
+                className="btn-secondary"
               >
                 انصراف
               </button>
               <button
-                disabled={!newActionTitle.trim()}
+                disabled={!newActionTitle.trim() || !newActionCode.trim() || !newActionBranch.trim()}
                 onClick={() => {
                   onCreateAction({
                     title: newActionTitle.trim(),
@@ -1401,12 +1425,12 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
                     brandName: newActionBrand.trim(),
                     department: newActionDept,
                     priority: newActionPriority,
-                    dueDate: new Date(newActionDueDate).toISOString(),
+                    dueDate: new Date(Date.now() + newActionDueDays * 86400000).toISOString(),
                     description: newActionDesc.trim(),
                   });
                   setShowCreateModal(false);
                 }}
-                className="btn-rs btn-rs-primary"
+                className="btn-primary"
               >
                 ایجاد اقدام
               </button>
@@ -1414,6 +1438,69 @@ export const CorrectiveActionsHub: React.FC<CorrectiveActionsHubProps> = ({
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+/** Edits who does an action, how urgent it is and by when. */
+const AssignmentEditor: React.FC<{
+  action: CorrectiveAction;
+  onSave: (updates: Partial<CorrectiveAction>) => void;
+}> = ({ action, onSave }) => {
+  const [priority, setPriority] = useState<CorrectiveActionPriority>(action.priority);
+  const [owner, setOwner] = useState(action.owner || '');
+  const [dueDays, setDueDays] = useState<number | ''>('');
+  const [saved, setSaved] = useState(false);
+  const dirty = priority !== action.priority || owner.trim() !== (action.owner || '') || dueDays !== '';
+
+  return (
+    <div className="assign-editor">
+      <h4>تخصیص و اولویت</h4>
+      <div className="assign-editor__grid">
+        <label className="auth-field">
+          <span className="auth-label">اولویت</span>
+          <select className="select-rs" value={priority} onChange={(e) => setPriority(e.target.value as CorrectiveActionPriority)}>
+            <option value="CRITICAL">بحرانی</option>
+            <option value="HIGH">بالا</option>
+            <option value="MEDIUM">متوسط</option>
+            <option value="LOW">پایین</option>
+          </select>
+        </label>
+        <label className="auth-field">
+          <span className="auth-label">مسئول انجام</span>
+          <input className="input-rs" value={owner} placeholder="نام مسئول" onChange={(e) => setOwner(e.target.value)} />
+        </label>
+        <label className="auth-field">
+          <span className="auth-label">مهلت جدید</span>
+          <select
+            className="select-rs"
+            value={dueDays}
+            onChange={(e) => setDueDays(e.target.value === '' ? '' : Number(e.target.value))}
+          >
+            <option value="">بدون تغییر ({faDateShort(action.dueDate)})</option>
+            {[3, 7, 14, 30, 60].map((d) => (
+              <option key={d} value={d}>
+                {faDigits(d)} روز دیگر ({faDateShort(new Date(Date.now() + d * 86400000).toISOString())})
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <button
+        type="button"
+        className="btn-primary"
+        disabled={!dirty}
+        onClick={() => {
+          const updates: Partial<CorrectiveAction> = { priority };
+          if (owner.trim() !== (action.owner || '')) updates.owner = owner.trim();
+          if (dueDays !== '') updates.dueDate = new Date(Date.now() + dueDays * 86400000).toISOString();
+          onSave(updates);
+          setDueDays('');
+          setSaved(true);
+        }}
+      >
+        {saved && !dirty ? 'ذخیره شد' : 'ذخیرهٔ تخصیص'}
+      </button>
     </div>
   );
 };
