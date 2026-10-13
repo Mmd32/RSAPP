@@ -626,6 +626,11 @@ export function generateDynamicChecklistWithAudit(
   const conflictsLogged: { ruleA: string; ruleB: string; resolvedPriority: number; outcome: string }[] = [];
 
   allIndicators.forEach((ind) => {
+    // Archived indicators stay in the catalog for old visits but are never asked again.
+    if (ind.status === 'ARCHIVED') {
+      excluded.push({ code: ind.code, ruleId: 'ARCHIVED', reason: 'شاخص بایگانی شده است' });
+      return;
+    }
     const exp = explainIndicatorApplicability(profile, ind);
     if (exp.contextRulesEvaluated.length > 0) {
       rulesEvaluated.push(...exp.contextRulesEvaluated);
