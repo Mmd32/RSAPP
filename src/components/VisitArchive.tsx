@@ -21,6 +21,8 @@ interface VisitArchiveProps {
   loadError: string | null;
   onRefresh: () => void;
   onOpenVisit: (visit: VisitSession) => void;
+  /** Without report access a finished questionnaire is listed but not opened, and no score is shown. */
+  canViewReports?: boolean;
 }
 
 const STATUS_LABELS: Record<VisitStatus, string> = {
@@ -61,6 +63,7 @@ export const VisitArchive: React.FC<VisitArchiveProps> = ({
   loadError,
   onRefresh,
   onOpenVisit,
+  canViewReports = true,
 }) => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<VisitStatus | 'ALL'>('ALL');
@@ -196,7 +199,7 @@ export const VisitArchive: React.FC<VisitArchiveProps> = ({
                     <AlertTriangle size={14} />
                     {frictions} اصطکاک
                   </span>
-                  {visit.status !== 'IN_PROGRESS' && (
+                  {visit.status !== 'IN_PROGRESS' && canViewReports && (
                     <span className="archive-stat">
                       <CheckCircle2 size={14} />
                       امتیاز {faDigits(Math.round(getVisitScore(visit)))}
@@ -204,10 +207,20 @@ export const VisitArchive: React.FC<VisitArchiveProps> = ({
                   )}
                 </div>
 
-                <button type="button" className="archive-open" onClick={() => onOpenVisit(visit)}>
-                  <PlayCircle size={16} />
-                  {visit.status === 'IN_PROGRESS' ? 'ادامهٔ تکمیل' : 'مشاهدهٔ پرسشنامه'}
-                </button>
+                {!canViewReports && (visit.status === 'SUBMITTED' || visit.status === 'APPROVED') ? (
+                  <span className="archive-locked">
+                    {visit.status === 'SUBMITTED' ? 'ارسال شد؛ در انتظار بررسی سرپرست' : 'تأیید شد'}
+                  </span>
+                ) : (
+                  <button type="button" className="archive-open" onClick={() => onOpenVisit(visit)}>
+                    <PlayCircle size={16} />
+                    {visit.status === 'IN_PROGRESS'
+                      ? 'ادامهٔ تکمیل'
+                      : visit.status === 'REVISION_REQUESTED' && !canViewReports
+                        ? 'اصلاح پرسشنامه'
+                        : 'مشاهدهٔ پرسشنامه'}
+                  </button>
+                )}
               </article>
             );
           })}

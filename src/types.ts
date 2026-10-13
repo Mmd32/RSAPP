@@ -83,6 +83,8 @@ export interface SavedStoreDirectoryItem {
   id: string;
   brandName: string;
   branchName: string;
+  /** Short branch code (e.g. TEH-03), optional. */
+  branchCode?: string;
   assessmentType: AssessmentType;
   businessType?: BusinessTypeCode;
   locationContext: LocationContextCode;
@@ -220,6 +222,7 @@ export interface VisitSession {
   visitCode: string;
   brandName: string;
   branchName: string;
+  branchCode?: string;
   assessmentType: AssessmentType;
   businessType?: BusinessTypeCode;
   locationContext: LocationContextCode;
@@ -227,6 +230,8 @@ export interface VisitSession {
   mallType?: MallTypeCode;
   attributes: StoreAttributes;
   auditorName: string;
+  /** Evaluator code, stamped by the server from the author's account. */
+  evaluatorCode?: string | null;
   supervisorName: string;
   startedAt: string;
   completedAt?: string;

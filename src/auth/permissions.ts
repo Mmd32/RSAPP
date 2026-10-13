@@ -87,7 +87,8 @@ export const ROLE_DEFAULT_PERMISSIONS: Record<string, Permission[]> = {
     'actions.verify',
     'catalog.manage',
   ],
-  Evaluator: ['visits.fill', 'reports.view', 'actions.view', 'actions.verify'],
+  // Field evaluators only record; reports are for the project and the brand.
+  Evaluator: ['visits.fill'],
   Manager: ['visits.viewAll', 'reports.view', 'actions.view', 'actions.manage', 'actions.resolve'],
   Owner: ['visits.viewAll', 'reports.view', 'actions.view', 'actions.resolve'],
   Verifier: ['visits.viewAll', 'reports.view', 'actions.view', 'actions.verify'],

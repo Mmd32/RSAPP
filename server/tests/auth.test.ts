@@ -153,14 +153,14 @@ try {
   console.log('user management');
 
   await test('admin creates users with one-time passwords', async () => {
-    const make = async (name: string, email: string, role: string) => {
-      const r = await admin.req('POST', '/users', { name, email, role });
+    const make = async (name: string, email: string, role: string, code?: string) => {
+      const r = await admin.req('POST', '/users', { name, email, role, ...(code ? { code } : {}) });
       assert.equal(r.status, 201, JSON.stringify(r.json));
       assert.equal(r.json.user.mustChangePassword, true);
       assert.ok(r.json.temporaryPassword.length >= 8);
       return r.json.temporaryPassword as string;
     };
-    evaluatorPassword = await make('ارزیاب یک', 'e1@test.ir', 'Evaluator');
+    evaluatorPassword = await make('ارزیاب یک', 'e1@test.ir', 'Evaluator', 'ev-01');
     const p2 = await make('ارزیاب دو', 'e2@test.ir', 'Evaluator');
     const p3 = await make('سرپرست', 's1@test.ir', 'Supervisor');
     const p4 = await make('مدیر شعبه', 'm1@test.ir', 'Manager');
@@ -178,6 +178,19 @@ try {
   await test('duplicate email and bad role are refused', async () => {
     assert.equal((await admin.req('POST', '/users', { name: 'تکراری', email: 'E1@test.ir', role: 'Evaluator' })).status, 409);
     assert.equal((await admin.req('POST', '/users', { name: 'نقش بد', email: 'z@test.ir', role: 'God' })).status, 400);
+  });
+
+  await test('evaluator codes are validated, unique and editable', async () => {
+    const users = (await admin.req('GET', '/users')).json;
+    const e1 = users.find((u: any) => u.email === 'e1@test.ir');
+    assert.equal(e1.code, 'EV-01', 'stored upper-case');
+    assert.equal((await admin.req('POST', '/users', { name: 'کد تکراری', email: 'c1@test.ir', role: 'Evaluator', code: 'EV-01' })).status, 409);
+    assert.equal((await admin.req('POST', '/users', { name: 'کد بد', email: 'c2@test.ir', role: 'Evaluator', code: 'کد فارسی' })).status, 400);
+    const e2 = users.find((u: any) => u.email === 'e2@test.ir');
+    assert.equal((await admin.req('PATCH', `/users/${e2.id}`, { code: 'EV-01' })).status, 409);
+    const r = await admin.req('PATCH', `/users/${e2.id}`, { code: 'EV-02' });
+    assert.equal(r.status, 200);
+    assert.equal(r.json.user.code, 'EV-02');
   });
 
   await test('non-admins cannot manage users', async () => {
@@ -204,6 +217,7 @@ try {
     assert.equal(saved.auditorName, 'ارزیاب یک'); // names and ownership come from the account
     assert.notEqual(saved.evaluatorId, 'someone-else');
     assert.equal(saved.tenantId, 'org_retail_holding');
+    assert.equal(saved.evaluatorCode, 'EV-01', 'evaluator code comes from the account');
   });
 
   await test('other evaluators cannot see or overwrite it', async () => {

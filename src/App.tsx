@@ -75,6 +75,9 @@ import { stageLabel } from './utils/format';
 const VisitReportView = React.lazy(() =>
   import('./components/VisitReportView').then((m) => ({ default: m.VisitReportView }))
 );
+const BusinessReportView = React.lazy(() =>
+  import('./components/BusinessReportView').then((m) => ({ default: m.BusinessReportView }))
+);
 const CorrectiveActionsHub = React.lazy(() =>
   import('./components/CorrectiveActionsHub').then((m) => ({ default: m.CorrectiveActionsHub }))
 );
@@ -128,6 +131,7 @@ type ViewMode =
   | 'REVIEW'
   | 'SUPERVISOR'
   | 'REPORT'
+  | 'BUSINESS'
   | 'CATALOG'
   | 'SCENARIOS'
   | 'ACTIONS'
@@ -264,6 +268,7 @@ export const App: React.FC = () => {
         'REVIEW',
         'SUPERVISOR',
         'REPORT',
+        'BUSINESS',
         'CATALOG',
         'SCENARIOS',
         'ACTIONS',
@@ -298,7 +303,10 @@ export const App: React.FC = () => {
     // Engineering tool: not in the menu, reachable by administrators at #scenarios.
     if (mode === 'SCENARIOS') return can.manageUsers;
     if (mode === 'USERS') return can.manageUsers;
-    if (mode === 'REPORT' || mode === 'ARCHIVE' || mode === 'REVISIT') return can.reports || can.fieldWork;
+    // Field evaluators only record: the archive lists their own questionnaires,
+    // reports and comparisons are for people with report access.
+    if (mode === 'ARCHIVE') return can.reports || can.fieldWork;
+    if (mode === 'REPORT' || mode === 'REVISIT' || mode === 'BUSINESS') return can.reports;
     if (mode === 'ACTIONS') return can.actions;
     return true;
   };
@@ -327,10 +335,13 @@ export const App: React.FC = () => {
         'REVIEW',
         'SUPERVISOR',
         'REPORT',
+        'BUSINESS',
         'CATALOG',
         'SCENARIOS',
         'ACTIONS',
         'REVISIT',
+        'ARCHIVE',
+        'USERS',
       ];
       if (validModes.includes(hash as ViewMode)) {
         setViewModeState(hash as ViewMode);
@@ -485,6 +496,8 @@ export const App: React.FC = () => {
   // the API is unreachable, so they never mix with real ones.
   useEffect(() => {
     let cancelled = false;
+    // People without access to corrective actions would only get a refusal.
+    if (!can.actions) return;
 
     apiFetch('/actions')
       .then((res) => (res.ok ? res.json() : null))
@@ -499,8 +512,8 @@ export const App: React.FC = () => {
     return () => {
       cancelled = true;
     };
-    // Re-fetch when the active tenant changes.
-  }, [currentTenantId]);
+    // Re-fetch when the active tenant or the person's access changes.
+  }, [currentTenantId, can.actions]);
 
   // Load previously saved questionnaires so finished visits are reachable
   // again. Without this they were written to the backend but never read back.
@@ -873,7 +886,7 @@ export const App: React.FC = () => {
     setResumeCandidate(null);
     if (visit.status === 'SUBMITTED' && can.review) setViewMode('SUPERVISOR');
     else if ((visit.status === 'IN_PROGRESS' || visit.status === 'REVISION_REQUESTED') && can.fieldWork) setViewMode('AUDIT');
-    else setViewMode('REPORT');
+    else setViewMode(can.reports ? 'REPORT' : 'ARCHIVE');
   };
 
   const handleSubmitVisit = () => {
@@ -887,7 +900,8 @@ export const App: React.FC = () => {
     saveVisitState(updated);
     // Submitting is a milestone: push it now rather than waiting for the debounce.
     VisitSync.flush(currentTenantId).then(loadPastVisits);
-    setViewMode('SUPERVISOR');
+    // Evaluators only record: after sending, they go back to their list.
+    setViewMode(can.review ? 'SUPERVISOR' : 'ARCHIVE');
   };
 
   const handleApproveVisit = (
@@ -1126,6 +1140,7 @@ export const App: React.FC = () => {
               {viewMode === 'REVIEW' && 'کنترل کیفیت و مرور پاسخ‌ها'}
               {viewMode === 'SUPERVISOR' && 'کارتابل سرپرست ارزیابی'}
               {viewMode === 'REPORT' && 'گزارش تحلیلی و رادار ۳۶۰°'}
+              {viewMode === 'BUSINESS' && 'گزارش کل کسب‌وکار'}
               {viewMode === 'REVISIT' && 'تحلیل مقایسه‌ای و پایش بهبود'}
               {viewMode === 'ACTIONS' && 'کارتابل پیگیری اقدامات اصلاحی'}
               {viewMode === 'CATALOG' && 'بانک جامع شاخص‌های استاندارد'}
@@ -1299,7 +1314,7 @@ export const App: React.FC = () => {
         {viewMode === 'LANDING' && (
           <LandingPage
             canStartAudit={can.fieldWork}
-            canOpenReports={can.reports || can.fieldWork}
+            canOpenReports={can.reports}
             canOpenActions={can.actions}
             currentUserName={currentUserName}
             currentUserRole={currentUserRole}
@@ -1713,8 +1728,11 @@ export const App: React.FC = () => {
               loadError={visitsLoadError}
               onRefresh={loadPastVisits}
               onOpenVisit={handleOpenArchivedVisit}
+              canViewReports={can.reports}
             />
           )}
+
+          {viewMode === 'BUSINESS' && <BusinessReportView visits={pastVisits} isLoading={isLoadingVisits} />}
 
           {/* REVISIT HISTORICAL COMPARISON VIEW (Prompt 4) */}
           {viewMode === 'REVISIT' && (
@@ -1793,7 +1811,7 @@ export const App: React.FC = () => {
           actionsCount={actions.length}
           onOpenMobileMenu={() => setIsMobileSidebarOpen(true)}
           canFieldWork={can.fieldWork}
-          canReports={can.reports || can.fieldWork}
+          canReports={can.reports}
           canActions={can.actions}
         />
       </div>

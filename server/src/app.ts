@@ -475,6 +475,12 @@ app.post(
         existing?.evaluatorId || (hasPermission(user, 'visits.review') ? visitData.evaluatorId || user.id : user.id),
       auditorName:
         existing?.auditorName || (hasPermission(user, 'visits.review') ? visitData.auditorName || user.name : user.name),
+      // The evaluator code follows the author; it is taken when the visit is first saved.
+      evaluatorCode: existing
+        ? existing.evaluatorCode ?? null
+        : hasPermission(user, 'visits.review')
+          ? (typeof visitData.evaluatorCode === 'string' && visitData.evaluatorCode) || user.code || null
+          : user.code || null,
       ...(reviewed
         ? { supervisorId: user.id, supervisorName: user.name, reviewedAt: new Date().toISOString() }
         : {}),

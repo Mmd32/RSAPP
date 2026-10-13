@@ -73,6 +73,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
   const [assessmentType, setAssessmentType] = useState<AssessmentType>('STORE');
   const [brandName, setBrandName] = useState('زارا');
   const [branchName, setBranchName] = useState('');
+  const [branchCode, setBranchCode] = useState('');
   const [businessType, setBusinessType] = useState<BusinessTypeCode>('Fashion');
   const [mallType, setMallType] = useState<MallTypeCode>('Regional');
   const [locationContext, setLocationContext] = useState<LocationContextCode>('STREET_STORE');
@@ -112,6 +113,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
     setSelectedStoreId(store.id);
     setBrandName(store.brandName);
     setBranchName(store.branchName);
+    setBranchCode(store.branchCode || '');
     setAssessmentType(store.assessmentType);
     if (store.businessType) setBusinessType(store.businessType);
     if (store.mallType) setMallType(store.mallType);
@@ -177,6 +179,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
       await StoreService.saveStore({
         brandName,
         branchName,
+        ...(branchCode.trim() ? { branchCode: branchCode.trim().toUpperCase() } : {}),
         assessmentType,
         businessType: assessmentType === 'STORE' ? businessType : undefined,
         mallType: assessmentType === 'MALL' ? mallType : undefined,
@@ -194,6 +197,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
       visitCode: `VST-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
       brandName,
       branchName,
+      ...(branchCode.trim() ? { branchCode: branchCode.trim().toUpperCase() } : {}),
       assessmentType,
       businessType: assessmentType === 'STORE' ? businessType : undefined,
       locationContext,
@@ -645,6 +649,22 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                   className="friction-textarea"
                   style={{ minHeight: 44, padding: '10px 14px', fontSize: 14 }}
                   placeholder="مثلاً: شعبه خیابان ولیعصر، طبقه G1 کوروش..."
+                />
+              </div>
+
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
+                  کد شعبه (اختیاری):
+                </label>
+                <input
+                  type="text"
+                  dir="ltr"
+                  value={branchCode}
+                  maxLength={20}
+                  onChange={(e) => setBranchCode(e.target.value.toUpperCase())}
+                  className="friction-textarea"
+                  style={{ minHeight: 44, padding: '10px 14px', fontSize: 14, textAlign: 'left' }}
+                  placeholder="TEH-01"
                 />
               </div>
 

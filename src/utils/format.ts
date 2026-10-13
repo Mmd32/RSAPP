@@ -142,6 +142,7 @@ const STORE_PROFILE_LABEL: Record<string, string> = {
   Entertainment: 'سرگرمی و اسباب‌بازی',
   Sports: 'لوازم ورزشی',
   Specialty: 'کالای تخصصی',
+  Services: 'خدمات و پشتیبانی',
   // Mall type
   SM: 'مرکز خرید محلی',
   Neighborhood: 'مرکز تجاری محله‌ای',
@@ -158,11 +159,11 @@ export function profileLabel(code: string | undefined | null): string {
 
 /** Persian names for the indicator groups that the store catalog stores in English. */
 const GROUP_LABEL: Record<string, string> = {
-  FLOOR: 'سالن فروش',
-  TEAM: 'کارکنان',
-  PRODUCT: 'کالا',
+  FLOOR: 'محوطه فروشگاه',
+  TEAM: 'تیم فروشگاه',
+  PRODUCT: 'محصول',
   CASH: 'صندوق',
-  SERVICES: 'خدمات',
+  SERVICES: 'کیفیت سرویس',
 };
 
 export function groupLabel(group: string | undefined | null): string {

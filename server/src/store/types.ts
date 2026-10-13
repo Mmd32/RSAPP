@@ -29,6 +29,8 @@ export interface StoredUser {
   email: string;
   name: string;
   role: string;
+  /** Short evaluator code shown on questionnaires and reports (e.g. EV-07). */
+  code?: string | null;
   /** Explicit permission list; null/absent means the role's defaults. */
   permissions?: string[] | null;
   passwordHash: string;

@@ -106,6 +106,7 @@ const AccessPanel: React.FC<{
   onSaved: (u: AuthUser) => void;
 }> = ({ user, isMe, onSaved }) => {
   const [name, setName] = useState(user.name);
+  const [code, setCode] = useState(user.code || '');
   const [role, setRole] = useState<Role>(user.role);
   const [perms, setPerms] = useState<Permission[]>(user.permissions);
   const [busy, setBusy] = useState(false);
@@ -113,7 +114,8 @@ const AccessPanel: React.FC<{
   const [saved, setSaved] = useState(false);
 
   const roleDefaults = ROLE_DEFAULT_PERMISSIONS[role] || [];
-  const dirty = name.trim() !== user.name || role !== user.role || !sameSet(perms, user.permissions);
+  const codeChanged = code.trim().toUpperCase() !== (user.code || '');
+  const dirty = name.trim() !== user.name || codeChanged || role !== user.role || !sameSet(perms, user.permissions);
 
   const pickRole = (r: Role) => {
     setRole(r);
@@ -127,6 +129,7 @@ const AccessPanel: React.FC<{
     try {
       const updated = await AuthService.updateUser(user.id, {
         ...(name.trim() !== user.name ? { name: name.trim() } : {}),
+        ...(codeChanged ? { code: code.trim() } : {}),
         ...(role !== user.role ? { role } : {}),
         permissions: sameSet(perms, roleDefaults) ? null : perms,
       });
@@ -145,6 +148,17 @@ const AccessPanel: React.FC<{
         <label className="auth-field">
           <span className="auth-label">نام</span>
           <input className="input-rs" value={name} onChange={(e) => setName(e.target.value)} />
+        </label>
+        <label className="auth-field">
+          <span className="auth-label">کد ارزیاب</span>
+          <input
+            className="input-rs"
+            dir="ltr"
+            value={code}
+            maxLength={20}
+            placeholder="EV-01"
+            onChange={(e) => setCode(e.target.value.toUpperCase())}
+          />
         </label>
         <label className="auth-field">
           <span className="auth-label">قالب دسترسی (نقش)</span>
@@ -186,6 +200,7 @@ export const UserManagement: React.FC<Props> = ({ currentUserId, onSelfUpdated }
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
   const [role, setRole] = useState<Role>('Evaluator');
   const [perms, setPerms] = useState<Permission[]>([...ROLE_DEFAULT_PERMISSIONS.Evaluator]);
   const [showNewPerms, setShowNewPerms] = useState(false);
@@ -215,12 +230,14 @@ export const UserManagement: React.FC<Props> = ({ currentUserId, onSelfUpdated }
         name: name.trim(),
         email: email.trim(),
         role,
+        ...(code.trim() ? { code: code.trim() } : {}),
         permissions: perms,
       });
       setUsers((prev) => [...(prev || []), user]);
       setNotice({ user, password: temporaryPassword });
       setName('');
       setEmail('');
+      setCode('');
       setRole('Evaluator');
       setPerms([...ROLE_DEFAULT_PERMISSIONS.Evaluator]);
       setShowNewPerms(false);
@@ -271,6 +288,18 @@ export const UserManagement: React.FC<Props> = ({ currentUserId, onSelfUpdated }
           <label className="auth-field">
             <span className="auth-label">ایمیل (نام کاربری)</span>
             <input className="input-rs" type="email" dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          </label>
+          <label className="auth-field">
+            <span className="auth-label">کد ارزیاب (اختیاری)</span>
+            <input
+              className="input-rs"
+              dir="ltr"
+              value={code}
+              maxLength={20}
+              placeholder="EV-01"
+              onChange={(e) => setCode(e.target.value.toUpperCase())}
+            />
+            <span className="auth-hint">روی پرسشنامه‌ها و گزارش‌های این نفر می‌آید.</span>
           </label>
           <label className="auth-field">
             <span className="auth-label">قالب دسترسی (نقش)</span>
@@ -339,6 +368,11 @@ export const UserManagement: React.FC<Props> = ({ currentUserId, onSelfUpdated }
                       </span>
                       <span className="users-row__meta">
                         <span className="users-role">{ROLE_LABEL[u.role]}</span>
+                        {u.code && (
+                          <span className="users-code" dir="ltr">
+                            {u.code}
+                          </span>
+                        )}
                         {u.customPermissions && <span className="users-custom">دسترسی سفارشی</span>}
                         <span>
                           {!u.isActive

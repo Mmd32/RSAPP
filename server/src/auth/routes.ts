@@ -65,6 +65,7 @@ export function publicUser(u: StoredUser) {
     email: u.email,
     name: u.name,
     role: u.role,
+    code: u.code ?? null,
     permissions: effectivePermissions(u),
     customPermissions: isCustomised(u.role, u.permissions),
     isActive: u.isActive,
@@ -77,6 +78,17 @@ export function publicUser(u: StoredUser) {
 const isEmail = (v: unknown): v is string =>
   typeof v === 'string' && v.length <= 200 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 const isName = (v: unknown): v is string => typeof v === 'string' && v.trim().length >= 2 && v.length <= 100;
+/** Evaluator code: letters, digits, dash or underscore; empty clears it. */
+const parseCode = (v: unknown): string | null | 'invalid' => {
+  if (v === undefined || v === null || v === '') return null;
+  if (typeof v !== 'string') return 'invalid';
+  const code = v.trim().toUpperCase();
+  if (!code) return null;
+  return /^[A-Z0-9_-]{1,20}$/.test(code) ? code : 'invalid';
+};
+const CODE_ERROR = 'کد ارزیاب فقط حروف انگلیسی، عدد، خط تیره یا زیرخط و حداکثر ۲۰ نویسه است.';
+const CODE_TAKEN = 'این کد ارزیاب به نفر دیگری داده شده است.';
+
 const isRole = (v: unknown): v is Role => typeof v === 'string' && (ROLES as readonly string[]).includes(v);
 
 async function startSession(store: DataStore, req: Request, res: Response, user: StoredUser) {
@@ -258,7 +270,7 @@ export function registerAuthRoutes(app: Express, getStore: () => DataStore) {
         return res.status(401).json(generic);
       }
       if (!user.isActive) {
-        return res.status(403).json({ error: 'این حساب غیرفعال شده است. با مدیر سامانه تماس بگیرید.' });
+        return res.status(403).json({ error: 'این حساب غیرفعال شده است. با مسئول پروژه تماس بگیرید.' });
       }
 
       const updated: StoredUser = {
@@ -336,6 +348,11 @@ export function registerAuthRoutes(app: Express, getStore: () => DataStore) {
       if (!isName(name)) return res.status(400).json({ error: 'نام را کامل وارد کنید.' });
       if (!isEmail(email)) return res.status(400).json({ error: 'ایمیل معتبر نیست.' });
       if (!isRole(role)) return res.status(400).json({ error: 'نقش انتخاب‌شده معتبر نیست.' });
+      const code = parseCode(req.body?.code);
+      if (code === 'invalid') return res.status(400).json({ error: CODE_ERROR });
+      if (code && (await store.listUsers(req.user!.tenantId)).some((u) => u.code === code)) {
+        return res.status(409).json({ error: CODE_TAKEN });
+      }
       const parsed = permissions === undefined ? null : parsePermissions(permissions);
       if (parsed === 'invalid') return res.status(400).json({ error: 'فهرست دسترسی‌ها معتبر نیست.' });
       if (await store.getUserByEmail(email)) {
@@ -352,6 +369,7 @@ export function registerAuthRoutes(app: Express, getStore: () => DataStore) {
       });
       // Store an explicit list only when it differs from the role template.
       user.permissions = parsed && isCustomised(role, parsed) ? parsed : null;
+      user.code = code;
       await store.saveUser(user);
       logger.security('User created', { by: req.user!.id, userId: user.id, role });
       // The temporary password is shown to the admin once and never stored in clear.
@@ -396,6 +414,14 @@ export function registerAuthRoutes(app: Express, getStore: () => DataStore) {
       if (role !== undefined) {
         if (!isRole(role)) return res.status(400).json({ error: 'نقش انتخاب‌شده معتبر نیست.' });
         changes.role = role;
+      }
+      if (req.body?.code !== undefined) {
+        const code = parseCode(req.body.code);
+        if (code === 'invalid') return res.status(400).json({ error: CODE_ERROR });
+        if (code && (await getStore().listUsers(target.tenantId)).some((u) => u.code === code && u.id !== target.id)) {
+          return res.status(409).json({ error: CODE_TAKEN });
+        }
+        changes.code = code;
       }
       if (isActive !== undefined) {
         if (typeof isActive !== 'boolean') return res.status(400).json({ error: 'وضعیت نامعتبر است.' });
