@@ -178,7 +178,11 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[] }> = ({ indicators }) =
   );
 };
 
-export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators }) => {
+export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators: allIndicators }) => {
+  // Archived indicators are kept for old visits only; the bank lists what is asked today.
+  const indicators = useMemo(() => allIndicators.filter((i) => i.status !== 'ARCHIVED'), [allIndicators]);
+  const storeCount = indicators.filter((i) => i.template === 'STORE').length;
+  const mallCount = indicators.filter((i) => i.template === 'MALL').length;
   const [templateFilter, setTemplateFilter] = useState<'ALL' | 'STORE' | 'MALL'>('ALL');
   const [selectedGroup, setSelectedGroup] = useState<string>('ALL');
   const [filterNeedsReview, setFilterNeedsReview] = useState<boolean>(false);
@@ -222,7 +226,7 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
             <div>
               <h2 style={{ fontSize: 20, fontWeight: 700 }}>بانک مرکزی شاخص‌ها و موتور قوانین</h2>
               <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-                مدیریت {indicators.length} شاخص استخراج‌شده از فایلهای مرجع اکسل بدون نیاز به تغییر در کد
+                مدیریت {faDigits(indicators.length)} شاخص فعال بدون نیاز به تغییر در کد
               </p>
             </div>
           </div>
@@ -239,7 +243,7 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
                 border: '1px solid rgba(0, 176, 240, 0.25)',
               }}
             >
-              ۲۵۵ فروشگاه • ۲۲۶ مرکز خرید
+              {faDigits(storeCount)} فروشگاه • {faDigits(mallCount)} مرکز خرید
             </span>
           </div>
         </div>
