@@ -6,6 +6,7 @@ import { AuthGate } from './auth/AuthGate';
 import './index.css';
 // Loaded last so the component system wins on the cascade.
 import './styles/system.css';
+import './styles/refresh.css';
 
 // Apply the saved theme before the first paint, so the login screen matches
 // the app instead of flashing the dark default.

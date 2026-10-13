@@ -257,7 +257,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
           {/* GROUP 2: INTELLIGENCE & REPORTING */}
           <div className="sidebar-nav-group">
             {!isCollapsed && (
-              <span className="sidebar-group-heading">هوش تجاری و رادار</span>
+              <span className="sidebar-group-heading">گزارش‌ها</span>
             )}
 
             {can.reports && (
@@ -331,7 +331,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
           {/* GROUP 3: ACTION MANAGEMENT */}
           <div className="sidebar-nav-group">
             {!isCollapsed && (
-              <span className="sidebar-group-heading">چرخه بهبود مستمر</span>
+              <span className="sidebar-group-heading">پیگیری</span>
             )}
 
             <button
@@ -365,7 +365,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
           {/* GROUP 4: ADVANCED TOOLS */}
           <div className="sidebar-nav-group">
             {!isCollapsed && (
-              <span className="sidebar-group-heading">تنظیمات و ابزارها</span>
+              <span className="sidebar-group-heading">مدیریت</span>
             )}
 
             <button

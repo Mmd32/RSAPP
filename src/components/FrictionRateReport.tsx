@@ -42,7 +42,11 @@ const assessable = (r: FrictionRateRow) => r.indicators - r.notApplicable;
 
 /* --- Zone table ------------------------------------------------------------ */
 
-const ZoneTable: React.FC<{ zones: FrictionRateRow[]; total: FrictionRateRow }> = ({ zones, total }) => (
+const ZoneTable: React.FC<{ zones: FrictionRateRow[]; total: FrictionRateRow; totalLabel?: string }> = ({
+  zones,
+  total,
+  totalLabel = 'کل فروشگاه',
+}) => (
   <div className="fr-table-wrap">
     <table className="fr-table">
       <thead>
@@ -70,7 +74,7 @@ const ZoneTable: React.FC<{ zones: FrictionRateRow[]; total: FrictionRateRow }> 
       </tbody>
       <tfoot>
         <tr>
-          <th scope="row">کل فروشگاه</th>
+          <th scope="row">{totalLabel}</th>
           <td className="ltr-num">{faDigits(total.indicators)}</td>
           <td className="ltr-num">{faDigits(total.frictions)}</td>
           <td className="ltr-num">{faDigits(total.notApplicable)}</td>
@@ -232,12 +236,13 @@ const RateBars: React.FC<{ items: BarItem[]; ariaLabel: string }> = ({ items, ar
 /* --- Sections -------------------------------------------------------------- */
 
 /** Report 1: zone table + radar, highest-friction zone at the top, clockwise down. */
-export const ZoneSection: React.FC<{ rate: StoreFrictionRate; title: string; headline: string; id: string }> = ({
-  rate,
-  title,
-  headline,
-  id,
-}) => (
+export const ZoneSection: React.FC<{
+  rate: StoreFrictionRate;
+  title: string;
+  headline: string;
+  id: string;
+  totalLabel?: string;
+}> = ({ rate, title, headline, id, totalLabel }) => (
   <section className="fr-card" aria-labelledby={id}>
     <header className="fr-card__header">
       <div>
@@ -261,7 +266,7 @@ export const ZoneSection: React.FC<{ rate: StoreFrictionRate; title: string; hea
           <ZoneRadar zones={rate.zones} />
         </div>
       ) : null}
-      <ZoneTable zones={rate.zones} total={rate.total} />
+      <ZoneTable zones={rate.zones} total={rate.total} totalLabel={totalLabel} />
     </div>
     {rate.total.unanswered > 0 && (
       <p className="fr-card__note">
