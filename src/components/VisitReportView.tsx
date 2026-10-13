@@ -353,7 +353,6 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
           style={{
             padding: '28px 32px',
             marginBottom: 20,
-            borderTop: '4px solid var(--rs-color-brand-cyan)',
             background: 'var(--theme-panel-bg)',
           }}
         >
@@ -435,34 +434,21 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
             {/* Overall Score Display (Executive Telemetry Gauge) */}
             <div
               style={{
-                background: 'radial-gradient(circle at 50% 50%, rgba(0, 176, 240, 0.15) 0%, var(--theme-card-bg) 80%)',
-                border: '1.5px solid rgba(0, 176, 240, 0.5)',
-                borderRadius: '24px',
+                background: 'var(--theme-card-inner)',
+                border: '1px solid var(--theme-card-border)',
+                borderRadius: '12px',
                 padding: '18px 28px',
                 textAlign: 'center',
-                boxShadow: '0 8px 30px -5px rgba(0, 176, 240, 0.25), inset 0 0 20px rgba(0, 176, 240, 0.08)',
                 position: 'relative',
                 overflow: 'hidden',
                 minWidth: 200,
               }}
             >
-              <div
-                style={{
-                  position: 'absolute',
-                  top: -20,
-                  right: -20,
-                  width: 80,
-                  height: 80,
-                  background: 'radial-gradient(circle, rgba(0, 176, 240, 0.35), transparent 70%)',
-                  pointerEvents: 'none',
-                }}
-                className="decor-glow"
-              />
               <span
                 style={{
-                  fontSize: 11,
-                  color: 'var(--rs-color-brand-cyan)',
-                  fontWeight: 800,
+                  fontSize: 12,
+                  color: 'var(--theme-text-muted)',
+                  fontWeight: 600,
                   display: 'block',
                   marginBottom: 4,
                 }}

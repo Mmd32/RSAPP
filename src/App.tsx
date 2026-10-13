@@ -10,6 +10,7 @@ import {
 } from './types';
 import { StartVisitWizard } from './components/StartVisitWizard';
 import { LandingPage } from './components/landing/LandingPage';
+import { ReviewQueue } from './components/ReviewQueue';
 import { StoreService } from './services/storeService';
 import { apiFetch } from './services/apiClient';
 import { VisitSync, fetchPastVisits } from './services/visitService';
@@ -1321,6 +1322,13 @@ export const App: React.FC = () => {
             activeSession={activeSession}
             savedStoresCount={savedStoresCount}
             actionsCount={actions.length}
+            openActionsCount={actions.filter((a) => !['RESOLVED', 'VERIFIED', 'CANCELLED'].includes(a.status)).length}
+            visits={pastVisits}
+            canReview={can.review}
+            onOpenVisit={handleOpenArchivedVisit}
+            onOpenArchive={() => setViewMode('ARCHIVE')}
+            onOpenBusiness={can.reports ? () => setViewMode('BUSINESS') : undefined}
+            onOpenReview={can.review ? () => setViewMode('SUPERVISOR') : undefined}
             onStartNewAudit={() => setViewMode('WIZARD')}
             onResumeAudit={() => setViewMode('AUDIT')}
             onOpenReport={() => setViewMode('REPORT')}
@@ -1658,7 +1666,11 @@ export const App: React.FC = () => {
         {/* Lazy Loaded Views with Suspense Boundary */}
         <React.Suspense fallback={<ViewLoadingFallback />}>
           {/* SUPERVISOR CARPET (Section 26, 27, 28) */}
-          {viewMode === 'SUPERVISOR' && activeSession && (
+          {viewMode === 'SUPERVISOR' && !(activeSession && activeSession.status === 'SUBMITTED') && (
+            <ReviewQueue visits={pastVisits} isLoading={isLoadingVisits} onOpen={handleOpenArchivedVisit} />
+          )}
+
+          {viewMode === 'SUPERVISOR' && activeSession && activeSession.status === 'SUBMITTED' && (
             <SupervisorReview
               visit={activeSession}
               onApproveVisit={handleApproveVisit}

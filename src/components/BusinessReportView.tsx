@@ -75,6 +75,7 @@ export const BusinessReportView: React.FC<BusinessReportViewProps> = ({ visits, 
           <ZoneSection
             rate={business}
             id="biz-zones-title"
+            totalLabel="کل کسب‌وکار"
             title={`نرخ اصطکاک مناطق — کل ${brand}`}
             headline={`نرخ اصطکاک کل کسب‌وکار (${faDigits(latest.length)} شعبه)`}
           />
