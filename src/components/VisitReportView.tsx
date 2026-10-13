@@ -1,4 +1,5 @@
-import { faDate, faDigits, faPercent, stageLabel } from '../utils/format';
+import { faDate, faDigits, faPercent, groupLabel, stageLabel } from '../utils/format';
+import { computeStoreFrictionRate } from '../engine/frModel';
 
 const ANSWER_FA: Record<string, string> = {
   NO_FRICTION: 'مناسب',
@@ -26,6 +27,7 @@ import {
   type ComparisonVisitContext,
 } from '../engine/scoringEngine';
 import { RadarChart } from './RadarChart';
+import { FrictionRateReport } from './FrictionRateReport';
 import { RetailSolutionsLogo } from './brand/RetailSolutionsLogo';
 import {
   Award,
@@ -222,7 +224,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
   // CSV Export with UTF-8 BOM for Persian Excel compatibility (Requirement 23)
   const handleExportCsv = () => {
     let csv =
-      '\uFEFFکد شاخص,موضوع شاخص,بُعد ارزیابی,مرحله سفر,وضعیت پاسخ,امتیاز اولویت,شرح گزاره,پیشنهاد اصلاحی,توضیح ارزیاب\n';
+      '\uFEFFکد شاخص,منطقه,موضوع شاخص,بُعد ارزیابی,مرحله سفر,وضعیت پاسخ,امتیاز اولویت,شرح گزاره,پیشنهاد اصلاحی,توضیح ارزیاب\n';
 
     visit.indicators.forEach((ind) => {
       const resp = visit.responses[ind.id];
@@ -230,6 +232,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
       const finding = summary.prioritizedFindings?.find((f) => f.indicator.id === ind.id);
       const row = [
         `"${ind.code}"`,
+        `"${groupLabel(ind.group).replace(/"/g, '""')}"`,
         `"${(ind.subject || '').replace(/"/g, '""')}"`,
         `"${(CANONICAL_DIMENSIONS.find((d) => d.key === ind.reportingDimension)?.nameFa || ind.reportingDimension || '').replace(/"/g, '""')}"`,
         `"${stageLabel(ind.journeyStage).replace(/"/g, '""')}"`,
@@ -241,6 +244,21 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
       ];
       csv += row.join(',') + '\n';
     });
+
+    // FR tables: F% = FR / (Indicators − N/A), per zone and per topic.
+    const fr = computeStoreFrictionRate(visit.indicators, visit.responses);
+    const q = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`;
+    const pct = (r: number) => (r * 100).toFixed(1);
+    csv += '\n' + q('نرخ اصطکاک به تفکیک منطقه') + '\n';
+    csv += ['منطقه', 'شاخص‌ها', 'FR', 'N/A', 'F%'].map(q).join(',') + '\n';
+    for (const z of [...fr.zones, { ...fr.total, group: 'کل فروشگاه' }]) {
+      csv += [groupLabel(z.group), z.indicators, z.frictions, z.notApplicable, pct(z.rate)].map(q).join(',') + '\n';
+    }
+    csv += '\n' + q('نرخ اصطکاک به تفکیک موضوع') + '\n';
+    csv += ['منطقه', 'موضوع', 'شاخص‌ها', 'FR', 'N/A', 'F%'].map(q).join(',') + '\n';
+    for (const t of fr.topics) {
+      csv += [groupLabel(t.group), t.subject, t.indicators, t.frictions, t.notApplicable, pct(t.rate)].map(q).join(',') + '\n';
+    }
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -556,6 +574,9 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Friction Rate (FR) model: zones, top topics, branches of the brand */}
+        <FrictionRateReport visit={visit} historyVisits={historyVisits} isSample={isSample} />
 
         {/* Radar Chart Section (Requirements 6, 7, 8, 9) */}
         <div style={{ marginBottom: 20 }}>

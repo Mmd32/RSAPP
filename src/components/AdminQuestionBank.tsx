@@ -1,7 +1,67 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Indicator } from '../types';
 import { Database, Filter, CheckCircle, AlertTriangle, Layers, Plus } from 'lucide-react';
-import { stageLabel, groupLabel, faDigits } from '../utils/format';
+import { stageLabel, groupLabel, faDigits, profileLabel } from '../utils/format';
+
+/** The five store zones and the thirteen retail sectors of the FR model. */
+const STORE_ZONES = ['FLOOR', 'SERVICES', 'TEAM', 'PRODUCT', 'CASH'];
+const RETAIL_SECTORS = [
+  'Fashion', 'Shoe_Bag', 'Watch_Jewelry', 'FMCG', 'F_B', 'Hardware', 'Homeware',
+  'Beauty_Cosmetics', 'Electronics', 'Entertainment', 'Sports', 'Specialty', 'Services',
+];
+
+/**
+ * Indicators per zone for each retail sector, straight from the catalog. A
+ * visit narrows this further by the store's features (fitting room, parking,
+ * ...), so a store's own counts come from its visit, shown in its report.
+ */
+const SectorZoneMatrix: React.FC<{ indicators: Indicator[] }> = ({ indicators }) => {
+  const store = indicators.filter((i) => i.template === 'STORE' && i.status !== 'ARCHIVED');
+  const rows = RETAIL_SECTORS.map((sector) => {
+    const applicable = store.filter(
+      (i) => !i.applicableBusinessTypes?.length || i.applicableBusinessTypes.includes(sector),
+    );
+    return { sector, counts: STORE_ZONES.map((z) => applicable.filter((i) => i.group === z).length), total: applicable.length };
+  });
+  if (!store.length) return null;
+  return (
+    <section className="fr-card" aria-labelledby="sector-zone-title">
+      <header className="fr-card__header">
+        <div>
+          <h3 id="sector-zone-title" className="fr-card__title">شاخص‌های هر منطقه به تفکیک سکتور ریتیل</h3>
+          <p className="fr-card__subtitle">
+            تعداد شاخص‌های بانک برای هر سکتور در پنج منطقه‌ی فروشگاه. در هر بازدید، این تعداد بر اساس ویژگی‌های فروشگاه
+            (اتاق پرو، پارکینگ و …) کمتر می‌شود و عدد دقیق هر فروشگاه در گزارش همان بازدید آمده است.
+          </p>
+        </div>
+      </header>
+      <div className="fr-table-wrap">
+        <table className="fr-table">
+          <thead>
+            <tr>
+              <th scope="col">سکتور</th>
+              {STORE_ZONES.map((z) => (
+                <th key={z} scope="col">{groupLabel(z)}</th>
+              ))}
+              <th scope="col">جمع</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.sector}>
+                <th scope="row">{profileLabel(r.sector)}</th>
+                {r.counts.map((c, i) => (
+                  <td key={STORE_ZONES[i]} className="ltr-num">{faDigits(c)}</td>
+                ))}
+                <td className="ltr-num fr-table__rate">{faDigits(r.total)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+};
 
 interface AdminQuestionBankProps {
   indicators: Indicator[];
@@ -131,6 +191,8 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
           </div>
         </div>
       </div>
+
+      <SectorZoneMatrix indicators={indicators} />
 
       {/* Indicators Table */}
       <div className="glass-panel" style={{ padding: 20 }}>
