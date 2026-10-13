@@ -423,9 +423,11 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
 
               <h1 style={{ fontSize: 26, fontWeight: 800, marginTop: 10, color: 'var(--theme-text-primary)' }}>
                 {visit.brandName} — {/^شعبه/.test(visit.branchName || '') ? visit.branchName : `شعبه ${visit.branchName}`}
+                {visit.branchCode && <span className="fr-code ltr-num" style={{ fontSize: 13, verticalAlign: 'middle' }}>{visit.branchCode}</span>}
               </h1>
               <p style={{ fontSize: 13, color: 'var(--theme-text-muted)', marginTop: 4 }}>
-                ارزیاب میدانی: <strong style={{ color: 'var(--theme-text-primary)' }}>{visit.auditorName || '—'}</strong> • سرپرست ممیزی:{' '}
+                ارزیاب میدانی: <strong style={{ color: 'var(--theme-text-primary)' }}>{visit.auditorName || '—'}</strong>
+                {visit.evaluatorCode && <span className="fr-code ltr-num">{visit.evaluatorCode}</span>} • سرپرست ممیزی:{' '}
                 <strong style={{ color: 'var(--theme-text-primary)' }}>{visit.supervisorName || (visit.status === 'APPROVED' ? '—' : 'در انتظار تأیید')}</strong>
               </p>
             </div>

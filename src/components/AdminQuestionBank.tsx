@@ -69,6 +69,115 @@ interface AdminQuestionBankProps {
 
 const PAGE_SIZE = 100;
 
+/**
+ * Pivot of the store checklist: zone → topic, with the number of KPIs and
+ * their codes, for one sector or for all. Answers "which indicator belongs
+ * where" at a glance.
+ */
+const IndicatorPivot: React.FC<{ indicators: Indicator[] }> = ({ indicators }) => {
+  const [sector, setSector] = useState<string>('ALL');
+  const [open, setOpen] = useState<Set<string>>(() => new Set());
+  const rows = useMemo(() => {
+    const store = indicators.filter(
+      (i) =>
+        i.template === 'STORE' &&
+        i.status !== 'ARCHIVED' &&
+        (sector === 'ALL' || !i.applicableBusinessTypes?.length || i.applicableBusinessTypes.includes(sector)),
+    );
+    return STORE_ZONES.map((zone) => {
+      const inZone = store.filter((i) => i.group === zone).sort((a, b) => a.displayOrder - b.displayOrder);
+      const topics = new Map<string, Indicator[]>();
+      for (const i of inZone) {
+        const key = i.subject || '—';
+        if (!topics.has(key)) topics.set(key, []);
+        topics.get(key)!.push(i);
+      }
+      return { zone, count: inZone.length, topics: [...topics.entries()] };
+    });
+  }, [indicators, sector]);
+  const total = rows.reduce((n, r) => n + r.count, 0);
+  if (!total && sector === 'ALL') return null;
+  const toggle = (zone: string) =>
+    setOpen((prev) => {
+      const next = new Set(prev);
+      if (next.has(zone)) next.delete(zone);
+      else next.add(zone);
+      return next;
+    });
+
+  return (
+    <section className="fr-card" aria-labelledby="pivot-title">
+      <header className="fr-card__header">
+        <div>
+          <h3 id="pivot-title" className="fr-card__title">جدول محوری شاخص‌ها (منطقه ← موضوع ← کد)</h3>
+          <p className="fr-card__subtitle">
+            هر شاخص (KPI) کد ثابت خود را دارد و به یک موضوع در یکی از پنج منطقه تعلق دارد. روی هر منطقه بزنید تا موضوع‌ها و
+            کدهایش را ببینید.
+          </p>
+        </div>
+        <label className="business-brand">
+          <span>سکتور</span>
+          <select className="select-rs" value={sector} onChange={(e) => setSector(e.target.value)}>
+            <option value="ALL">همه‌ی سکتورها</option>
+            {RETAIL_SECTORS.map((s) => (
+              <option key={s} value={s}>
+                {profileLabel(s)}
+              </option>
+            ))}
+          </select>
+        </label>
+      </header>
+      <div className="fr-table-wrap">
+        <table className="fr-table pivot-table">
+          <thead>
+            <tr>
+              <th scope="col">منطقه / موضوع</th>
+              <th scope="col">تعداد KPI</th>
+              <th scope="col">کدها</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <React.Fragment key={r.zone}>
+                <tr className="pivot-zone">
+                  <th scope="row">
+                    <button type="button" className="pivot-toggle" aria-expanded={open.has(r.zone)} onClick={() => toggle(r.zone)}>
+                      <span className="fr-swatch" style={{ background: `var(--zone-${r.zone})` }} aria-hidden="true" />
+                      {groupLabel(r.zone)}
+                      <span className="pivot-caret" aria-hidden="true">{open.has(r.zone) ? '−' : '+'}</span>
+                    </button>
+                  </th>
+                  <td className="ltr-num fr-table__rate">{faDigits(r.count)}</td>
+                  <td className="pivot-muted">{faDigits(r.topics.length)} موضوع</td>
+                </tr>
+                {open.has(r.zone) &&
+                  r.topics.map(([topic, items]) => (
+                    <tr key={topic} className="pivot-topic">
+                      <th scope="row">{topic}</th>
+                      <td className="ltr-num">{faDigits(items.length)}</td>
+                      <td>
+                        <span className="pivot-codes" dir="ltr">
+                          {items.map((i) => i.code).join(' · ')}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+              </React.Fragment>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr>
+              <th scope="row">جمع کل</th>
+              <td className="ltr-num">{faDigits(total)}</td>
+              <td />
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
+  );
+};
+
 export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators }) => {
   const [templateFilter, setTemplateFilter] = useState<'ALL' | 'STORE' | 'MALL'>('ALL');
   const [selectedGroup, setSelectedGroup] = useState<string>('ALL');
@@ -193,6 +302,7 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
       </div>
 
       <SectorZoneMatrix indicators={indicators} />
+      <IndicatorPivot indicators={indicators} />
 
       {/* Indicators Table */}
       <div className="glass-panel" style={{ padding: 20 }}>

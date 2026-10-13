@@ -8,6 +8,8 @@ export interface AuthUser {
   email: string;
   name: string;
   role: Role;
+  /** Evaluator code shown on questionnaires and reports. */
+  code?: string | null;
   /** Effective permissions (role template or the person's custom list). */
   permissions: Permission[];
   customPermissions: boolean;
@@ -50,11 +52,11 @@ export const AuthService = {
     post<{ user: AuthUser }>('/auth/change-password', { currentPassword, newPassword }).then((r) => r.user),
 
   listUsers: () => call<AuthUser[]>('/users'),
-  createUser: (fields: { name: string; email: string; role: Role; permissions?: Permission[] }) =>
+  createUser: (fields: { name: string; email: string; role: Role; code?: string; permissions?: Permission[] }) =>
     post<{ user: AuthUser; temporaryPassword: string }>('/users', fields),
   updateUser: (
     id: string,
-    fields: Partial<Pick<AuthUser, 'name' | 'role' | 'isActive'>> & { permissions?: Permission[] | null }
+    fields: Partial<Pick<AuthUser, 'name' | 'role' | 'isActive' | 'code'>> & { permissions?: Permission[] | null }
   ) =>
     call<{ user: AuthUser }>(`/users/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(fields) }).then(
       (r) => r.user

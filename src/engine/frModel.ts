@@ -58,26 +58,35 @@ export function byRateDesc(a: FrictionRateRow, b: FrictionRateRow): number {
   return b.rate - a.rate || b.frictions - a.frictions || a.key.localeCompare(b.key, 'fa');
 }
 
-export function computeStoreFrictionRate(
-  indicators: Indicator[],
-  responses: Record<string, QuestionResponse>,
-): StoreFrictionRate {
+export interface FrictionSource {
+  indicators: Indicator[];
+  responses: Record<string, QuestionResponse>;
+}
+
+/**
+ * FR tables for one store or, given several stores, for the whole business:
+ * counts are summed per zone and per topic across every source before the
+ * rate is taken, so each denominator still belongs to its own slice.
+ */
+export function computeFrictionRate(sources: FrictionSource[]): StoreFrictionRate {
   const zones = new Map<string, FrictionRateRow>();
   const topics = new Map<string, FrictionRateRow>();
   const total = emptyRow('TOTAL', '', '');
 
-  for (const indicator of indicators || []) {
-    const group = indicator.group || '—';
-    const subject = indicator.subject || '—';
-    const response = responses?.[indicator.id];
+  for (const { indicators, responses } of sources) {
+    for (const indicator of indicators || []) {
+      const group = indicator.group || '—';
+      const subject = indicator.subject || '—';
+      const response = responses?.[indicator.id];
 
-    if (!zones.has(group)) zones.set(group, emptyRow(group, group, ''));
-    const topicKey = `${group}::${subject}`;
-    if (!topics.has(topicKey)) topics.set(topicKey, emptyRow(topicKey, group, subject));
+      if (!zones.has(group)) zones.set(group, emptyRow(group, group, ''));
+      const topicKey = `${group}::${subject}`;
+      if (!topics.has(topicKey)) topics.set(topicKey, emptyRow(topicKey, group, subject));
 
-    count(zones.get(group)!, response);
-    count(topics.get(topicKey)!, response);
-    count(total, response);
+      count(zones.get(group)!, response);
+      count(topics.get(topicKey)!, response);
+      count(total, response);
+    }
   }
 
   return {
@@ -87,13 +96,21 @@ export function computeStoreFrictionRate(
   };
 }
 
+export function computeStoreFrictionRate(
+  indicators: Indicator[],
+  responses: Record<string, QuestionResponse>,
+): StoreFrictionRate {
+  return computeFrictionRate([{ indicators, responses }]);
+}
+
 /** The highest-friction topics of a store, highest first. Topics without friction are left out. */
-export function topFrictionTopics(rate: StoreFrictionRate, limit = 10): FrictionRateRow[] {
-  return rate.topics.filter((t) => t.frictions > 0).slice(0, limit);
+export function topFrictionTopics(rate: StoreFrictionRate, limit = 10, group?: string): FrictionRateRow[] {
+  return rate.topics.filter((t) => t.frictions > 0 && (!group || t.group === group)).slice(0, limit);
 }
 
 export interface BranchFrictionRate extends FrictionRateRow {
   branchName: string;
+  branchCode?: string;
   visitId: string;
   visitDate: string;
 }
@@ -103,18 +120,15 @@ export interface BranchFrictionRate extends FrictionRateRow {
  * visit (the visit being viewed stands in for its own branch). The store
  * total is used: every indicator examined in that store across all zones.
  */
-export function computeBrandFrictionRates(
-  brandName: string,
-  visits: VisitSession[],
-  current?: VisitSession,
-): BranchFrictionRate[] {
+/** Visits that count as finished for reporting. */
+export function isFinishedVisit(v: VisitSession): boolean {
+  return (v.status === 'SUBMITTED' || v.status === 'APPROVED') && !!v.indicators?.length;
+}
+
+/** Each branch's most recent finished visit of a brand; `current` stands in for its own branch. */
+export function latestVisitPerBranch(brandName: string, visits: VisitSession[], current?: VisitSession): VisitSession[] {
   const latest = new Map<string, VisitSession>();
-  const finished = visits.filter(
-    (v) =>
-      v.brandName === brandName &&
-      (v.status === 'SUBMITTED' || v.status === 'APPROVED') &&
-      v.indicators?.length,
-  );
+  const finished = visits.filter((v) => v.brandName === brandName && isFinishedVisit(v));
   for (const v of finished) {
     const at = v.completedAt || v.startedAt || '';
     const prev = latest.get(v.branchName);
@@ -123,14 +137,22 @@ export function computeBrandFrictionRates(
   if (current && current.brandName === brandName && current.indicators?.length) {
     latest.set(current.branchName, current);
   }
+  return [...latest.values()];
+}
 
-  return [...latest.values()]
+export function computeBrandFrictionRates(
+  brandName: string,
+  visits: VisitSession[],
+  current?: VisitSession,
+): BranchFrictionRate[] {
+  return latestVisitPerBranch(brandName, visits, current)
     .map((v) => {
       const { total } = computeStoreFrictionRate(v.indicators, v.responses);
       return {
         ...total,
         key: v.branchName,
         branchName: v.branchName,
+        branchCode: v.branchCode,
         visitId: v.id,
         visitDate: v.completedAt || v.startedAt,
       };

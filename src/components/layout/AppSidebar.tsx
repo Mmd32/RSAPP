@@ -8,6 +8,7 @@ import {
   BarChart3,
   GitCompare,
   Archive,
+  Building2,
   Target,
   Database,
   Sun,
@@ -33,6 +34,7 @@ export type ViewMode =
   | 'REVIEW'
   | 'SUPERVISOR'
   | 'REPORT'
+  | 'BUSINESS'
   | 'CATALOG'
   | 'SCENARIOS'
   | 'ACTIONS'
@@ -258,6 +260,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
               <span className="sidebar-group-heading">هوش تجاری و رادار</span>
             )}
 
+            {can.reports && (
             <button
               type="button"
               className={`sidebar-nav-item ${viewMode === 'REPORT' ? 'active' : ''}`}
@@ -276,6 +279,21 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                 </>
               )}
             </button>
+            )}
+
+            {can.reports && (
+            <button
+              type="button"
+              className={`sidebar-nav-item ${viewMode === 'BUSINESS' ? 'active' : ''}`}
+              onClick={() => handleNavClick('BUSINESS')}
+              title="گزارش کل کسب‌وکار"
+            >
+              <div className="nav-icon-wrap">
+                <Building2 size={18} />
+              </div>
+              {!isCollapsed && <span className="nav-item-label">گزارش کل کسب‌وکار</span>}
+            </button>
+            )}
 
             <button
               type="button"
@@ -289,6 +307,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
               {!isCollapsed && <span className="nav-item-label">بایگانی بازدیدها</span>}
             </button>
 
+            {can.reports && (
             <button
               type="button"
               className={`sidebar-nav-item ${viewMode === 'REVISIT' ? 'active' : ''}`}
@@ -300,6 +319,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
               </div>
               {!isCollapsed && <span className="nav-item-label">مقایسه و روند</span>}
             </button>
+            )}
           </div>
 
           <div className="sidebar-divider" />

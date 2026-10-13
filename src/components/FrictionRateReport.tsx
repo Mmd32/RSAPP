@@ -4,16 +4,32 @@ import {
   computeBrandFrictionRates,
   computeStoreFrictionRate,
   topFrictionTopics,
+  type BranchFrictionRate,
   type FrictionRateRow,
+  type StoreFrictionRate,
 } from '../engine/frModel';
 import { faDate, faDigits, groupLabel } from '../utils/format';
 
 /*
  * Friction Rate (FR) report: F% = FR / (Indicators − N/A), per zone, per
- * topic and per branch. One measure, one hue (the friction colour); higher is
- * worse everywhere. Every chart is paired with a table or direct labels so no
- * value is read off the geometry alone.
+ * topic and per branch. Higher is worse everywhere. Each of the five store
+ * zones keeps one colour wherever it appears (--zone-*, a validated
+ * categorical palette); whole-store and branch measures use the single
+ * friction colour. Every chart is paired with a table or direct labels so no
+ * value is read off the geometry or the colour alone.
  */
+
+/** The five store zones, in the palette's fixed order. */
+export const ZONE_ORDER = ['FLOOR', 'SERVICES', 'TEAM', 'PRODUCT', 'CASH'];
+
+/** A zone's identity colour; zones outside the five (mall groups) stay neutral. */
+export function zoneColor(group: string): string {
+  return ZONE_ORDER.includes(group) ? `var(--zone-${group})` : 'var(--chart-context)';
+}
+
+const Swatch: React.FC<{ group: string }> = ({ group }) => (
+  <span className="fr-swatch" style={{ background: zoneColor(group) }} aria-hidden="true" />
+);
 
 /** Friction rate as a Persian percentage with at most one decimal (0.4930 → ٪۴۹٫۳). */
 export function faRate(rate: number): string {
@@ -41,7 +57,10 @@ const ZoneTable: React.FC<{ zones: FrictionRateRow[]; total: FrictionRateRow }> 
       <tbody>
         {zones.map((z) => (
           <tr key={z.key}>
-            <th scope="row">{groupLabel(z.group)}</th>
+            <th scope="row">
+              <Swatch group={z.group} />
+              {groupLabel(z.group)}
+            </th>
             <td className="ltr-num">{faDigits(z.indicators)}</td>
             <td className="ltr-num">{faDigits(z.frictions)}</td>
             <td className="ltr-num">{faDigits(z.notApplicable)}</td>
@@ -140,7 +159,7 @@ const ZoneRadar: React.FC<{ zones: FrictionRateRow[] }> = ({ zones }) => {
           >
             <title>{`${groupLabel(z.group)}: ${faRate(z.rate)} (${faDigits(z.frictions)} از ${faDigits(assessable(z))})`}</title>
             <circle className="fr-radar__hit" cx={x} cy={y} r={14} />
-            <circle className="fr-radar__dot" cx={x} cy={y} r={isActive ? 6 : 4.5} />
+            <circle className="fr-radar__dot" cx={x} cy={y} r={isActive ? 7 : 5.5} style={{ fill: zoneColor(z.group) }} />
             <text className="fr-radar__label" x={lx} y={ly - 6} textAnchor={anchor}>
               <tspan className="fr-radar__label-name">{groupLabel(z.group)}</tspan>
             </text>
@@ -164,6 +183,8 @@ interface BarItem {
   frictions: number;
   assessable: number;
   highlight?: boolean;
+  /** Identity colour (a zone's); defaults to the friction colour. */
+  color?: string;
 }
 
 const RateBars: React.FC<{ items: BarItem[]; ariaLabel: string }> = ({ items, ariaLabel }) => (
@@ -191,7 +212,10 @@ const RateBars: React.FC<{ items: BarItem[]; ariaLabel: string }> = ({ items, ar
         </div>
         <div className="fr-bars__track">
           <span className="fr-bars__grid" aria-hidden="true" />
-          <span className="fr-bars__bar" style={{ width: `${Math.max(item.rate * 100, item.rate > 0 ? 1 : 0)}%` }} />
+          <span
+            className="fr-bars__bar"
+            style={{ width: `${Math.max(item.rate * 100, item.rate > 0 ? 1 : 0)}%`, ...(item.color ? { background: item.color } : {}) }}
+          />
         </div>
         <div className="fr-bars__value">
           <b className="ltr-num">{faRate(item.rate)}</b>
@@ -204,7 +228,179 @@ const RateBars: React.FC<{ items: BarItem[]; ariaLabel: string }> = ({ items, ar
   </div>
 );
 
-/* --- Report ---------------------------------------------------------------- */
+
+/* --- Sections -------------------------------------------------------------- */
+
+/** Report 1: zone table + radar, highest-friction zone at the top, clockwise down. */
+export const ZoneSection: React.FC<{ rate: StoreFrictionRate; title: string; headline: string; id: string }> = ({
+  rate,
+  title,
+  headline,
+  id,
+}) => (
+  <section className="fr-card" aria-labelledby={id}>
+    <header className="fr-card__header">
+      <div>
+        <h3 id={id} className="fr-card__title">{title}</h3>
+        <p className="fr-card__subtitle">
+          نرخ اصطکاک (<bdi dir="ltr">F%</bdi>) = تعداد اصطکاک (FR) ÷ (تعداد شاخص‌ها − غیرقابل ارزیابی (N/A)). در نمودار،
+          منطقه با بیشترین اصطکاک در بالا قرار دارد و بقیه در جهت عقربه‌های ساعت از بیشترین به کمترین می‌آیند.
+        </p>
+      </div>
+      <div className="fr-card__headline">
+        <span>{headline}</span>
+        <b className="ltr-num">{faRate(rate.total.rate)}</b>
+        <small>
+          {faDigits(rate.total.frictions)} از {faDigits(assessable(rate.total))} شاخص قابل ارزیابی
+        </small>
+      </div>
+    </header>
+    <div className="fr-card__body">
+      {rate.zones.length >= 3 ? (
+        <div className="fr-card__plot">
+          <ZoneRadar zones={rate.zones} />
+        </div>
+      ) : null}
+      <ZoneTable zones={rate.zones} total={rate.total} />
+    </div>
+    {rate.total.unanswered > 0 && (
+      <p className="fr-card__note">
+        {faDigits(rate.total.unanswered)} شاخص بی‌پاسخ مانده و طبق فرمول در مخرج باقی است.
+      </p>
+    )}
+  </section>
+);
+
+/**
+ * Reports 2 and 3: the ten highest-friction topics, overall or within one
+ * zone. A topic's rate divides by that topic's own indicators only.
+ */
+export const TopTopicsSection: React.FC<{ rate: StoreFrictionRate; title: string; id: string }> = ({ rate, title, id }) => {
+  const zonesWithFriction = rate.zones.filter((z) => z.frictions > 0).map((z) => z.group);
+  const [zone, setZone] = useState<string>('ALL');
+  const active = zone !== 'ALL' && !zonesWithFriction.includes(zone) ? 'ALL' : zone;
+  const top = topFrictionTopics(rate, 10, active === 'ALL' ? undefined : active);
+
+  return (
+    <section className="fr-card" aria-labelledby={id}>
+      <header className="fr-card__header">
+        <div>
+          <h3 id={id} className="fr-card__title">{title}</h3>
+          <p className="fr-card__subtitle">
+            نرخ هر موضوع فقط با شاخص‌های همان موضوع محاسبه می‌شود: اصطکاک‌های موضوع ÷ (شاخص‌های همان موضوع − غیرقابل
+            ارزیابی همان موضوع). رنگ هر میله منطقه‌ی آن موضوع را نشان می‌دهد.
+          </p>
+        </div>
+      </header>
+      {zonesWithFriction.length > 0 && (
+        <div className="fr-tabs" role="tablist" aria-label="منطقه">
+          <button type="button" role="tab" aria-selected={active === 'ALL'} className="fr-tab" onClick={() => setZone('ALL')}>
+            همه‌ی مناطق
+          </button>
+          {rate.zones
+            .filter((z) => zonesWithFriction.includes(z.group))
+            .map((z) => (
+              <button
+                key={z.group}
+                type="button"
+                role="tab"
+                aria-selected={active === z.group}
+                className="fr-tab"
+                onClick={() => setZone(z.group)}
+              >
+                <Swatch group={z.group} />
+                {groupLabel(z.group)}
+              </button>
+            ))}
+        </div>
+      )}
+      {top.length ? (
+        <RateBars
+          ariaLabel="موضوعات با بیشترین نرخ اصطکاک"
+          items={top.map((t) => ({
+            key: t.key,
+            label: t.subject,
+            sublabel: groupLabel(t.group),
+            rate: t.rate,
+            frictions: t.frictions,
+            assessable: assessable(t),
+            color: zoneColor(t.group),
+          }))}
+        />
+      ) : (
+        <p className="fr-card__empty">هیچ اصطکاکی ثبت نشده است.</p>
+      )}
+    </section>
+  );
+};
+
+/** Branches of one brand: table + ranked bars, highest first. */
+export const BranchSection: React.FC<{
+  brandName: string;
+  branches: BranchFrictionRate[];
+  currentVisitId?: string;
+  id: string;
+}> = ({ brandName, branches, currentVisitId, id }) => (
+  <section className="fr-card" aria-labelledby={id}>
+    <header className="fr-card__header">
+      <div>
+        <h3 id={id} className="fr-card__title">مقایسه شعب برند {brandName}</h3>
+        <p className="fr-card__subtitle">
+          آخرین بازدید ثبت‌شده‌ی هر شعبه. مخرج برای هر شعبه همه‌ی شاخص‌های بررسی‌شده در آن فروشگاه در تمام مناطق منهای
+          غیرقابل ارزیابی است. مرتب از بیشترین به کمترین.
+        </p>
+      </div>
+    </header>
+    {branches.length >= 2 ? (
+      <div className="fr-card__stack">
+        <div className="fr-table-wrap">
+          <table className="fr-table">
+            <thead>
+              <tr>
+                <th scope="col">شعبه</th>
+                <th scope="col">شاخص‌ها</th>
+                <th scope="col" title="تعداد اصطکاک">FR</th>
+                <th scope="col" title="غیرقابل ارزیابی">N/A</th>
+                <th scope="col" title="نرخ اصطکاک = FR ÷ (شاخص‌ها − N/A)"><bdi dir="ltr">F%</bdi></th>
+              </tr>
+            </thead>
+            <tbody>
+              {branches.map((b) => (
+                <tr key={b.key} className={b.visitId === currentVisitId ? 'is-current' : undefined}>
+                  <th scope="row">
+                    {b.branchName}
+                    {b.branchCode && <span className="fr-code ltr-num">{b.branchCode}</span>}
+                    <small>{b.visitId === currentVisitId ? 'همین بازدید' : faDate(b.visitDate)}</small>
+                  </th>
+                  <td className="ltr-num">{faDigits(b.indicators)}</td>
+                  <td className="ltr-num">{faDigits(b.frictions)}</td>
+                  <td className="ltr-num">{faDigits(b.notApplicable)}</td>
+                  <td className="ltr-num fr-table__rate">{faRate(b.rate)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <RateBars
+          ariaLabel="نرخ اصطکاک شعب"
+          items={branches.map((b) => ({
+            key: b.key,
+            label: b.branchName,
+            sublabel: b.visitId === currentVisitId ? 'همین بازدید' : undefined,
+            rate: b.rate,
+            frictions: b.frictions,
+            assessable: assessable(b),
+            highlight: b.visitId === currentVisitId,
+          }))}
+        />
+      </div>
+    ) : (
+      <p className="fr-card__empty">برای مقایسه، دست‌کم دو شعبه از برند {brandName} باید بازدید ثبت‌شده داشته باشند.</p>
+    )}
+  </section>
+);
+
+/* --- Store report ---------------------------------------------------------- */
 
 interface FrictionRateReportProps {
   visit: VisitSession;
@@ -216,7 +412,6 @@ interface FrictionRateReportProps {
 
 export const FrictionRateReport: React.FC<FrictionRateReportProps> = ({ visit, historyVisits = [], isSample }) => {
   const store = useMemo(() => computeStoreFrictionRate(visit.indicators, visit.responses), [visit.indicators, visit.responses]);
-  const topTopics = useMemo(() => topFrictionTopics(store, 10), [store]);
   const branches = useMemo(
     () => (isSample ? [] : computeBrandFrictionRates(visit.brandName, historyVisits, visit)),
     [isSample, visit, historyVisits],
@@ -226,124 +421,10 @@ export const FrictionRateReport: React.FC<FrictionRateReportProps> = ({ visit, h
 
   return (
     <>
-      <section className="fr-card" aria-labelledby="fr-zones-title">
-        <header className="fr-card__header">
-          <div>
-            <h3 id="fr-zones-title" className="fr-card__title">نرخ اصطکاک به تفکیک منطقه</h3>
-            <p className="fr-card__subtitle">
-              نرخ اصطکاک (<bdi dir="ltr">F%</bdi>) = تعداد اصطکاک (FR) ÷ (تعداد شاخص‌ها − غیرقابل ارزیابی (N/A)). در نمودار، منطقه با بیشترین اصطکاک در بالا
-              قرار دارد و بقیه در جهت عقربه‌های ساعت از بیشترین به کمترین می‌آیند.
-            </p>
-          </div>
-          <div className="fr-card__headline">
-            <span>نرخ اصطکاک کل فروشگاه</span>
-            <b className="ltr-num">{faRate(store.total.rate)}</b>
-            <small>
-              {faDigits(store.total.frictions)} از {faDigits(assessable(store.total))} شاخص قابل ارزیابی
-            </small>
-          </div>
-        </header>
-        <div className="fr-card__body">
-          {store.zones.length >= 3 ? (
-            <div className="fr-card__plot">
-              <ZoneRadar zones={store.zones} />
-            </div>
-          ) : null}
-          <ZoneTable zones={store.zones} total={store.total} />
-        </div>
-        {store.total.unanswered > 0 && (
-          <p className="fr-card__note">
-            {faDigits(store.total.unanswered)} شاخص بی‌پاسخ مانده و طبق فرمول در مخرج باقی است.
-          </p>
-        )}
-      </section>
-
-      <section className="fr-card" aria-labelledby="fr-topics-title">
-        <header className="fr-card__header">
-          <div>
-            <h3 id="fr-topics-title" className="fr-card__title">۱۰ موضوع پراصطکاک فروشگاه</h3>
-            <p className="fr-card__subtitle">
-              نرخ هر موضوع فقط با شاخص‌های همان موضوع محاسبه می‌شود: اصطکاک‌های موضوع ÷ (شاخص‌های همان موضوع − غیرقابل ارزیابی
-              همان موضوع).
-            </p>
-          </div>
-        </header>
-        {topTopics.length ? (
-          <RateBars
-            ariaLabel="موضوعات با بیشترین نرخ اصطکاک"
-            items={topTopics.map((t) => ({
-              key: t.key,
-              label: t.subject,
-              sublabel: groupLabel(t.group),
-              rate: t.rate,
-              frictions: t.frictions,
-              assessable: assessable(t),
-            }))}
-          />
-        ) : (
-          <p className="fr-card__empty">در این بازدید هیچ اصطکاکی ثبت نشده است.</p>
-        )}
-      </section>
-
+      <ZoneSection rate={store} id="fr-zones-title" title="نرخ اصطکاک به تفکیک منطقه" headline="نرخ اصطکاک کل فروشگاه" />
+      <TopTopicsSection rate={store} id="fr-topics-title" title="۱۰ اصطکاک اصلی فروشگاه" />
       {!isSample && (
-        <section className="fr-card" aria-labelledby="fr-branches-title">
-          <header className="fr-card__header">
-            <div>
-              <h3 id="fr-branches-title" className="fr-card__title">مقایسه شعب برند {visit.brandName}</h3>
-              <p className="fr-card__subtitle">
-                آخرین بازدید ثبت‌شده‌ی هر شعبه. مخرج برای هر شعبه همه‌ی شاخص‌های بررسی‌شده در آن فروشگاه در تمام مناطق منهای
-                غیرقابل ارزیابی است. مرتب از بیشترین به کمترین.
-              </p>
-            </div>
-          </header>
-          {branches.length >= 2 ? (
-            <div className="fr-card__stack">
-              <div className="fr-table-wrap">
-                <table className="fr-table">
-                  <thead>
-                    <tr>
-                      <th scope="col">شعبه</th>
-                      <th scope="col">شاخص‌ها</th>
-                      <th scope="col" title="تعداد اصطکاک">FR</th>
-                      <th scope="col" title="غیرقابل ارزیابی">N/A</th>
-                      <th scope="col" title="نرخ اصطکاک = FR ÷ (شاخص‌ها − N/A)"><bdi dir="ltr">F%</bdi></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {branches.map((b) => (
-                      <tr key={b.key} className={b.visitId === visit.id ? 'is-current' : undefined}>
-                        <th scope="row">
-                          {b.branchName}
-                          <small>{b.visitId === visit.id ? 'همین بازدید' : faDate(b.visitDate)}</small>
-                        </th>
-                        <td className="ltr-num">{faDigits(b.indicators)}</td>
-                        <td className="ltr-num">{faDigits(b.frictions)}</td>
-                        <td className="ltr-num">{faDigits(b.notApplicable)}</td>
-                        <td className="ltr-num fr-table__rate">{faRate(b.rate)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <RateBars
-                ariaLabel="نرخ اصطکاک شعب"
-                items={branches.map((b) => ({
-                  key: b.key,
-                  label: b.branchName,
-                  sublabel: b.visitId === visit.id ? 'همین بازدید' : undefined,
-                  rate: b.rate,
-                  frictions: b.frictions,
-                  assessable: assessable(b),
-                  highlight: b.visitId === visit.id,
-                }))}
-              />
-            </div>
-          ) : (
-            <p className="fr-card__empty">
-              برای مقایسه، دست‌کم دو شعبه از برند {visit.brandName} باید بازدید ثبت‌شده داشته باشند.
-            </p>
-          )}
-        </section>
+        <BranchSection brandName={visit.brandName} branches={branches} currentVisitId={visit.id} id="fr-branches-title" />
       )}
     </>
   );

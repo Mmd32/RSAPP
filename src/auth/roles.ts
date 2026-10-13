@@ -1,7 +1,7 @@
 export type Role = 'Admin' | 'Supervisor' | 'Evaluator' | 'Manager' | 'Owner' | 'Verifier';
 
 export const ROLE_LABEL: Record<Role, string> = {
-  Admin: 'مدیر سامانه',
+  Admin: 'مسئول پروژه',
   Supervisor: 'سرپرست ارزیابی',
   Evaluator: 'ارزیاب میدانی',
   Manager: 'مدیر برند / شعبه',
@@ -10,9 +10,9 @@ export const ROLE_LABEL: Record<Role, string> = {
 };
 
 export const ROLE_DESCRIPTION: Record<Role, string> = {
-  Admin: 'همهٔ بخش‌ها و مدیریت کاربران',
+  Admin: 'دسترسی کامل به همه‌ی بخش‌ها، گزارش‌ها و تعریف نفرات و دسترسی‌ها',
   Supervisor: 'ارزیابی، بازبینی و تأیید پرسشنامه‌ها و اقدامات اصلاحی',
-  Evaluator: 'تکمیل و ارسال پرسشنامه‌های خود',
+  Evaluator: 'فقط ثبت، تکمیل و ارسال پرسشنامه؛ بدون دسترسی به گزارش‌ها',
   Manager: 'مشاهدهٔ گزارش‌ها و مدیریت اقدامات اصلاحی',
   Owner: 'مشاهدهٔ گزارش‌ها و رفع نقص‌های محول‌شده',
   Verifier: 'مشاهدهٔ گزارش‌ها و راستی‌آزمایی اقدامات',

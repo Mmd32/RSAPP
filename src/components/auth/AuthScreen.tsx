@@ -106,7 +106,7 @@ export const LoginScreen: React.FC<{ onSignedIn: (u: AuthUser) => void; expired?
   };
 
   return (
-    <AuthFrame title="ورود به سامانه" subtitle="با ایمیل و رمز عبوری که مدیر سامانه به شما داده وارد شوید.">
+    <AuthFrame title="ورود به سامانه" subtitle="با ایمیل و رمز عبوری که مسئول پروژه به شما داده وارد شوید.">
       {expired && (
         <div className="auth-info" role="status">
           نشست شما به پایان رسیده است. دوباره وارد شوید؛ پاسخ‌های ذخیره‌شده روی این دستگاه از بین نمی‌روند.
@@ -135,7 +135,7 @@ export const LoginScreen: React.FC<{ onSignedIn: (u: AuthUser) => void; expired?
           <span>ورود</span>
         </button>
       </form>
-      <p className="auth-help">رمز عبور را فراموش کرده‌اید؟ از مدیر سامانه بخواهید آن را بازنشانی کند.</p>
+      <p className="auth-help">رمز عبور را فراموش کرده‌اید؟ از مسئول پروژه بخواهید آن را بازنشانی کند.</p>
     </AuthFrame>
   );
 };
@@ -174,7 +174,7 @@ export const SetupScreen: React.FC<{ onSignedIn: (u: AuthUser) => void; tokenReq
   return (
     <AuthFrame
       title="راه‌اندازی اولیه"
-      subtitle="هنوز هیچ حسابی ساخته نشده است. حساب مدیر سامانه را بسازید؛ بقیهٔ کاربران را از بخش «مدیریت کاربران» اضافه می‌کنید."
+      subtitle="هنوز هیچ حسابی ساخته نشده است. حساب مسئول پروژه را بسازید؛ بقیهٔ کاربران را از بخش «کاربران و دسترسی‌ها» اضافه می‌کنید."
     >
       <div className="auth-info">
         <ShieldCheck size={16} /> این صفحه فقط یک‌بار و تا پیش از ساخت اولین حساب در دسترس است.

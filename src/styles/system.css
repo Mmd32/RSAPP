@@ -1239,6 +1239,7 @@ td.ltr-num, th.ltr-num { display: table-cell; }
 
 .users-row__meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
 .users-role { font-weight: var(--fw-semibold); color: var(--theme-text-secondary); }
+.users-code { font-family: var(--rs-font-mono, monospace); font-size: var(--fs-micro); padding: 1px 6px; border-radius: var(--r-pill); background: var(--surface-sunken); color: var(--theme-text-secondary); }
 .users-custom { padding: 1px 8px; border-radius: var(--r-pill); background: var(--theme-callout-obs-bg); color: var(--theme-text-primary); }
 .users-perm-toggle {
   align-self: flex-start;
@@ -1481,3 +1482,98 @@ td.ltr-num, th.ltr-num { display: table-cell; }
   .fr-radar__label-value { font-size: 17px; }
   .fr-radar__scale { font-size: 13px; }
 }
+
+/* Zone identity palette (validated: light on #FFFFFF, dark on #141E38;
+   adjacent CVD ΔE ≥ 8.4, normal-vision ΔE ≥ 19.3). Three light slots sit
+   under 3:1 on white, so every zone mark carries a text label. */
+:root {
+  --zone-FLOOR: #3987E5;
+  --zone-SERVICES: #D95926;
+  --zone-TEAM: #199E70;
+  --zone-PRODUCT: #C98500;
+  --zone-CASH: #D55181;
+}
+[data-theme='light'] {
+  --zone-FLOOR: #2A78D6;
+  --zone-SERVICES: #EB6834;
+  --zone-TEAM: #1BAF7A;
+  --zone-PRODUCT: #EDA100;
+  --zone-CASH: #E87BA4;
+}
+.fr-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-inline-end: 6px;
+  border-radius: 3px;
+  vertical-align: baseline;
+  flex: none;
+}
+.fr-code {
+  margin-inline-start: 6px;
+  padding: 0 6px;
+  border-radius: var(--r-pill);
+  background: var(--surface-sunken);
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-medium);
+  color: var(--theme-text-secondary);
+}
+.fr-tabs {
+  display: flex;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-4);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.fr-tab {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  min-height: 34px;
+  padding: 0 var(--sp-3);
+  border-radius: var(--r-pill);
+  border: var(--bw-hair) solid var(--theme-card-border);
+  background: var(--theme-card-bg);
+  color: var(--theme-text-secondary);
+  font-family: var(--rs-font-fa);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+}
+.fr-tab[aria-selected='true'] {
+  border-color: var(--chart-accent);
+  background: var(--chart-accent-fill);
+  color: var(--theme-text-primary);
+}
+
+/* Total Business page */
+.business-page { max-width: 1100px; margin: 20px auto; padding: 0 16px 40px; }
+.business-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-4);
+}
+.business-sub { margin: var(--sp-1) 0 0; max-width: 64ch; font-size: var(--fs-caption); line-height: var(--lh-body); color: var(--theme-text-muted); }
+.business-brand { display: flex; flex-direction: column; gap: 4px; min-width: 220px; font-size: var(--fs-caption); color: var(--theme-text-muted); }
+.archive-locked { font-size: var(--fs-caption); font-weight: var(--fw-semibold); color: var(--theme-text-muted); }
+.pivot-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--theme-text-primary);
+  font: inherit;
+  font-weight: var(--fw-bold);
+  cursor: pointer;
+  min-height: 0 !important;
+}
+.pivot-caret { margin-inline-start: 8px; color: var(--theme-text-muted); font-weight: var(--fw-bold); }
+.pivot-zone th, .pivot-zone td { background: var(--surface-sunken); }
+.pivot-topic th { padding-inline-start: 28px !important; font-weight: var(--fw-medium) !important; }
+.pivot-muted { color: var(--theme-text-muted); font-size: var(--fs-micro); }
+.pivot-codes { font-family: var(--rs-font-mono, monospace); font-size: var(--fs-micro); color: var(--theme-text-secondary); word-break: break-word; }
