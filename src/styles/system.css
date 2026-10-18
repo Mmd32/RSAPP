@@ -567,7 +567,7 @@ input[type='number'] {
    contain numbers. This puts a run of text back on the plain Latin stack. */
 
 .latin-digits {
-  font-family: 'Plus Jakarta Sans', 'Outfit', 'Inter', -apple-system, sans-serif;
+  font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   direction: ltr;
   unicode-bidi: isolate;
 }
@@ -991,7 +991,6 @@ main > * { min-width: 0; width: 100%; }
 @media (max-width: 600px) {
   /* Report key metrics: five in a row is unreadable on a phone. */
   .report-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-  .report-metrics > :first-child { grid-column: 1 / -1; }
 }
 
 /* .ltr-num is inline-block for inline numbers; on a table cell that breaks

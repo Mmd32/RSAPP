@@ -36,10 +36,10 @@
   --rs-font-fa: 'Vazirmatn Digits', 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   /* The Latin face is used almost entirely for numerals -- scores, percentages,
      metric values -- so the digit face leads here too. Its unicode-range
-     claims only 0-9, so Latin letters still fall through to Plus Jakarta Sans,
+     claims only 0-9, so Latin letters fall through to Vazirmatn's own Latin,
      and identifiers set in the code face are untouched. */
-  --rs-font-latin: 'Vazirmatn Digits', 'Plus Jakarta Sans', 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --rs-font-code: 'Fira Code', monospace;
+  --rs-font-latin: 'Vazirmatn Digits', 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --rs-font-code: 'Vazirmatn', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   /* Legacy aliases for backward compatibility */
   --font-fa: var(--rs-font-fa);

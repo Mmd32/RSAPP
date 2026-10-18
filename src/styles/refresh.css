@@ -415,3 +415,68 @@ button.home-kpi:hover { background: var(--rd-surface-2); }
 @media (min-width: 900px) {
   .ledger__row { grid-template-columns: minmax(0, 1fr) 140px 64px; }
 }
+
+/* ===========================================================================
+   TYPE AND ICONS
+   One family (self-hosted Vazirmatn, Persian and Latin). Weights stop at 700:
+   800/900 made Persian letterforms clot and every label shout. Icons share
+   one thinner stroke so they sit with the text instead of over it.
+   =========================================================================== */
+:root { --fw-black: 700; }
+[style*='font-weight: 800'],
+[style*='font-weight: 900'] { font-weight: 700 !important; }
+h1, h2, h3 { font-weight: 700; }
+
+svg.lucide { stroke-width: 1.75px; }
+.sidebar-nav-item svg.lucide { width: 18px; height: 18px; }
+
+/* ===========================================================================
+   COLLAPSED SIDEBAR
+   =========================================================================== */
+.sidebar-brand-mini {
+  background: var(--rd-primary);
+  color: var(--rd-primary-ink);
+  box-shadow: none;
+  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+}
+.sidebar-brand-mini .brand-logo-icon { font-size: 13px; letter-spacing: 0; }
+.sidebar-toggle-btn { border-color: var(--rd-line); color: var(--rd-muted); }
+.sidebar-toggle-btn:hover { background: var(--rd-surface-2); color: var(--rd-ink); border-color: var(--rd-line-strong); }
+
+.app-sidebar.collapsed { width: 72px; }
+.app-sidebar.collapsed .sidebar-header {
+  height: auto;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 0;
+}
+.app-sidebar.collapsed .sidebar-nav-scroll { padding-inline: 0; }
+.app-sidebar.collapsed .sidebar-nav-group { align-items: center; padding-inline: 0; }
+.app-sidebar.collapsed .sidebar-nav-item {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  margin-inline: auto;
+  justify-content: center;
+  border-radius: 10px;
+}
+.app-sidebar.collapsed .sidebar-nav-item.active { box-shadow: none; }
+.app-sidebar.collapsed .sidebar-divider { margin-inline: 16px; }
+.app-sidebar.collapsed .sidebar-footer { padding: 12px 0; }
+.app-sidebar.collapsed .sidebar-footer-collapsed {
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.sidebar-mini-icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--rd-surface);
+  border: 1px solid var(--rd-line);
+  color: var(--rd-ink-2);
+}
+.sidebar-mini-icon-btn:hover { background: var(--rd-surface-2); color: var(--rd-ink); }

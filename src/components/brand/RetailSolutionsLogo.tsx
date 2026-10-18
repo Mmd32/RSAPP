@@ -183,7 +183,7 @@ export const RetailSolutionsLogo: React.FC<RetailSolutionsLogoProps> = ({
           textLength="595"
           lengthAdjust="spacing"
           style={{
-            fontFamily: 'var(--rs-font-latin), "Plus Jakarta Sans", sans-serif',
+            fontFamily: 'var(--rs-font-latin)',
             letterSpacing: '0.04em',
           }}
         >
@@ -198,7 +198,7 @@ export const RetailSolutionsLogo: React.FC<RetailSolutionsLogoProps> = ({
           textLength="592"
           lengthAdjust="spacing"
           style={{
-            fontFamily: 'var(--rs-font-latin), "Plus Jakarta Sans", sans-serif',
+            fontFamily: 'var(--rs-font-latin)',
             letterSpacing: '0.02em',
           }}
         >
