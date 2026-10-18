@@ -539,15 +539,15 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
           </div>
 
           {/* Key Metrics Strip (Requirement 10) */}
-          <div className="metric-card-grid report-metrics" style={{ gridTemplateColumns: 'repeat(5, 1fr)', marginTop: 20 }}>
+          <div className="metric-card-grid report-metrics" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', marginTop: 20 }}>
             <div className="metric-card">
               <span className="metric-label">شاخص‌های ارزیابی‌شده</span>
               <div className="metric-value">{faDigits(summary.answeredCount)} <span style={{ fontSize: 12, color: 'var(--theme-text-muted)' }}>از {faDigits(summary.totalApplicable)}</span></div>
             </div>
             <div className="metric-card">
               <span className="metric-label">کل اصطکاک‌ها</span>
-              <div className="metric-value" style={{ color: 'var(--rs-color-error)' }}>
-                {summary.totalFrictions}
+              <div className="metric-value" style={{ color: 'var(--fr-mark)' }}>
+                {faDigits(summary.totalFrictions)}
               </div>
             </div>
             <div className="metric-card">
@@ -556,9 +556,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
             </div>
             <div className="metric-card">
               <span className="metric-label">مدارک و تصاویر</span>
-              <div className="metric-value" style={{ color: 'var(--rs-color-brand-cyan)' }}>
-                {summary.totalPhotos}
-              </div>
+              <div className="metric-value">{faDigits(summary.totalPhotos)}</div>
             </div>
           </div>
         </div>
