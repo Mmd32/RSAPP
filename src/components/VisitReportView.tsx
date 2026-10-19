@@ -59,16 +59,7 @@ interface VisitReportViewProps {
   comparisonVisit?: VisitSession;
   /** Other saved visits, used to build real previous-visit and average series. */
   historyVisits?: VisitSession[];
-  /** The built-in sample report: keeps its illustrative benchmark series. */
-  isSample?: boolean;
 }
-
-/** Illustrative benchmarks shown only on the built-in sample report. */
-const SAMPLE_COMPARISON: ComparisonVisitContext = {
-  previousVisitScores: { ACCESS: 72, NAVIGATION: 68, ENVIRONMENT: 75, PRODUCT: 64, PEOPLE: 70, SERVICE: 60, CHECKOUT: 74, AFTER_SALES: 65 },
-  brandAverageScores: { ACCESS: 82, NAVIGATION: 78, ENVIRONMENT: 80, PRODUCT: 76, PEOPLE: 84, SERVICE: 72, CHECKOUT: 79, AFTER_SALES: 71 },
-  branchAverageScores: { ACCESS: 75, NAVIGATION: 70, ENVIRONMENT: 72, PRODUCT: 68, PEOPLE: 73, SERVICE: 66, CHECKOUT: 76, AFTER_SALES: 68 },
-};
 
 export const VisitReportView: React.FC<VisitReportViewProps> = ({
   visit,
@@ -76,7 +67,6 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
   onCreateCorrectiveAction,
   comparisonVisit,
   historyVisits = [],
-  isSample = false,
 }) => {
   const [selectedFrictionIds, setSelectedFrictionIds] = useState<Set<string>>(new Set());
   const [activeProfileId, setActiveProfileId] = useState<string>(DEFAULT_CONSULTING_PROFILE.id);
@@ -92,8 +82,6 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
   // Comparison context (Requirement 14, 15). Built only from real, finished
   // visits; a series is omitted when there is nothing to compare against.
   const comparisonContext = useMemo<ComparisonVisitContext>(() => {
-    if (isSample) return SAMPLE_COMPARISON;
-
     const finished = historyVisits.filter(
       (v) => v.id !== visit.id && (v.status === 'SUBMITTED' || v.status === 'APPROVED') && v.indicators?.length
     );
@@ -122,7 +110,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
     if (sameBrand.length >= 2) context.brandAverageScores = average(sameBrand);
     if (finished.length >= 2) context.branchAverageScores = average(finished);
     return context;
-  }, [isSample, historyVisits, visit.id, visit.brandName, visit.branchName, visit.startedAt, activeProfile]);
+  }, [historyVisits, visit.id, visit.brandName, visit.branchName, visit.startedAt, activeProfile]);
 
   // Compute Full Visit Summary using Active Profile
   const summary = useMemo(() => {
@@ -339,13 +327,6 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
       </div>
 
       {/* Main Report Container (Rendered into PDF) */}
-      {isSample && (
-        <div className="app-notice is-info" role="status">
-          <span>
-            این یک <strong>گزارش نمونه</strong> برای آشنایی است. پس از ارسال اولین پرسشنامه، گزارش واقعی همین‌جا نمایش داده می‌شود.
-          </span>
-        </div>
-      )}
       <div id="official-report-content" ref={reportRef} style={{ background: 'transparent', borderRadius: 12, padding: '4px 0' }}>
         {/* Cover Page / Header with Retail Solutions Branding (Requirements 10, 18, 20) */}
         <div
@@ -422,7 +403,6 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
 
               <h1 style={{ fontSize: 26, fontWeight: 800, marginTop: 10, color: 'var(--theme-text-primary)' }}>
                 {visit.brandName} — {/^شعبه/.test(visit.branchName || '') ? visit.branchName : `شعبه ${visit.branchName}`}
-                {visit.branchCode && <span className="fr-code ltr-num" style={{ fontSize: 13, verticalAlign: 'middle' }}>{visit.branchCode}</span>}
               </h1>
               <p style={{ fontSize: 13, color: 'var(--theme-text-muted)', marginTop: 4 }}>
                 ارزیاب میدانی: <strong style={{ color: 'var(--theme-text-primary)' }}>{visit.auditorName || '—'}</strong>
@@ -562,7 +542,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
         </div>
 
         {/* Friction Rate (FR) model: zones, top topics, branches of the brand */}
-        <FrictionRateReport visit={visit} historyVisits={historyVisits} isSample={isSample} />
+        <FrictionRateReport visit={visit} historyVisits={historyVisits} />
 
         {/* Radar Chart Section (Requirements 6, 7, 8, 9) */}
         <div style={{ marginBottom: 20 }}>

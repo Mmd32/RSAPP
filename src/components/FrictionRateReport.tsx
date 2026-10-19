@@ -374,7 +374,6 @@ export const BranchSection: React.FC<{
                 <tr key={b.key} className={b.visitId === currentVisitId ? 'is-current' : undefined}>
                   <th scope="row">
                     {b.branchName}
-                    {b.branchCode && <span className="fr-code ltr-num">{b.branchCode}</span>}
                     <small>{b.visitId === currentVisitId ? 'همین بازدید' : faDate(b.visitDate)}</small>
                   </th>
                   <td className="ltr-num">{faDigits(b.indicators)}</td>
@@ -411,15 +410,13 @@ interface FrictionRateReportProps {
   visit: VisitSession;
   /** Other visits, for the brand-wide branch comparison. */
   historyVisits?: VisitSession[];
-  /** On the built-in sample there is no real brand to compare against. */
-  isSample?: boolean;
 }
 
-export const FrictionRateReport: React.FC<FrictionRateReportProps> = ({ visit, historyVisits = [], isSample }) => {
+export const FrictionRateReport: React.FC<FrictionRateReportProps> = ({ visit, historyVisits = [] }) => {
   const store = useMemo(() => computeStoreFrictionRate(visit.indicators, visit.responses), [visit.indicators, visit.responses]);
   const branches = useMemo(
-    () => (isSample ? [] : computeBrandFrictionRates(visit.brandName, historyVisits, visit)),
-    [isSample, visit, historyVisits],
+    () => computeBrandFrictionRates(visit.brandName, historyVisits, visit),
+    [visit, historyVisits],
   );
 
   if (!store.total.indicators) return null;
@@ -428,9 +425,7 @@ export const FrictionRateReport: React.FC<FrictionRateReportProps> = ({ visit, h
     <>
       <ZoneSection rate={store} id="fr-zones-title" title="نرخ اصطکاک به تفکیک منطقه" headline="نرخ اصطکاک کل فروشگاه" />
       <TopTopicsSection rate={store} id="fr-topics-title" title="۱۰ اصطکاک اصلی فروشگاه" />
-      {!isSample && (
-        <BranchSection brandName={visit.brandName} branches={branches} currentVisitId={visit.id} id="fr-branches-title" />
-      )}
+      <BranchSection brandName={visit.brandName} branches={branches} currentVisitId={visit.id} id="fr-branches-title" />
     </>
   );
 };

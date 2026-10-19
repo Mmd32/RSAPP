@@ -53,7 +53,6 @@ interface AppSidebarProps {
   currentUserRole: UserRole;
   currentUserName: string;
   /** True when the report menu can only show the built-in sample. */
-  reportIsSample?: boolean;
   /** What the signed-in person may use; menus follow it. */
   can: Capabilities;
   onLogout: () => void;
@@ -72,7 +71,6 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   onToggleTheme,
   currentUserRole,
   currentUserName,
-  reportIsSample = false,
   can,
   onLogout,
   isCollapsed,
@@ -273,9 +271,6 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
               {!isCollapsed && (
                 <>
                   <span className="nav-item-label">گزارش و رادار</span>
-                  {reportIsSample && (
-                    <span className="nav-item-tag">نمونه</span>
-                  )}
                 </>
               )}
             </button>
