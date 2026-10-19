@@ -4,7 +4,6 @@ import {
   AssessmentType,
   BusinessTypeCode,
   LocationContextCode,
-  StoreFormatCode,
   MallTypeCode,
   StoreAttributes,
   Indicator,
@@ -77,7 +76,6 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
   const [businessType, setBusinessType] = useState<BusinessTypeCode>('Fashion');
   const [mallType, setMallType] = useState<MallTypeCode>('Regional');
   const [locationContext, setLocationContext] = useState<LocationContextCode>('STREET_STORE');
-  const [storeFormat, setStoreFormat] = useState<StoreFormatCode>('FLAGSHIP');
   const [auditorName, setAuditorName] = useState(currentUserName || '');
   // The supervisor is recorded when someone actually approves the visit.
   const [supervisorName, setSupervisorName] = useState('');
@@ -118,11 +116,10 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
     if (store.businessType) setBusinessType(store.businessType);
     if (store.mallType) setMallType(store.mallType);
     if (store.locationContext) setLocationContext(store.locationContext);
-    if (store.storeFormat) setStoreFormat(store.storeFormat);
     if (store.attributes) setAttributes(store.attributes);
 
     // Jump straight to confirmation step!
-    setStep(8);
+    setStep(7);
   };
 
   const handleDeleteSavedStore = async (e: React.MouseEvent, id: string) => {
@@ -141,7 +138,6 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
         assessmentType: 'STORE',
         businessType,
         locationContext,
-        storeFormat,
         brand: brandName,
         branch: branchName,
         attributes,
@@ -156,7 +152,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
         attributes,
       };
     }
-  }, [assessmentType, businessType, locationContext, storeFormat, mallType, brandName, branchName, attributes]);
+  }, [assessmentType, businessType, locationContext, mallType, brandName, branchName, attributes]);
 
   // Evaluated indicators via deterministic rule engine
   const { indicators: previewIndicators, auditTrail } = useMemo(() => {
@@ -184,7 +180,6 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
         businessType: assessmentType === 'STORE' ? businessType : undefined,
         mallType: assessmentType === 'MALL' ? mallType : undefined,
         locationContext,
-        storeFormat: assessmentType === 'STORE' ? storeFormat : undefined,
         attributes,
         auditorName,
         supervisorName,
@@ -201,7 +196,6 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
       assessmentType,
       businessType: assessmentType === 'STORE' ? businessType : undefined,
       locationContext,
-      storeFormat: assessmentType === 'STORE' ? storeFormat : undefined,
       mallType: assessmentType === 'MALL' ? mallType : undefined,
       attributes,
       auditorName,
@@ -233,7 +227,6 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
     'شعبه محل ارزیابی',
     assessmentType === 'STORE' ? 'رسته کسب‌وکار' : 'مقیاس مرکز خرید',
     'بافت موقعیتی',
-    'قالب فروشگاه',
     'ویژگی‌های فیزیکی محل',
     'پیش‌نمایش فرم و تایید',
   ];
@@ -244,14 +237,14 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
       <div className="glass-panel" style={{ padding: '14px 18px', marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
           <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--rs-color-brand-cyan)' }}>
-            مرحله {step} از ۸: {stepTitles[step - 1]}
+            مرحله {step} از ۷: {stepTitles[step - 1]}
           </span>
           <span className="ltr-num" style={{ fontSize: 12, color: 'var(--theme-text-muted)', fontWeight: 700 }}>
-            {Math.round((step / 8) * 100)}%
+            {Math.round((step / 7) * 100)}%
           </span>
         </div>
         <div className="progress-bar-bg" style={{ height: 6 }}>
-          <div className="progress-bar-fill" style={{ width: `${(step / 8) * 100}%` }} />
+          <div className="progress-bar-fill" style={{ width: `${(step / 7) * 100}%` }} />
         </div>
       </div>
 
@@ -438,12 +431,6 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                                 >
                                   {store.assessmentType === 'STORE' ? (store.businessType ? profileLabel(store.businessType) : 'فروشگاهی') : (store.mallType ? profileLabel(store.mallType) : 'مرکز خرید')}
                                 </span>
-
-                                {store.storeFormat && (
-                                  <span style={{ fontSize: 11, color: 'var(--theme-text-muted)' }}>
-                                    {profileLabel(store.storeFormat)}
-                                  </span>
-                                )}
 
                                 {store.lastVisitedAt && (
                                   <span style={{ fontSize: 11, color: 'var(--rs-color-brand-cyan)', direction: 'rtl' }}>
@@ -815,52 +802,11 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
           )}
 
           {/* ================================================================ */}
-          {/* STEP 6: STORE FORMAT */}
+          {/* STEP 6: PHYSICAL ATTRIBUTES */}
           {/* ================================================================ */}
           {step === 6 && (
             <div>
-              <h2 style={{ fontSize: 17, fontWeight: 800, marginBottom: 6 }}>مرحله ۶: قالب و فرمت شعبه</h2>
-              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
-                مقیاس عملیاتی و کانسپت فروشگاه را مشخص کنید.
-              </p>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {[
-                  { code: 'FLAGSHIP', label: 'شعبه پرچمدار', desc: 'بزرگ‌ترین مقیاس و کامل‌ترین خدمات برند' },
-                  { code: 'CHAIN', label: 'شعبه استاندارد زنجیره‌ای', desc: 'قالب استاندارد شعبات درون‌شهری' },
-                  { code: 'BOUTIQUE', label: 'بوتیک و فروشگاه جمع‌وجور', desc: 'مساحت محدود با تمرکز بر گلچین محصولات' },
-                  { code: 'SHOP_IN_SHOP', label: 'شاپ این شاپ', desc: 'کانتر اختصاصی برند در یک مجموعه بزرگ‌تر' },
-                  { code: 'KIOSK', label: 'کیوسک موقت یا دائمی', desc: 'غرفه کوچک جزیره‌ای' },
-                ].map((sf) => (
-                  <button
-                    key={sf.code}
-                    type="button"
-                    onClick={() => setStoreFormat(sf.code as StoreFormatCode)}
-                    style={{
-                      padding: '10px 12px',
-                      borderRadius: 'var(--rs-radius-control)',
-                      border: `1.5px solid ${storeFormat === sf.code ? 'var(--rs-color-brand-cyan)' : 'var(--border-subtle)'}`,
-                      background: storeFormat === sf.code ? 'rgba(0, 176, 240, 0.14)' : 'var(--theme-input-bg)',
-                      color: 'var(--theme-text-primary)',
-                      textAlign: 'right',
-                      cursor: 'pointer',
-                      transition: 'all 120ms ease',
-                    }}
-                  >
-                    <strong style={{ fontSize: 13, display: 'block' }}>{sf.label}</strong>
-                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{sf.desc}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ================================================================ */}
-          {/* STEP 7: PHYSICAL ATTRIBUTES */}
-          {/* ================================================================ */}
-          {step === 7 && (
-            <div>
-              <h2 style={{ fontSize: 17, fontWeight: 800, marginBottom: 6 }}>مرحله ۷: ویژگی‌های فیزیکی محل</h2>
+              <h2 style={{ fontSize: 17, fontWeight: 800, marginBottom: 6 }}>مرحله ۶: ویژگی‌های فیزیکی محل</h2>
               <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>
                 امکانات موجود در این شعبه را تیک بزنید تا سؤالات بر اساس امکانات واقعی فیلتر شوند.
               </p>
@@ -917,11 +863,11 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
           {/* ================================================================ */}
           {/* STEP 8: PREVIEW & FINAL CONFIRMATION */}
           {/* ================================================================ */}
-          {step === 8 && (
+          {step === 7 && (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                 <CheckCircle2 color="var(--rs-color-success)" size={24} />
-                <h2 style={{ fontSize: 17, fontWeight: 800 }}>مرحله ۸: پیش‌نمایش فرم و تأیید نهایی</h2>
+                <h2 style={{ fontSize: 17, fontWeight: 800 }}>مرحله ۷: پیش‌نمایش فرم و تأیید نهایی</h2>
               </div>
               <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
                 چک‌لیست بر اساس استانداردها آماده شد. مشخصات نهایی را بررسی و تایید نمایید:
@@ -950,9 +896,9 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>موقعیت و قالب:</span>
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>موقعیت:</span>
                   <span style={{ fontSize: 12, color: 'var(--theme-text-primary)' }}>
-                    {profileLabel(locationContext)} • {assessmentType === 'STORE' ? profileLabel(storeFormat) : 'مرکز تجاری'}
+                    {assessmentType === 'STORE' ? profileLabel(locationContext) : 'مرکز تجاری'}
                   </span>
                 </div>
               </div>
@@ -1057,10 +1003,10 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
             <div />
           )}
 
-          {step < 8 ? (
+          {step < 7 ? (
             <button
               type="button"
-              onClick={() => setStep((s) => Math.min(8, s + 1))}
+              onClick={() => setStep((s) => Math.min(7, s + 1))}
               // Brand and branch are required: a visit without them cannot be saved.
               disabled={(step === 2 && !brandName.trim()) || (step === 3 && !branchName.trim())}
               className="btn-primary"

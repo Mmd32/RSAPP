@@ -13,7 +13,6 @@ const SEED_STORES: SavedStoreDirectoryItem[] = [
     assessmentType: 'STORE',
     businessType: 'Fashion',
     locationContext: 'STREET_STORE',
-    storeFormat: 'FLAGSHIP',
     attributes: {
       has_window_display: true,
       has_fitting_room: true,
@@ -43,7 +42,6 @@ const SEED_STORES: SavedStoreDirectoryItem[] = [
     assessmentType: 'STORE',
     businessType: 'Fashion',
     locationContext: 'MALL_STORE',
-    storeFormat: 'CHAIN',
     attributes: {
       has_window_display: true,
       has_fitting_room: true,
@@ -73,7 +71,6 @@ const SEED_STORES: SavedStoreDirectoryItem[] = [
     assessmentType: 'STORE',
     businessType: 'Fashion',
     locationContext: 'MALL_STORE',
-    storeFormat: 'BOUTIQUE',
     attributes: {
       has_window_display: true,
       has_fitting_room: true,
@@ -103,7 +100,6 @@ const SEED_STORES: SavedStoreDirectoryItem[] = [
     assessmentType: 'STORE',
     businessType: 'FMCG',
     locationContext: 'STANDALONE',
-    storeFormat: 'FLAGSHIP',
     attributes: {
       has_window_display: false,
       has_fitting_room: false,
@@ -236,7 +232,6 @@ export const StoreService = {
         assessmentType: storeData.assessmentType || 'STORE',
         businessType: storeData.businessType || 'Fashion',
         locationContext: storeData.locationContext || 'STREET_STORE',
-        storeFormat: storeData.storeFormat || 'CHAIN',
         mallType: storeData.mallType,
         attributes: storeData.attributes || {},
         auditorName: storeData.auditorName,
