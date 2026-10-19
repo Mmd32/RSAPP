@@ -201,7 +201,9 @@ def run_tests():
     diff_only_street = fs_codes - fm_codes
     diff_only_mall = fm_codes - fs_codes
     assert "FS08" in diff_only_street, "TEST 11 FAILED: FS08 should be in only_street"
-    assert len(diff_shared) > 240, "TEST 11 FAILED: Expected high overlap between street and mall fashion"
+    # The two forms differ only by a handful of location-specific KPIs, so nearly all are shared.
+    smaller = min(len(fs_codes), len(fm_codes))
+    assert len(diff_shared) >= 0.95 * smaller, "TEST 11 FAILED: Expected high overlap between street and mall fashion"
     print(f"[PASS] Test 11: Scenario Diff verification (Shared: {len(diff_shared)}, Only Street: {len(diff_only_street)}, Only Mall: {len(diff_only_mall)})")
 
     print("\n" + "=" * 80)
