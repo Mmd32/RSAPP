@@ -12,7 +12,6 @@ import {
   SavedStoreDirectoryItem,
 } from '../types';
 import { generateDynamicChecklistWithAudit } from '../engine/ruleEngine';
-import { SAMPLE_REAL_VISIT } from '../data/sampleRealVisit';
 import { StoreService } from '../services/storeService';
 import {
   Store,
@@ -72,7 +71,6 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
   const [assessmentType, setAssessmentType] = useState<AssessmentType>('STORE');
   const [brandName, setBrandName] = useState('زارا');
   const [branchName, setBranchName] = useState('');
-  const [branchCode, setBranchCode] = useState('');
   const [businessType, setBusinessType] = useState<BusinessTypeCode>('Fashion');
   const [mallType, setMallType] = useState<MallTypeCode>('Regional');
   const [locationContext, setLocationContext] = useState<LocationContextCode>('STREET_STORE');
@@ -111,7 +109,6 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
     setSelectedStoreId(store.id);
     setBrandName(store.brandName);
     setBranchName(store.branchName);
-    setBranchCode(store.branchCode || '');
     setAssessmentType(store.assessmentType);
     if (store.businessType) setBusinessType(store.businessType);
     if (store.mallType) setMallType(store.mallType);
@@ -175,7 +172,6 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
       await StoreService.saveStore({
         brandName,
         branchName,
-        ...(branchCode.trim() ? { branchCode: branchCode.trim().toUpperCase() } : {}),
         assessmentType,
         businessType: assessmentType === 'STORE' ? businessType : undefined,
         mallType: assessmentType === 'MALL' ? mallType : undefined,
@@ -192,7 +188,6 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
       visitCode: `VST-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
       brandName,
       branchName,
-      ...(branchCode.trim() ? { branchCode: branchCode.trim().toUpperCase() } : {}),
       assessmentType,
       businessType: assessmentType === 'STORE' ? businessType : undefined,
       locationContext,
@@ -225,9 +220,9 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
     'انتخاب یا ثبت فروشگاه',
     'مجموعه / برند',
     'شعبه محل ارزیابی',
-    assessmentType === 'STORE' ? 'رسته کسب‌وکار' : 'مقیاس مرکز خرید',
-    'بافت موقعیتی',
-    'ویژگی‌های فیزیکی محل',
+    assessmentType === 'STORE' ? 'بخش (سکتور) مورد نظر' : 'مقیاس مرکز خرید',
+    'موقعیت مکانی فروشگاه',
+    'امکانات فیزیکی محل مورد ارزیابی',
     'پیش‌نمایش فرم و تایید',
   ];
 
@@ -485,7 +480,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                 <div>
                   <h3 style={{ fontSize: 15, fontWeight: 800, marginBottom: 6 }}>انتخاب نوع واحد مورد ارزیابی</h3>
                   <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
-                    مشخص کنید موضوع ارزیابی یک واحد فروشگاهی مستقل است یا کل یک مجتمع تجاری.
+                    نوع واحد مورد ارزیابی را مشخص کنید.
                   </p>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -575,7 +570,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
             <div>
               <h2 style={{ fontSize: 17, fontWeight: 800, marginBottom: 6 }}>مرحله ۲: مجموعه یا برند</h2>
               <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
-                نام تجاری یا هلدینگ مورد ارزیابی را مشخص کنید.
+                نام مجموعه مورد ارزیابی را مشخص کنید.
               </p>
 
               <div style={{ marginBottom: 14 }}>
@@ -639,22 +634,6 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                 />
               </div>
 
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
-                  کد شعبه (اختیاری):
-                </label>
-                <input
-                  type="text"
-                  dir="ltr"
-                  value={branchCode}
-                  maxLength={20}
-                  onChange={(e) => setBranchCode(e.target.value.toUpperCase())}
-                  className="friction-textarea"
-                  style={{ minHeight: 44, padding: '10px 14px', fontSize: 14, textAlign: 'left' }}
-                  placeholder="TEH-01"
-                />
-              </div>
-
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {['شعبه خیابان ولیعصر', 'شعبه مجتمع کوروش', 'شعبه پالادیوم', 'شعبه بزرگراه باکری'].map((br) => (
                   <button
@@ -684,28 +663,25 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
           {step === 4 && (
             <div>
               <h2 style={{ fontSize: 17, fontWeight: 800, marginBottom: 6 }}>
-                مرحله ۴: {assessmentType === 'STORE' ? 'رسته کسب‌وکار (صنف)' : 'مقیاس و رده مرکز خرید'}
+                مرحله ۴: {assessmentType === 'STORE' ? 'بخش (سکتور) مورد نظر' : 'مقیاس و رده مرکز خرید'}
               </h2>
-              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
-                موتور ارزیابی از این فیلد برای انطباق با ماتریس استاندارد شاخص‌ها استفاده می‌کند.
-              </p>
 
               {assessmentType === 'STORE' ? (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
                   {[
                     { code: 'Fashion', label: 'پوشاک' },
                     { code: 'Shoe_Bag', label: 'کیف و کفش' },
-                    { code: 'Watch_Jewelry', label: 'ساعت و طلا' },
-                    { code: 'FMCG', label: 'تندمصرف' },
-                    { code: 'F_B', label: 'کافه و غذا' },
-                    { code: 'Hardware', label: 'ابزار و یراق' },
+                    { code: 'Watch_Jewelry', label: 'ساعت، طلا، نقره و جواهرات' },
+                    { code: 'FMCG', label: 'فروشگاه کالاهای تند گردش (سوپرمارکت و هایپرمارکت)' },
+                    { code: 'F_B', label: 'رستوران و کافه' },
+                    { code: 'Hardware', label: 'فروشگاه سخت افزار (ابزارآلات و....)' },
                     { code: 'Homeware', label: 'لوازم خانگی' },
                     { code: 'Beauty_Cosmetics', label: 'آرایشی و زیبایی' },
                     { code: 'Electronics', label: 'الکترونیک و دیجیتال' },
                     { code: 'Entertainment', label: 'سرگرمی و اسباب‌بازی' },
-                    { code: 'Sports', label: 'لوازم ورزشی' },
-                    { code: 'Specialty', label: 'کالای تخصصی' },
-                    { code: 'Services', label: 'خدمات و پشتیبانی' },
+                    { code: 'Sports', label: 'فروشگاه کالای ورزشی' },
+                    { code: 'Specialty', label: 'فروشگاه‌های تخصصی' },
+                    { code: 'Services', label: 'فروشگاه خدماتی' },
                   ].map((bt) => (
                     <button
                       key={bt.code}
@@ -766,7 +742,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
           {/* ================================================================ */}
           {step === 5 && (
             <div>
-              <h2 style={{ fontSize: 17, fontWeight: 800, marginBottom: 6 }}>مرحله ۵: بافت موقعیتی</h2>
+              <h2 style={{ fontSize: 17, fontWeight: 800, marginBottom: 6 }}>مرحله ۵: موقعیت مکانی فروشگاه</h2>
               <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
                 موقعیت استقرار واحد را تعیین کنید تا شاخص‌های متناسب خیابانی یا درون مجتمع اعمال شوند.
               </p>
@@ -806,7 +782,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
           {/* ================================================================ */}
           {step === 6 && (
             <div>
-              <h2 style={{ fontSize: 17, fontWeight: 800, marginBottom: 6 }}>مرحله ۶: ویژگی‌های فیزیکی محل</h2>
+              <h2 style={{ fontSize: 17, fontWeight: 800, marginBottom: 6 }}>مرحله ۶: امکانات فیزیکی محل مورد ارزیابی</h2>
               <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>
                 امکانات موجود در این شعبه را تیک بزنید تا سؤالات بر اساس امکانات واقعی فیلتر شوند.
               </p>
@@ -819,7 +795,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                   { key: 'has_elevator', compat: 'hasElevator', label: 'آسانسور، پله‌برقی یا پله داخلی طبقات', desc: 'شاخص‌های دسترسی بین‌طبقه‌ای' },
                   { key: 'has_parking', compat: 'hasParking', label: 'پارکینگ اختصاصی مشتریان', desc: 'شاخص‌های پارکینگ فروشگاه' },
                   { key: 'has_customer_toilet', compat: 'hasCustomerToilet', label: 'سرویس بهداشتی در دسترس مشتریان', desc: 'رفاهیات بهداشتی داخلی' },
-                  { key: 'has_checkout_counter', compat: undefined, label: 'کانتر صندوق و سیستم صف', desc: 'شاخص‌های تسویه و صف' },
+                  { key: 'has_checkout_counter', compat: undefined, label: 'صندوق', desc: 'شاخص‌های تسویه و صف' },
                   { key: 'has_anti_theft_gate', compat: undefined, label: 'گیت دزدگیر و سیستم امنیتی کالا', desc: 'حفاظت فیزیکی کالا' },
                 ].map((attr) => {
                   const isChecked = Boolean(attributes[attr.key]);
@@ -1029,7 +1005,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
               }}
             >
               <CheckCircle2 size={16} />
-              شروع ارزیابی میدانی
+              شروع ارزیابی
             </button>
           )}
         </div>

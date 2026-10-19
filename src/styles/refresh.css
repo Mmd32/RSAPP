@@ -480,3 +480,12 @@ svg.lucide { stroke-width: 1.75px; }
   color: var(--rd-ink-2);
 }
 .sidebar-mini-icon-btn:hover { background: var(--rd-surface-2); color: var(--rd-ink); }
+
+/* Dashboard KPI strip with three cards */
+.home-kpis.is-three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 900px) {
+  .home-kpis.is-three { grid-template-columns: minmax(0, 1fr); }
+  .home-kpis.is-three .home-kpi { border-inline-start: none; border-top: 1px solid var(--rd-line); }
+  .home-kpis.is-three .home-kpi:first-child { border-top: none; }
+}
+.status-chip { white-space: normal; text-align: center; line-height: 1.4; max-width: 150px; }

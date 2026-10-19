@@ -29,7 +29,7 @@ import { capabilities } from './auth/roles';
 import { RetailSolutionsLogo } from './components/brand/RetailSolutionsLogo';
 import { AppSidebar } from './components/layout/AppSidebar';
 import { MobileTabBar } from './components/layout/MobileTabBar';
-import { SAMPLE_REAL_VISIT } from './data/sampleRealVisit';
+import { ReportEmpty } from './components/ReportEmpty';
 import {
   CorrectiveAction,
   CorrectiveActionPriority,
@@ -695,7 +695,7 @@ export const App: React.FC = () => {
   }, [activeSession, searchQuery, auditFilter]);
 
   // The report shows the visit being worked on, else the latest finished one.
-  // The built-in sample appears only when there is no real visit at all.
+  // The report is always a real visit; with none yet, an empty state is shown.
   const latestFinishedVisit = useMemo(
     () =>
       [...pastVisits]
@@ -703,7 +703,7 @@ export const App: React.FC = () => {
         .sort((a, b) => (b.completedAt || b.startedAt).localeCompare(a.completedAt || a.startedAt))[0] || null,
     [pastVisits]
   );
-  const reportVisit: VisitSession = activeSession || latestFinishedVisit || SAMPLE_REAL_VISIT;
+  const reportVisit: VisitSession | null = activeSession || latestFinishedVisit || null;
 
   const currentIndicator = displayedIndicators[currentQuestionIndex] || displayedIndicators[0] || activeSession?.indicators[0];
 
@@ -1099,7 +1099,6 @@ export const App: React.FC = () => {
         onToggleTheme={toggleTheme}
         currentUserRole={currentUserRole}
         currentUserName={currentUserName}
-        reportIsSample={!activeSession && !latestFinishedVisit}
         can={can}
         onLogout={logout}
         isCollapsed={isSidebarCollapsed}
@@ -1681,11 +1680,13 @@ export const App: React.FC = () => {
           )}
 
           {/* OFFICIAL AUDIT REPORT (With Radar Chart) */}
-          {viewMode === 'REPORT' && (
+          {viewMode === 'REPORT' && !reportVisit && (
+            <ReportEmpty canStart={can.fieldWork} onStart={() => setViewMode('WIZARD')} />
+          )}
+          {viewMode === 'REPORT' && reportVisit && (
             <VisitReportView
               visit={reportVisit}
               historyVisits={pastVisits}
-              isSample={reportVisit === SAMPLE_REAL_VISIT}
               onBackToDashboard={() => setViewMode(activeSession ? 'AUDIT' : 'WIZARD')}
               onCreateCorrectiveAction={handleCreateCorrectiveAction}
             />

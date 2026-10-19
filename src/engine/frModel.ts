@@ -110,7 +110,6 @@ export function topFrictionTopics(rate: StoreFrictionRate, limit = 10, group?: s
 
 export interface BranchFrictionRate extends FrictionRateRow {
   branchName: string;
-  branchCode?: string;
   visitId: string;
   visitDate: string;
 }
@@ -152,7 +151,6 @@ export function computeBrandFrictionRates(
         ...total,
         key: v.branchName,
         branchName: v.branchName,
-        branchCode: v.branchCode,
         visitId: v.id,
         visitDate: v.completedAt || v.startedAt,
       };

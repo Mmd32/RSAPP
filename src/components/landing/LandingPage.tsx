@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { PlusCircle, PlayCircle, Building2 } from 'lucide-react';
 import { VisitSession, UserRole } from '../../types';
 import { faDate, faDigits } from '../../utils/format';
-import { computeFrictionRate, computeBrandFrictionRates, isFinishedVisit, latestVisitPerBranch } from '../../engine/frModel';
+import { computeBrandFrictionRates, isFinishedVisit } from '../../engine/frModel';
 import { faRate } from '../FrictionRateReport';
 
 /*
@@ -41,7 +41,7 @@ interface LandingPageProps {
 
 const STATUS: Record<string, { label: string; tone: string }> = {
   IN_PROGRESS: { label: 'در حال تکمیل', tone: 'is-progress' },
-  SUBMITTED: { label: 'در انتظار بررسی', tone: 'is-submitted' },
+  SUBMITTED: { label: 'در انتظار بررسی و تایید مسئول پروژه', tone: 'is-submitted' },
   APPROVED: { label: 'تأییدشده', tone: 'is-approved' },
   REVISION_REQUESTED: { label: 'نیازمند اصلاح', tone: 'is-revision' },
 };
@@ -73,7 +73,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const stats = useMemo(() => {
     const finished = visits.filter(isFinishedVisit);
     const brands = [...new Set(finished.map((v) => v.brandName))];
-    const latest = brands.flatMap((b) => latestVisitPerBranch(b, visits));
     const branches = brands
       .flatMap((b) => computeBrandFrictionRates(b, visits).map((r) => ({ ...r, brandName: b })))
       .sort((a, b) => b.rate - a.rate)
@@ -86,7 +85,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       pending: visits.filter((v) => v.status === 'SUBMITTED').length,
       revision: visits.filter((v) => v.status === 'REVISION_REQUESTED').length,
       inProgress: visits.filter((v) => v.status === 'IN_PROGRESS').length,
-      rate: latest.length ? computeFrictionRate(latest).total : null,
       branches,
       recent,
     };
@@ -141,7 +139,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       )}
 
       {canOpenReports ? (
-        <div className="home-kpis">
+        <div className="home-kpis is-three">
           <div className="home-kpi">
             <span className="home-kpi__label">پرسشنامه‌های ثبت‌شده</span>
             <span className="home-kpi__value">{faDigits(stats.finished)}</span>
@@ -149,27 +147,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
           {canReview && onOpenReview ? (
             <button type="button" className="home-kpi" onClick={onOpenReview}>
-              <span className="home-kpi__label">در انتظار بررسی</span>
+              <span className="home-kpi__label">در انتظار بررسی و تایید مسئول پروژه</span>
               <span className="home-kpi__value">{faDigits(stats.pending)}</span>
               <span className="home-kpi__hint">کارتابل سرپرست</span>
             </button>
           ) : (
             <div className="home-kpi">
-              <span className="home-kpi__label">در انتظار بررسی</span>
+              <span className="home-kpi__label">در انتظار بررسی و تایید مسئول پروژه</span>
               <span className="home-kpi__value">{faDigits(stats.pending)}</span>
               <span className="home-kpi__hint">نزد سرپرست</span>
             </div>
           )}
-          <div className="home-kpi">
-            <span className="home-kpi__label">نرخ اصطکاک کل</span>
-            <span className={`home-kpi__value${stats.rate ? ' is-friction' : ''}`}>
-              {stats.rate ? faRate(stats.rate.rate) : '—'}
-            </span>
-            <span className="home-kpi__hint">آخرین بازدید هر شعبه</span>
-          </div>
           {canOpenActions ? (
             <button type="button" className="home-kpi" onClick={onOpenActions}>
-              <span className="home-kpi__label">اقدامات اصلاحی باز</span>
+              <span className="home-kpi__label">موارد نیاز به اصلاح</span>
               <span className="home-kpi__value">{faDigits(openActionsCount)}</span>
               <span className="home-kpi__hint">رفع‌نشده یا تأییدنشده</span>
             </button>
