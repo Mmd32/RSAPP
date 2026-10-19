@@ -8,7 +8,6 @@ export const SAMPLE_REAL_VISIT: VisitSession = {
   assessmentType: 'STORE',
   businessType: 'Fashion',
   locationContext: 'MALL_STORE',
-  storeFormat: 'FLAGSHIP',
   attributes: {
     has_fitting_room: true,
     has_window_display: true,
