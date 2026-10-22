@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Building2 } from 'lucide-react';
+import { Building2, Download } from 'lucide-react';
 import type { VisitSession } from '../types';
 import { computeBrandFrictionRates, computeFrictionRate, isFinishedVisit, latestVisitPerBranch } from '../engine/frModel';
 import { BranchSection, TopTopicsSection, ZoneSection } from './FrictionRateReport';
@@ -30,6 +30,7 @@ export const BusinessReportView: React.FC<BusinessReportViewProps> = ({ visits, 
   }, [visits]);
 
   const [brand, setBrand] = useState('');
+  const [exporting, setExporting] = useState(false);
   useEffect(() => {
     if (!brands.some((b) => b.name === brand)) setBrand(brands[0]?.name || '');
   }, [brands, brand]);
@@ -50,6 +51,29 @@ export const BusinessReportView: React.FC<BusinessReportViewProps> = ({ visits, 
             شعبه آخرین پرسشنامه‌ی ارسال‌شده یا تأییدشده حساب می‌شود.
           </p>
         </div>
+        {brands.length > 0 && (
+          <button
+            type="button"
+            className="btn-primary"
+            disabled={exporting || !brand}
+            onClick={async () => {
+              setExporting(true);
+              try {
+                const { downloadBusinessDeck } = await import('../services/pptxReport');
+                await downloadBusinessDeck(brand, visits);
+              } catch (err) {
+                console.error('PowerPoint export failed:', err);
+                alert('ساخت پاورپوینت انجام نشد. دوباره تلاش کنید.');
+              } finally {
+                setExporting(false);
+              }
+            }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          >
+            <Download size={15} />
+            <span>{exporting ? 'در حال ساخت پاورپوینت…' : 'دانلود پاورپوینت'}</span>
+          </button>
+        )}
         {brands.length > 0 && (
           <label className="business-brand">
             <span>برند</span>

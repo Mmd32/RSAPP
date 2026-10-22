@@ -158,6 +158,20 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
     setSelectedFrictionIds(new Set());
   };
 
+  const [isExportingPptx, setIsExportingPptx] = useState(false);
+  const handleDownloadPptx = async () => {
+    setIsExportingPptx(true);
+    try {
+      const { downloadStoreDeck } = await import('../services/pptxReport');
+      await downloadStoreDeck(visit);
+    } catch (err) {
+      console.error('PowerPoint export failed:', err);
+      alert('ساخت پاورپوینت انجام نشد. دوباره تلاش کنید.');
+    } finally {
+      setIsExportingPptx(false);
+    }
+  };
+
   // Real PDF Generation (Requirements 17, 18, 19, 20)
   const handleDownloadPdf = async () => {
     if (!reportRef.current) return;
@@ -312,16 +326,16 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
             <span>خروجی اکسل / CSV</span>
           </button>
 
-          {/* Real PDF Download */}
+          {/* PowerPoint: the report deck, all in Persian */}
           <button
             type="button"
             className="btn-primary"
-            onClick={handleDownloadPdf}
-            disabled={isExportingPdf}
+            onClick={handleDownloadPptx}
+            disabled={isExportingPptx}
             style={{ fontSize: 12, padding: '7px 14px' }}
           >
             <Download size={15} />
-            <span>{isExportingPdf ? 'در حال ایجاد فایل PDF...' : 'دانلود گزارش رسمی (PDF)'}</span>
+            <span>{isExportingPptx ? 'در حال ساخت پاورپوینت…' : 'دانلود گزارش (پاورپوینت)'}</span>
           </button>
         </div>
       </div>
