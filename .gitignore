@@ -55,3 +55,4 @@ __pycache__/
 
 # Hand edits of indicator wording (local JSON store)
 data/indicator_overrides.json
+data/custom_indicators.json

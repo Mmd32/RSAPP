@@ -1,7 +1,7 @@
 import pg from 'pg';
 import { logger } from '../logger.js';
 import { CorrectiveAction, ActionAuditLog } from '../types/actions.js';
-import { DataStore, VisitFilter, StoredPhoto, PhotoMetadata, StoredUser, IndicatorOverride } from './types.js';
+import { DataStore, VisitFilter, StoredPhoto, PhotoMetadata, StoredUser, IndicatorOverride, CustomIndicator } from './types.js';
 import { DOCUMENT_STORE_SCHEMA } from './schema.js';
 
 const { Pool } = pg;
@@ -289,6 +289,30 @@ export class PostgresDataStore implements DataStore {
       [key, value]
     );
     return (await this.getSetting(key)) as string;
+  }
+
+  // --- custom indicators ----------------------------------------------------
+
+  async listCustomIndicators(tenantId: string): Promise<CustomIndicator[]> {
+    const { rows } = await this.pool.query('SELECT doc FROM custom_indicators WHERE tenant_id = $1', [tenantId]);
+    return rows.map((r) => r.doc as CustomIndicator);
+  }
+
+  async saveCustomIndicator(tenantId: string, indicator: CustomIndicator): Promise<void> {
+    await this.pool.query(
+      `INSERT INTO custom_indicators (tenant_id, indicator_id, doc)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (tenant_id, indicator_id) DO UPDATE SET doc = EXCLUDED.doc, updated_at = now()`,
+      [tenantId, indicator.id, indicator]
+    );
+  }
+
+  async deleteCustomIndicator(tenantId: string, indicatorId: string): Promise<boolean> {
+    const { rowCount } = await this.pool.query(
+      'DELETE FROM custom_indicators WHERE tenant_id = $1 AND indicator_id = $2',
+      [tenantId, indicatorId]
+    );
+    return (rowCount ?? 0) > 0;
   }
 
   // --- indicator overrides --------------------------------------------------
