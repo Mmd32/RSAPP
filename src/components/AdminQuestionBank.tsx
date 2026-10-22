@@ -2,6 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Indicator } from '../types';
 import { Database, Filter, CheckCircle, AlertTriangle, Layers, Plus } from 'lucide-react';
 import { stageLabel, groupLabel, faDigits, profileLabel } from '../utils/format';
+import { IndicatorEditor } from './IndicatorEditor';
+import type { IndicatorEdit } from '../services/indicatorService';
 
 /** The five store zones and the thirteen retail sectors of the FR model. */
 const STORE_ZONES = ['FLOOR', 'SERVICES', 'TEAM', 'PRODUCT', 'CASH'];
@@ -64,7 +66,13 @@ const SectorZoneMatrix: React.FC<{ indicators: Indicator[] }> = ({ indicators })
 };
 
 interface AdminQuestionBankProps {
+  /** The checklist with edits applied: what questionnaires are built from. */
   indicators: Indicator[];
+  /** The checklist as the file has it, to show what an edit changed. */
+  baseIndicators?: Indicator[];
+  canEdit?: boolean;
+  onSaveIndicator?: (id: string, edit: IndicatorEdit) => Promise<void>;
+  onResetIndicator?: (id: string) => Promise<void>;
 }
 
 const PAGE_SIZE = 100;
@@ -178,19 +186,28 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[] }> = ({ indicators }) =
   );
 };
 
-export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators: allIndicators }) => {
+export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
+  indicators: allIndicators,
+  baseIndicators = [],
+  canEdit = false,
+  onSaveIndicator,
+  onResetIndicator,
+}) => {
   // Archived indicators are kept for old visits only; the bank lists what is asked today.
   const indicators = useMemo(() => allIndicators.filter((i) => i.status !== 'ARCHIVED'), [allIndicators]);
   const storeCount = indicators.filter((i) => i.template === 'STORE').length;
   const mallCount = indicators.filter((i) => i.template === 'MALL').length;
+  const editedCount = indicators.filter((i) => i.edited).length;
+  const noteCount = indicators.filter((i) => i.auditorNote).length;
   const [templateFilter, setTemplateFilter] = useState<'ALL' | 'STORE' | 'MALL'>('ALL');
   const [selectedGroup, setSelectedGroup] = useState<string>('ALL');
-  const [filterNeedsReview, setFilterNeedsReview] = useState<boolean>(false);
+  const [onlyEdited, setOnlyEdited] = useState<boolean>(false);
+  const [onlyWithNote, setOnlyWithNote] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedIndicator, setSelectedIndicator] = useState<Indicator | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   // A new filter starts from the first page again.
-  useEffect(() => setVisibleCount(PAGE_SIZE), [templateFilter, selectedGroup, filterNeedsReview, searchQuery]);
+  useEffect(() => setVisibleCount(PAGE_SIZE), [templateFilter, selectedGroup, onlyEdited, onlyWithNote, searchQuery]);
 
   // Extract unique groups
   const groups = useMemo(() => {
@@ -203,7 +220,8 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
     return indicators.filter((ind) => {
       if (templateFilter !== 'ALL' && ind.template !== templateFilter) return false;
       if (selectedGroup !== 'ALL' && ind.group !== selectedGroup) return false;
-      if (filterNeedsReview && !ind.needsReview) return false;
+      if (onlyEdited && !ind.edited) return false;
+      if (onlyWithNote && !ind.auditorNote) return false;
 
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
@@ -214,7 +232,11 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
       }
       return true;
     });
-  }, [indicators, templateFilter, selectedGroup, filterNeedsReview, searchQuery]);
+  }, [indicators, templateFilter, selectedGroup, onlyEdited, onlyWithNote, searchQuery]);
+
+  // Previous / next in the editor follow the list as currently filtered.
+  const selectedPosition = selectedId ? filteredIndicators.findIndex((i) => i.id === selectedId) : -1;
+  const selected = selectedPosition >= 0 ? filteredIndicators[selectedPosition] : null;
 
   return (
     <div style={{ maxWidth: 1040, margin: '20px auto', padding: '0 16px 40px' }}>
@@ -291,22 +313,18 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
             />
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 14, paddingBottom: 6, flexWrap: 'wrap' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer', color: 'var(--text-muted)' }}>
-              <input
-                type="checkbox"
-                checked={filterNeedsReview}
-                onChange={(e) => setFilterNeedsReview(e.target.checked)}
-                style={{ accentColor: 'var(--rs-color-warning)' }}
-              />
-              <span>فقط موارد نیازمند بازبینی</span>
+              <input type="checkbox" checked={onlyEdited} onChange={(e) => setOnlyEdited(e.target.checked)} />
+              <span>فقط ویرایش‌شده‌ها ({faDigits(editedCount)})</span>
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer', color: 'var(--text-muted)' }}>
+              <input type="checkbox" checked={onlyWithNote} onChange={(e) => setOnlyWithNote(e.target.checked)} />
+              <span>فقط دارای نکته برای ارزیاب ({faDigits(noteCount)})</span>
             </label>
           </div>
         </div>
       </div>
-
-      <SectorZoneMatrix indicators={indicators} />
-      <IndicatorPivot indicators={indicators} />
 
       {/* Indicators Table */}
       <div className="glass-panel" style={{ padding: 20 }}>
@@ -326,6 +344,7 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
                 <th style={{ textAlign: 'center', padding: '10px 8px' }}>مرحله سفر</th>
                 <th style={{ textAlign: 'center', padding: '10px 8px' }}>وزن</th>
                 <th style={{ textAlign: 'center', padding: '10px 8px' }}>عکس</th>
+                <th style={{ textAlign: 'center', padding: '10px 8px' }}>{canEdit ? 'ویرایش' : 'جزئیات'}</th>
               </tr>
             </thead>
             <tbody>
@@ -333,7 +352,7 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
                 <tr
                   key={ind.id}
                   style={{ borderBottom: '1px solid var(--theme-card-border)', cursor: 'pointer', transition: 'background var(--rs-duration-micro) var(--rs-ease-standard)' }}
-                  onClick={() => setSelectedIndicator(ind)}
+                  onClick={() => setSelectedId(ind.id)}
                   onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(0, 176, 240, 0.06)')}
                   onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                 >
@@ -346,6 +365,12 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
                   </td>
                   <td style={{ padding: '10px 8px', maxWidth: 360, color: 'var(--text-main)', lineHeight: 1.5 }}>
                     {ind.statement}
+                    {(ind.edited || ind.auditorNote) && (
+                      <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
+                        {ind.edited && <span className="ie-chip">ویرایش‌شده</span>}
+                        {ind.auditorNote && <span className="ie-chip ie-chip--note" title={ind.auditorNote}>دارای نکته</span>}
+                      </div>
+                    )}
                   </td>
                   <td style={{ textAlign: 'center', padding: '10px 8px', fontSize: 11, color: 'var(--rs-color-brand-cyan)' }}>
                     {stageLabel(ind.journeyStage)}
@@ -359,6 +384,19 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
                     ) : (
                       <span style={{ color: 'var(--text-dim)', fontSize: 11 }}>اختیاری</span>
                     )}
+                  </td>
+                  <td style={{ textAlign: 'center', padding: '10px 8px' }}>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ minHeight: 30, padding: '0 12px', fontSize: 12 }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedId(ind.id);
+                      }}
+                    >
+                      {canEdit ? 'ویرایش' : 'نمایش'}
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -374,6 +412,26 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({ indicators
           </div>
         )}
       </div>
+
+      <SectorZoneMatrix indicators={indicators} />
+      <IndicatorPivot indicators={indicators} />
+
+      {selected && (
+        <IndicatorEditor
+          indicator={selected}
+          original={baseIndicators.find((i) => i.id === selected.id) || selected}
+          position={selectedPosition + 1}
+          total={filteredIndicators.length}
+          canEdit={canEdit && !!onSaveIndicator && !!onResetIndicator}
+          onSave={async (id, edit) => onSaveIndicator?.(id, edit)}
+          onReset={async (id) => onResetIndicator?.(id)}
+          onMove={(step) => {
+            const next = filteredIndicators[selectedPosition + step];
+            if (next) setSelectedId(next.id);
+          }}
+          onClose={() => setSelectedId(null)}
+        />
+      )}
     </div>
   );
 };

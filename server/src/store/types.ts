@@ -16,6 +16,22 @@ export interface StoredPhoto {
   createdAt: string;
 }
 
+/**
+ * A hand edit of one indicator: the wording the client's reviewers prefer and a
+ * note for the auditor. The workbook stays the source of the list itself; an
+ * override only changes how one row reads. Keyed by the catalog's indicator id,
+ * with the code kept so an override that no longer matches its row is ignored.
+ */
+export interface IndicatorOverride {
+  indicatorId: string;
+  code: string;
+  statement?: string;
+  auditorNote?: string;
+  updatedAt: string;
+  updatedBy: string;
+  updatedByName?: string;
+}
+
 /** Photo metadata without the bytes, which is what the API returns. */
 export type PhotoMetadata = Omit<StoredPhoto, 'data'>;
 
@@ -100,6 +116,10 @@ export interface DataStore {
    * is stored. Safe when several serverless instances race on first boot.
    */
   setSettingIfAbsent(key: string, value: string): Promise<string>;
+
+  listIndicatorOverrides(tenantId: string): Promise<IndicatorOverride[]>;
+  saveIndicatorOverride(tenantId: string, override: IndicatorOverride): Promise<void>;
+  deleteIndicatorOverride(tenantId: string, indicatorId: string): Promise<boolean>;
 
   savePhoto(photo: StoredPhoto): Promise<PhotoMetadata>;
   getPhoto(id: string): Promise<StoredPhoto | null>;

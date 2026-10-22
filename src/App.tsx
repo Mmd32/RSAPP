@@ -71,6 +71,7 @@ import {
   Menu,
 } from 'lucide-react';
 import { stageLabel } from './utils/format';
+import { IndicatorService, applyOverrides, type IndicatorEdit, type IndicatorOverride } from './services/indicatorService';
 
 // Code Splitting for heavy secondary views (Audit Priority 3 / P2)
 const VisitReportView = React.lazy(() =>
@@ -254,7 +255,41 @@ export const App: React.FC = () => {
   const can = capabilities(currentUser);
   // One draft per account, so a shared tablet never resumes someone else's visit.
   const activeVisitKey = `${LOCAL_STORAGE_KEY}:${currentUser.id}`;
-  const allIndicators: Indicator[] = catalogData.indicators as any;
+  const catalogIndicators: Indicator[] = catalogData.indicators as any;
+  // The checklist with the wording and notes edited in the question bank applied.
+  const [indicatorOverrides, setIndicatorOverrides] = useState<IndicatorOverride[]>(() =>
+    IndicatorService.cached(currentUser.tenantId)
+  );
+  const allIndicators = useMemo(
+    () => applyOverrides(catalogIndicators, indicatorOverrides),
+    [catalogIndicators, indicatorOverrides]
+  );
+  useEffect(() => {
+    let cancelled = false;
+    IndicatorService.load(currentUser.tenantId).then((list) => {
+      if (!cancelled) setIndicatorOverrides(list);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [currentUser.tenantId]);
+  const saveIndicatorEdit = async (indicatorId: string, edit: IndicatorEdit) => {
+    const saved = await IndicatorService.save(indicatorId, edit);
+    setIndicatorOverrides((prev) => {
+      const next = prev.filter((o) => o.indicatorId !== indicatorId);
+      if (saved) next.push(saved);
+      IndicatorService.remember(currentUser.tenantId, next);
+      return next;
+    });
+  };
+  const resetIndicatorEdit = async (indicatorId: string) => {
+    await IndicatorService.reset(indicatorId);
+    setIndicatorOverrides((prev) => {
+      const next = prev.filter((o) => o.indicatorId !== indicatorId);
+      IndicatorService.remember(currentUser.tenantId, next);
+      return next;
+    });
+  };
 
   const [activeSession, setActiveSession] = useState<VisitSession | null>(null);
 
@@ -1768,7 +1803,13 @@ export const App: React.FC = () => {
 
           {/* CATALOG / ADMIN QUESTION BANK */}
           {viewMode === 'CATALOG' && (
-            <AdminQuestionBank indicators={allIndicators} />
+            <AdminQuestionBank
+              indicators={allIndicators}
+              baseIndicators={catalogIndicators}
+              canEdit={can.adminTools}
+              onSaveIndicator={saveIndicatorEdit}
+              onResetIndicator={resetIndicatorEdit}
+            />
           )}
 
           {/* SCENARIO RUNNER (Scenarios A-G) */}

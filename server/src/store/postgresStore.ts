@@ -1,7 +1,7 @@
 import pg from 'pg';
 import { logger } from '../logger.js';
 import { CorrectiveAction, ActionAuditLog } from '../types/actions.js';
-import { DataStore, VisitFilter, StoredPhoto, PhotoMetadata, StoredUser } from './types.js';
+import { DataStore, VisitFilter, StoredPhoto, PhotoMetadata, StoredUser, IndicatorOverride } from './types.js';
 import { DOCUMENT_STORE_SCHEMA } from './schema.js';
 
 const { Pool } = pg;
@@ -289,6 +289,30 @@ export class PostgresDataStore implements DataStore {
       [key, value]
     );
     return (await this.getSetting(key)) as string;
+  }
+
+  // --- indicator overrides --------------------------------------------------
+
+  async listIndicatorOverrides(tenantId: string): Promise<IndicatorOverride[]> {
+    const { rows } = await this.pool.query('SELECT doc FROM indicator_overrides WHERE tenant_id = $1', [tenantId]);
+    return rows.map((r) => r.doc as IndicatorOverride);
+  }
+
+  async saveIndicatorOverride(tenantId: string, override: IndicatorOverride): Promise<void> {
+    await this.pool.query(
+      `INSERT INTO indicator_overrides (tenant_id, indicator_id, doc)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (tenant_id, indicator_id) DO UPDATE SET doc = EXCLUDED.doc, updated_at = now()`,
+      [tenantId, override.indicatorId, override]
+    );
+  }
+
+  async deleteIndicatorOverride(tenantId: string, indicatorId: string): Promise<boolean> {
+    const { rowCount } = await this.pool.query(
+      'DELETE FROM indicator_overrides WHERE tenant_id = $1 AND indicator_id = $2',
+      [tenantId, indicatorId]
+    );
+    return (rowCount ?? 0) > 0;
   }
 
   // --- evidence photos ------------------------------------------------------

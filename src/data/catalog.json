@@ -612,7 +612,8 @@
         "Specialty",
         "Services"
       ],
-      "applicableMallTypes": []
+      "applicableMallTypes": [],
+      "auditorNote": "مواردی مانند شکستگی یا افتادن برخی از حروف"
     },
     {
       "id": "IND_FR_0002",
@@ -711,7 +712,8 @@
         "Specialty",
         "Services"
       ],
-      "applicableMallTypes": []
+      "applicableMallTypes": [],
+      "auditorNote": "oftadan horoof ya noghte"
     },
     {
       "id": "IND_FR_0005",
@@ -744,7 +746,8 @@
         "Specialty",
         "Services"
       ],
-      "applicableMallTypes": []
+      "applicableMallTypes": [],
+      "auditorNote": "برای مثال در یک فروشگاه Stand Alone باید دارای طول حداکثر برابر با درب ورودی و ارتفاع ۶۰ تا ۱۲۰ سانتی‌متر باشد."
     },
     {
       "id": "IND_FR_0006",
@@ -936,7 +939,8 @@
         "Sports",
         "Specialty"
       ],
-      "applicableMallTypes": []
+      "applicableMallTypes": [],
+      "auditorNote": "این مورد نه‌تنها شامل کف و شیشه‌های ویترین، بلکه شامل تمامی اقلام موجود در آن نیز می‌شود مانند (به‌خصوص!) مانکن‌ها، لباس‌های استفاده شده، اقلام تزئینی و..."
     },
     {
       "id": "IND_FR_0012",
@@ -1047,7 +1051,8 @@
         "Sports",
         "Specialty"
       ],
-      "applicableMallTypes": []
+      "applicableMallTypes": [],
+      "auditorNote": "لباس تن مانکن اتو شده باشد، پوشش کفش داشته باشد، تگ نداشته باشد."
     },
     {
       "id": "IND_FR_0016",
@@ -2026,7 +2031,8 @@
         "Fashion",
         "Specialty"
       ],
-      "applicableMallTypes": []
+      "applicableMallTypes": [],
+      "auditorNote": "لباس تن مانکن اتو شده باشد، پوشش کفش داشته باشد، تگ نداشته باشد."
     },
     {
       "id": "IND_FR_0048",
@@ -2452,7 +2458,8 @@
         "Fashion",
         "Sports"
       ],
-      "applicableMallTypes": []
+      "applicableMallTypes": [],
+      "auditorNote": "شامل کف، دیوار، آینه، پرده. بسته به مورد می‌تواند در توضیحات نوشته شود."
     },
     {
       "id": "IND_FR_0064",
@@ -3456,7 +3463,8 @@
       "applicableBusinessTypes": [
         "Fashion"
       ],
-      "applicableMallTypes": []
+      "applicableMallTypes": [],
+      "auditorNote": "در نتیجه مشتری نمی‌تواند کالا یا سرویس مورد نظر خود را پیدا کند."
     },
     {
       "id": "IND_FR_0101",
@@ -3742,7 +3750,8 @@
         "Specialty",
         "Services"
       ],
-      "applicableMallTypes": []
+      "applicableMallTypes": [],
+      "auditorNote": "تاخیر در بازگشایی یا تعجیل در بستن فروشگاه"
     },
     {
       "id": "IND_FR_0110",

@@ -3,7 +3,7 @@ import path from 'path';
 import { logger } from '../logger.js';
 import { dataPath, ensureDir, writeJsonAtomic } from '../config.js';
 import { CorrectiveAction, ActionAuditLog } from '../types/actions.js';
-import { DataStore, VisitFilter, StoredPhoto, PhotoMetadata, StoredUser } from './types.js';
+import { DataStore, VisitFilter, StoredPhoto, PhotoMetadata, StoredUser, IndicatorOverride } from './types.js';
 
 const DEFAULT_TENANT = 'org_retail_holding';
 
@@ -42,9 +42,12 @@ export class JsonDataStore implements DataStore {
   // Credentials: kept out of git (see .gitignore).
   private readonly usersPath = dataPath('users.json');
   private readonly settingsPath = dataPath('settings.json');
+  private readonly overridesPath = dataPath('indicator_overrides.json');
 
   private users: Record<string, StoredUser> = {};
   private settings: Record<string, string> = {};
+  /** `${tenantId}|${indicatorId}` -> override. */
+  private overrides: Record<string, IndicatorOverride> = {};
 
   /** Photo bytes live as files; this index holds their metadata. */
   private photoIndex: Record<string, PhotoMetadata> = {};
@@ -58,6 +61,7 @@ export class JsonDataStore implements DataStore {
     this.photoIndex = this.read(this.photosIndexPath, this.photoIndex);
     this.users = this.read(this.usersPath, this.users);
     this.settings = this.read(this.settingsPath, this.settings);
+    this.overrides = this.read(this.overridesPath, this.overrides);
   }
 
   async close(): Promise<void> {
@@ -203,6 +207,25 @@ export class JsonDataStore implements DataStore {
       this.write(this.settingsPath, this.settings);
     }
     return this.settings[key];
+  }
+
+  async listIndicatorOverrides(tenantId: string): Promise<IndicatorOverride[]> {
+    return Object.entries(this.overrides)
+      .filter(([key]) => key.startsWith(`${tenantId}|`))
+      .map(([, value]) => value);
+  }
+
+  async saveIndicatorOverride(tenantId: string, override: IndicatorOverride): Promise<void> {
+    this.overrides[`${tenantId}|${override.indicatorId}`] = override;
+    this.write(this.overridesPath, this.overrides);
+  }
+
+  async deleteIndicatorOverride(tenantId: string, indicatorId: string): Promise<boolean> {
+    const key = `${tenantId}|${indicatorId}`;
+    if (!this.overrides[key]) return false;
+    delete this.overrides[key];
+    this.write(this.overridesPath, this.overrides);
+    return true;
   }
 
   async savePhoto(photo: StoredPhoto): Promise<PhotoMetadata> {
