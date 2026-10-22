@@ -237,18 +237,20 @@ function dataRows(ws: any, layout: Layout): number {
 export async function planImport(file: File, current: Indicator[]): Promise<Plan> {
   const ExcelJS = (await import('exceljs')).default;
   const wb = new ExcelJS.Workbook();
-  await wb.xlsx.load(await file.arrayBuffer());
+  try {
+    await wb.xlsx.load(await file.arrayBuffer());
+  } catch {
+    throw new Error('فایل خوانده نشد. آن را در Excel باز و با «Save As» به‌صورت .xlsx ذخیره کنید و دوباره بارگذاری کنید.');
+  }
   const sheets = wb.worksheets
     .map((ws: any) => ({ ws, layout: findLayout(ws, ws.name) }))
-    .filter((x: any) => x.layout)
-    // A visible sheet with rows wins; hidden sheets (the template keeps a shortened all-sector copy) are read only when nothing else has rows.
-    .map((x: any) => ({ ...x, rows: dataRows(x.ws, x.layout), hidden: x.ws.state !== 'visible' }));
-  const notes: string[] = [];
-  const used = sheets.some((x: any) => !x.hidden && x.rows > 0) ? sheets.filter((x: any) => !x.hidden) : sheets;
-  const readHidden = used.some((x: any) => x.hidden);
-  if (readHidden) notes.push('برگه‌های قابل‌مشاهدهٔ فایل ردیف شاخص ندارند؛ برگهٔ مخفی «' + used.filter((x: any) => x.hidden).map((x: any) => x.ws.name).join('، ') + '» خوانده شد. متن این برگه ممکن است کوتاه‌شدهٔ متن چک‌لیست باشد؛ تغییرات را قبل از ذخیره با دقت ببینید.');
+    // Hidden sheets are never read: in the Nima template the hidden one is a shortened copy kept for the form, not the person's rows.
+    .filter((x: any) => x.layout && x.ws.state === 'visible')
+    .map((x: any) => ({ ...x, rows: dataRows(x.ws, x.layout) }));
   if (!sheets.length) throw new Error('ستون‌های «کد» و «KPI» در هیچ برگه‌ای پیدا نشد. از «دانلود قالب» استفاده کنید.');
-
+  const used = sheets.filter((x: any) => x.rows > 0);
+  if (!used.length) throw new Error('برگهٔ «' + sheets.map((x: any) => x.ws.name).join('، ') + '» هیچ ردیف شاخصی ندارد. هر شاخص را زیر سرتیتر در یک ردیف بنویسید (کد، موضوع، KPI و X در ستون سکتور) و دوباره بارگذاری کنید.');
+  const notes: string[] = [];
   const byId = new Map(current.map((i) => [i.id, i]));
   const codeCount = new Map<string, number>();
   current.forEach((i) => codeCount.set(i.code.toLowerCase(), (codeCount.get(i.code.toLowerCase()) || 0) + 1));
