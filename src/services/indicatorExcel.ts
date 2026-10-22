@@ -79,6 +79,8 @@ export interface PlanRow {
 export interface Plan {
   rows: PlanRow[];
   count: Record<PlanAction, number>;
+  /** Things the person should know before saving. */
+  notes: string[];
 }
 
 const zoneCell = (zone: string) => `${groupLabel(zone)}\n\n${zone}`;
@@ -223,13 +225,28 @@ function findLayout(ws: any, sheetName: string): Layout | null {
   return null;
 }
 
+function dataRows(ws: any, layout: Layout): number {
+  let n = 0;
+  for (let r = layout.headerRow + 1; r <= ws.rowCount; r++) {
+    const row = ws.getRow(r);
+    if (norm(cellText(row.getCell(layout.cols.code!).value)) && norm(cellText(row.getCell(layout.cols.statement!).value))) n += 1;
+  }
+  return n;
+}
+
 export async function planImport(file: File, current: Indicator[]): Promise<Plan> {
   const ExcelJS = (await import('exceljs')).default;
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.load(await file.arrayBuffer());
   const sheets = wb.worksheets
     .map((ws: any) => ({ ws, layout: findLayout(ws, ws.name) }))
-    .filter((x: any) => x.layout && x.ws.state !== 'hidden');
+    .filter((x: any) => x.layout)
+    // A visible sheet with rows wins; hidden sheets (the template keeps a shortened all-sector copy) are read only when nothing else has rows.
+    .map((x: any) => ({ ...x, rows: dataRows(x.ws, x.layout), hidden: x.ws.state !== 'visible' }));
+  const notes: string[] = [];
+  const used = sheets.some((x: any) => !x.hidden && x.rows > 0) ? sheets.filter((x: any) => !x.hidden) : sheets;
+  const readHidden = used.some((x: any) => x.hidden);
+  if (readHidden) notes.push('برگه‌های قابل‌مشاهدهٔ فایل ردیف شاخص ندارند؛ برگهٔ مخفی «' + used.filter((x: any) => x.hidden).map((x: any) => x.ws.name).join('، ') + '» خوانده شد. متن این برگه ممکن است کوتاه‌شدهٔ متن چک‌لیست باشد؛ تغییرات را قبل از ذخیره با دقت ببینید.');
   if (!sheets.length) throw new Error('ستون‌های «کد» و «KPI» در هیچ برگه‌ای پیدا نشد. از «دانلود قالب» استفاده کنید.');
 
   const byId = new Map(current.map((i) => [i.id, i]));
@@ -239,9 +256,9 @@ export async function planImport(file: File, current: Indicator[]): Promise<Plan
   const seen = new Set<string>();
   const rows: PlanRow[] = [];
 
-  for (const { ws, layout } of sheets as { ws: any; layout: Layout }[]) {
+  for (const { ws, layout } of used as { ws: any; layout: Layout }[]) {
     const { cols } = layout;
-    const multiSheet = sheets.length > 1;
+    const multiSheet = used.length > 1;
     let lastGroup = '';
     for (let r = layout.headerRow + 1; r <= ws.rowCount; r++) {
       const row = ws.getRow(r);
@@ -344,7 +361,8 @@ export async function planImport(file: File, current: Indicator[]): Promise<Plan
     }
   }
 
+  if (!rows.length) throw new Error('هیچ ردیف شاخصی (با ستون‌های «کد» و «KPI» پر) در فایل پیدا نشد.');
   const count = { create: 0, update: 0, 'update-file': 0, same: 0, error: 0 } as Record<PlanAction, number>;
   rows.forEach((r) => (count[r.action] += 1));
-  return { rows, count };
+  return { rows, count, notes };
 }
