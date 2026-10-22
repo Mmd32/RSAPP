@@ -575,3 +575,13 @@ svg.lucide { stroke-width: 1.75px; }
   .ie-foot { flex-direction: column; align-items: stretch; }
   .ie-nav, .ie-actions { justify-content: space-between; }
 }
+
+/* Indicator form (add by hand) */
+.ie-dialog--wide { width: min(760px, 100%); }
+.ie-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--sp-3); align-items: end; }
+.ie-set { border: 1px solid var(--rd-line); border-radius: var(--r-md); padding: var(--sp-3) var(--sp-4); margin: 0; }
+.ie-set legend { display: flex; gap: var(--sp-3); align-items: center; padding: 0 6px; }
+.ie-link { border: none; background: none; color: var(--rd-signal); cursor: pointer; font-size: var(--fs-caption); min-height: 0 !important; padding: 0; }
+.ie-checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--sp-2); }
+.ie-check, .ie-switch { display: flex; align-items: center; gap: 8px; font-size: var(--fs-small); color: var(--rd-ink-2); cursor: pointer; }
+.ie-chip--off { border-color: var(--rd-line); background: var(--rd-surface-2); color: var(--rd-muted); }

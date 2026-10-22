@@ -71,7 +71,7 @@ import {
   Menu,
 } from 'lucide-react';
 import { stageLabel } from './utils/format';
-import { IndicatorService, applyOverrides, type IndicatorEdit, type IndicatorOverride } from './services/indicatorService';
+import { IndicatorService, buildIndicatorList, type CustomIndicator, type CustomIndicatorInput, type IndicatorEdit, type IndicatorOverride } from './services/indicatorService';
 
 // Code Splitting for heavy secondary views (Audit Priority 3 / P2)
 const VisitReportView = React.lazy(() =>
@@ -260,14 +260,20 @@ export const App: React.FC = () => {
   const [indicatorOverrides, setIndicatorOverrides] = useState<IndicatorOverride[]>(() =>
     IndicatorService.cached(currentUser.tenantId)
   );
+  const [customIndicators, setCustomIndicators] = useState<CustomIndicator[]>(() =>
+    IndicatorService.cachedCustom(currentUser.tenantId)
+  );
   const allIndicators = useMemo(
-    () => applyOverrides(catalogIndicators, indicatorOverrides),
-    [catalogIndicators, indicatorOverrides]
+    () => buildIndicatorList(catalogIndicators, indicatorOverrides, customIndicators),
+    [catalogIndicators, indicatorOverrides, customIndicators]
   );
   useEffect(() => {
     let cancelled = false;
     IndicatorService.load(currentUser.tenantId).then((list) => {
       if (!cancelled) setIndicatorOverrides(list);
+    });
+    IndicatorService.loadCustom(currentUser.tenantId).then((list) => {
+      if (!cancelled) setCustomIndicators(list);
     });
     return () => {
       cancelled = true;
@@ -281,6 +287,24 @@ export const App: React.FC = () => {
       IndicatorService.remember(currentUser.tenantId, next);
       return next;
     });
+  };
+  const changeCustom = (update: (prev: CustomIndicator[]) => CustomIndicator[]) =>
+    setCustomIndicators((prev) => {
+      const next = update(prev);
+      IndicatorService.rememberCustom(currentUser.tenantId, next);
+      return next;
+    });
+  const createIndicator = async (input: CustomIndicatorInput) => {
+    const created = await IndicatorService.createCustom(input);
+    changeCustom((prev) => [...prev, created]);
+  };
+  const updateCustomIndicator = async (id: string, input: CustomIndicatorInput) => {
+    const saved = await IndicatorService.updateCustom(id, input);
+    changeCustom((prev) => prev.map((c) => (c.id === id ? saved : c)));
+  };
+  const deleteCustomIndicator = async (id: string) => {
+    await IndicatorService.removeCustom(id);
+    changeCustom((prev) => prev.filter((c) => c.id !== id));
   };
   const resetIndicatorEdit = async (indicatorId: string) => {
     await IndicatorService.reset(indicatorId);
@@ -1809,6 +1833,9 @@ export const App: React.FC = () => {
               canEdit={can.adminTools}
               onSaveIndicator={saveIndicatorEdit}
               onResetIndicator={resetIndicatorEdit}
+              onCreateIndicator={createIndicator}
+              onUpdateCustom={updateCustomIndicator}
+              onDeleteCustom={deleteCustomIndicator}
             />
           )}
 

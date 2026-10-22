@@ -118,6 +118,10 @@ export interface Indicator {
   auditorNote?: string;
   /** True when this row's wording or note was changed from the checklist's. */
   edited?: boolean;
+  /** True for a row added by hand in the question bank (not from the checklist file). */
+  custom?: boolean;
+  /** Switched off in the question bank: kept, but left out of every new questionnaire. */
+  disabled?: boolean;
   displayOrder: number;
   needsReview?: boolean;
   applicableBusinessTypes: string[];

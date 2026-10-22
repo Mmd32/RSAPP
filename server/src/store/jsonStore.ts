@@ -3,7 +3,7 @@ import path from 'path';
 import { logger } from '../logger.js';
 import { dataPath, ensureDir, writeJsonAtomic } from '../config.js';
 import { CorrectiveAction, ActionAuditLog } from '../types/actions.js';
-import { DataStore, VisitFilter, StoredPhoto, PhotoMetadata, StoredUser, IndicatorOverride } from './types.js';
+import { DataStore, VisitFilter, StoredPhoto, PhotoMetadata, StoredUser, IndicatorOverride, CustomIndicator } from './types.js';
 
 const DEFAULT_TENANT = 'org_retail_holding';
 
@@ -43,11 +43,14 @@ export class JsonDataStore implements DataStore {
   private readonly usersPath = dataPath('users.json');
   private readonly settingsPath = dataPath('settings.json');
   private readonly overridesPath = dataPath('indicator_overrides.json');
+  private readonly customPath = dataPath('custom_indicators.json');
 
   private users: Record<string, StoredUser> = {};
   private settings: Record<string, string> = {};
   /** `${tenantId}|${indicatorId}` -> override. */
   private overrides: Record<string, IndicatorOverride> = {};
+  /** `${tenantId}|${indicatorId}` -> indicator added by hand. */
+  private custom: Record<string, CustomIndicator> = {};
 
   /** Photo bytes live as files; this index holds their metadata. */
   private photoIndex: Record<string, PhotoMetadata> = {};
@@ -62,6 +65,7 @@ export class JsonDataStore implements DataStore {
     this.users = this.read(this.usersPath, this.users);
     this.settings = this.read(this.settingsPath, this.settings);
     this.overrides = this.read(this.overridesPath, this.overrides);
+    this.custom = this.read(this.customPath, this.custom);
   }
 
   async close(): Promise<void> {
@@ -207,6 +211,25 @@ export class JsonDataStore implements DataStore {
       this.write(this.settingsPath, this.settings);
     }
     return this.settings[key];
+  }
+
+  async listCustomIndicators(tenantId: string): Promise<CustomIndicator[]> {
+    return Object.entries(this.custom)
+      .filter(([key]) => key.startsWith(`${tenantId}|`))
+      .map(([, value]) => value);
+  }
+
+  async saveCustomIndicator(tenantId: string, indicator: CustomIndicator): Promise<void> {
+    this.custom[`${tenantId}|${indicator.id}`] = indicator;
+    this.write(this.customPath, this.custom);
+  }
+
+  async deleteCustomIndicator(tenantId: string, indicatorId: string): Promise<boolean> {
+    const key = `${tenantId}|${indicatorId}`;
+    if (!this.custom[key]) return false;
+    delete this.custom[key];
+    this.write(this.customPath, this.custom);
+    return true;
   }
 
   async listIndicatorOverrides(tenantId: string): Promise<IndicatorOverride[]> {

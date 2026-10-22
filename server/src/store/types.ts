@@ -27,6 +27,37 @@ export interface IndicatorOverride {
   code: string;
   statement?: string;
   auditorNote?: string;
+  /** Hidden from every new questionnaire (kept so it can be switched back on). */
+  disabled?: boolean;
+  updatedAt: string;
+  updatedBy: string;
+  updatedByName?: string;
+}
+
+/**
+ * An indicator added by hand in the question bank, with everything a row of the
+ * checklist has. Stored apart from the checklist file, which stays untouched.
+ */
+export interface CustomIndicator {
+  id: string;
+  code: string;
+  template: 'STORE' | 'MALL';
+  group: string;
+  subject: string;
+  statement: string;
+  auditorNote?: string;
+  applicableBusinessTypes: string[];
+  applicableMallTypes: string[];
+  requiresPhoto: boolean;
+  requiresComment: boolean;
+  weight: number;
+  journeyStage: string;
+  reportingDimension: string;
+  displayOrder: number;
+  status: 'ACTIVE' | 'ARCHIVED';
+  createdAt: string;
+  createdBy: string;
+  createdByName?: string;
   updatedAt: string;
   updatedBy: string;
   updatedByName?: string;
@@ -116,6 +147,10 @@ export interface DataStore {
    * is stored. Safe when several serverless instances race on first boot.
    */
   setSettingIfAbsent(key: string, value: string): Promise<string>;
+
+  listCustomIndicators(tenantId: string): Promise<CustomIndicator[]>;
+  saveCustomIndicator(tenantId: string, indicator: CustomIndicator): Promise<void>;
+  deleteCustomIndicator(tenantId: string, indicatorId: string): Promise<boolean>;
 
   listIndicatorOverrides(tenantId: string): Promise<IndicatorOverride[]>;
   saveIndicatorOverride(tenantId: string, override: IndicatorOverride): Promise<void>;

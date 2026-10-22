@@ -326,6 +326,11 @@ app.put(
     const existing = (await store.listIndicatorOverrides(tenantOf(req))).find((o) => o.indicatorId === indicator.id);
     let statement = existing?.statement;
     let auditorNote = existing?.auditorNote;
+    let disabled = existing?.disabled;
+    if (body.disabled !== undefined) {
+      if (typeof body.disabled !== 'boolean') return res.status(400).json({ error: 'وضعیت فعال بودن معتبر نیست.' });
+      disabled = body.disabled ? true : undefined;
+    }
 
     if (body.statement !== undefined) {
       const text = clean(body.statement);
@@ -344,7 +349,7 @@ app.put(
     if (statement !== undefined && statement === indicator.statement) statement = undefined;
     if (auditorNote !== undefined && auditorNote === (indicator.auditorNote || '')) auditorNote = undefined;
 
-    if (statement === undefined && auditorNote === undefined) {
+    if (statement === undefined && auditorNote === undefined && !disabled) {
       await store.deleteIndicatorOverride(tenantOf(req), indicator.id);
       return res.json({ override: null });
     }
@@ -353,6 +358,7 @@ app.put(
       code: indicator.code,
       ...(statement !== undefined ? { statement } : {}),
       ...(auditorNote !== undefined ? { auditorNote } : {}),
+      ...(disabled ? { disabled: true } : {}),
       updatedAt: new Date().toISOString(),
       updatedBy: req.user!.id,
       updatedByName: req.user!.name,
@@ -369,6 +375,214 @@ app.delete(
   route(async (req, res) => {
     await store.deleteIndicatorOverride(tenantOf(req), req.params.indicatorId);
     res.json({ override: null });
+  })
+);
+
+// ----------------------------------------------------------------------------
+// INDICATORS ADDED BY HAND
+// ----------------------------------------------------------------------------
+const STORE_ZONES = ['FLOOR', 'SERVICES', 'TEAM', 'PRODUCT', 'CASH'];
+const SECTOR_CODES = ['Fashion', 'Shoe_Bag', 'Watch_Jewelry', 'FMCG', 'F_B', 'Hardware', 'Homeware', 'Beauty_Cosmetics', 'Electronics', 'Entertainment', 'Sports', 'Specialty', 'Services'];
+const MALL_TYPE_CODES = ['SM', 'Neighborhood', 'Community', 'Regional', 'Super_Regional'];
+const CODE_PATTERN = /^[A-Za-z0-9_-]{2,20}$/;
+
+const collapse = (v: unknown): string | undefined => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim() : undefined);
+const majorityOf = (items: any[], field: string): string =>
+  Object.entries(items.reduce((m: Record<string, number>, i: any) => ((m[i[field]] = (m[i[field]] || 0) + 1), m), {}))
+    .sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || '';
+
+/** The form orders questions by journey stage, so a new row takes the stage of the topic it joins (else of its zone). */
+function legacyFields(template: string, group: string, subject: string) {
+  const all: any[] = (catalog?.indicators || []).filter((i: any) => i.template === template);
+  const sameTopic = all.filter((i) => i.subject === subject);
+  const sameGroup = all.filter((i) => i.group === group);
+  const donor = sameTopic.length ? sameTopic : sameGroup.length ? sameGroup : all;
+  return { journeyStage: majorityOf(donor, 'journeyStage'), reportingDimension: majorityOf(donor, 'reportingDimension') };
+}
+
+/** Right after the last row of the same topic (else zone), so the question sits with its neighbours. */
+function nextDisplayOrder(template: string, group: string, subject: string, customs: any[], selfId?: string): number {
+  const rows: any[] = [...(catalog?.indicators || []), ...customs.filter((c) => c.id !== selfId)].filter((i) => i.template === template);
+  const pick = (test: (i: any) => boolean) => rows.filter(test).map((i) => i.displayOrder);
+  const near = pick((i) => i.subject === subject).length ? pick((i) => i.subject === subject) : pick((i) => i.group === group);
+  const taken = new Set(rows.map((i) => i.displayOrder));
+  let order = Math.round(((near.length ? Math.max(...near) : Math.max(0, ...rows.map((i) => i.displayOrder))) + 0.001) * 1000) / 1000;
+  while (taken.has(order)) order = Math.round((order + 0.001) * 1000) / 1000;
+  return order;
+}
+
+type Fields = Record<string, any>;
+
+/** Validates a create or update body; returns the cleaned fields or an error message. */
+function cleanCustomFields(body: Fields, template: string, partial: boolean): { fields?: Fields; error?: string } {
+  const out: Fields = {};
+  const has = (k: string) => body[k] !== undefined;
+  if (!partial || has('group')) {
+    const group = collapse(body.group);
+    if (!group) return { error: 'منطقه یا گروه شاخص را مشخص کنید.' };
+    if (template === 'STORE' && !STORE_ZONES.includes(group)) return { error: 'منطقه باید یکی از پنج منطقهٔ فروشگاه باشد.' };
+    if (group.length > 80) return { error: 'نام گروه حداکثر ۸۰ نویسه است.' };
+    out.group = group;
+  }
+  if (!partial || has('subject')) {
+    const subject = collapse(body.subject);
+    if (!subject || subject.length < 2) return { error: 'موضوع شاخص را بنویسید (دست‌کم ۲ نویسه).' };
+    if (subject.length > 100) return { error: 'موضوع حداکثر ۱۰۰ نویسه است.' };
+    out.subject = subject;
+  }
+  if (!partial || has('statement')) {
+    const statement = collapse(body.statement);
+    if (!statement || statement.length < 3) return { error: 'متن شاخص باید دست‌کم ۳ نویسه باشد.' };
+    if (statement.length > MAX_STATEMENT) return { error: `متن شاخص حداکثر ${MAX_STATEMENT} نویسه است.` };
+    out.statement = statement;
+  }
+  if (has('auditorNote')) {
+    const note = body.auditorNote === null ? '' : collapse(body.auditorNote);
+    if (note === undefined) return { error: 'نکتهٔ ارزیاب معتبر نیست.' };
+    if (note.length > MAX_NOTE) return { error: `نکتهٔ ارزیاب حداکثر ${MAX_NOTE} نویسه است.` };
+    out.auditorNote = note || undefined;
+  }
+  const list = (key: string, allowed: string[], label: string) => {
+    if (partial && !has(key)) return null;
+    const v = body[key];
+    if (!Array.isArray(v) || v.some((x) => typeof x !== 'string' || !allowed.includes(x))) return `${label} معتبر نیست.`;
+    out[key] = [...new Set(v as string[])];
+    return null;
+  };
+  if (template === 'STORE') {
+    const err = list('applicableBusinessTypes', SECTOR_CODES, 'فهرست سکتورها');
+    if (err) return { error: err };
+    if (!partial || has('applicableBusinessTypes')) {
+      if (!out.applicableBusinessTypes?.length) return { error: 'دست‌کم یک سکتور را انتخاب کنید.' };
+      out.applicableMallTypes = [];
+    }
+  } else {
+    const err = list('applicableMallTypes', MALL_TYPE_CODES, 'فهرست نوع مرکز خرید');
+    if (err) return { error: err };
+    if (!partial || has('applicableMallTypes')) {
+      if (!out.applicableMallTypes?.length) return { error: 'دست‌کم یک نوع مرکز خرید را انتخاب کنید.' };
+      out.applicableBusinessTypes = [];
+    }
+  }
+  for (const k of ['requiresPhoto', 'requiresComment']) {
+    if (has(k)) {
+      if (typeof body[k] !== 'boolean') return { error: 'گزینهٔ عکس یا توضیح معتبر نیست.' };
+      out[k] = body[k];
+    }
+  }
+  if (has('weight')) {
+    const w = Number(body.weight);
+    if (!Number.isFinite(w) || w < 0.5 || w > 5) return { error: 'وزن باید عددی بین ۰٫۵ و ۵ باشد.' };
+    out.weight = Math.round(w * 10) / 10;
+  }
+  if (has('status')) {
+    if (body.status !== 'ACTIVE' && body.status !== 'ARCHIVED') return { error: 'وضعیت معتبر نیست.' };
+    out.status = body.status;
+  }
+  return { fields: out };
+}
+
+app.get(
+  '/api/custom-indicators',
+  route(async (req, res) => {
+    res.json(await store.listCustomIndicators(tenantOf(req)));
+  })
+);
+
+app.post(
+  '/api/custom-indicators',
+  requirePermission('catalog.manage'),
+  route(async (req, res) => {
+    const body = req.body || {};
+    const template = body.template;
+    if (template !== 'STORE' && template !== 'MALL') return res.status(400).json({ error: 'نوع ارزیابی (فروشگاه یا مرکز خرید) را مشخص کنید.' });
+    const cleaned = cleanCustomFields(body, template, false);
+    if (cleaned.error) return res.status(400).json({ error: cleaned.error });
+    const f = cleaned.fields!;
+    const customs = await store.listCustomIndicators(tenantOf(req));
+
+    const taken = new Set([...(catalog?.indicators || []).map((i: any) => i.code), ...customs.map((c) => c.code)].map((c: string) => c.toLowerCase()));
+    let code = collapse(body.code);
+    if (code) {
+      if (!CODE_PATTERN.test(code)) return res.status(400).json({ error: 'کد فقط حروف انگلیسی، عدد، خط تیره یا زیرخط و بین ۲ تا ۲۰ نویسه است.' });
+      if (taken.has(code.toLowerCase())) return res.status(409).json({ error: 'این کد برای شاخص دیگری استفاده شده است.' });
+    } else {
+      let n = 1;
+      while (taken.has(`u${String(n).padStart(3, '0')}`)) n += 1;
+      code = `U${String(n).padStart(3, '0')}`;
+    }
+
+    const now = new Date().toISOString();
+    const indicator = {
+      id: `IND_CU_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
+      code,
+      template,
+      group: f.group,
+      subject: f.subject,
+      statement: f.statement,
+      ...(f.auditorNote ? { auditorNote: f.auditorNote } : {}),
+      applicableBusinessTypes: f.applicableBusinessTypes || [],
+      applicableMallTypes: f.applicableMallTypes || [],
+      requiresPhoto: f.requiresPhoto ?? false,
+      requiresComment: f.requiresComment ?? false,
+      weight: f.weight ?? 1,
+      ...legacyFields(template, f.group, f.subject),
+      displayOrder: nextDisplayOrder(template, f.group, f.subject, customs),
+      status: (f.status as 'ACTIVE' | 'ARCHIVED') || 'ACTIVE',
+      createdAt: now,
+      createdBy: req.user!.id,
+      createdByName: req.user!.name,
+      updatedAt: now,
+      updatedBy: req.user!.id,
+      updatedByName: req.user!.name,
+    };
+    await store.saveCustomIndicator(tenantOf(req), indicator);
+    logger.security('Indicator added', { by: req.user!.id, indicatorId: indicator.id, code });
+    res.status(201).json(indicator);
+  })
+);
+
+app.put(
+  '/api/custom-indicators/:id',
+  requirePermission('catalog.manage'),
+  route(async (req, res) => {
+    const customs = await store.listCustomIndicators(tenantOf(req));
+    const current = customs.find((c) => c.id === req.params.id);
+    if (!current) return res.status(404).json({ error: 'شاخص پیدا نشد.' });
+    const body = req.body || {};
+    const cleaned = cleanCustomFields(body, current.template, true);
+    if (cleaned.error) return res.status(400).json({ error: cleaned.error });
+    const f = cleaned.fields!;
+
+    let code = current.code;
+    if (body.code !== undefined) {
+      const next = collapse(body.code) || '';
+      if (!CODE_PATTERN.test(next)) return res.status(400).json({ error: 'کد فقط حروف انگلیسی، عدد، خط تیره یا زیرخط و بین ۲ تا ۲۰ نویسه است.' });
+      const others = [...(catalog?.indicators || []).map((i: any) => i.code), ...customs.filter((c) => c.id !== current.id).map((c) => c.code)];
+      if (others.some((c: string) => c.toLowerCase() === next.toLowerCase())) return res.status(409).json({ error: 'این کد برای شاخص دیگری استفاده شده است.' });
+      code = next;
+    }
+
+    const updated: any = { ...current, ...f, code, updatedAt: new Date().toISOString(), updatedBy: req.user!.id, updatedByName: req.user!.name };
+    if (f.auditorNote === undefined && body.auditorNote !== undefined) delete updated.auditorNote;
+    if ((f.group && f.group !== current.group) || (f.subject && f.subject !== current.subject)) {
+      Object.assign(updated, legacyFields(updated.template, updated.group, updated.subject));
+      updated.displayOrder = nextDisplayOrder(updated.template, updated.group, updated.subject, customs, current.id);
+    }
+    await store.saveCustomIndicator(tenantOf(req), updated);
+    logger.security('Indicator changed', { by: req.user!.id, indicatorId: current.id, code });
+    res.json(updated);
+  })
+);
+
+app.delete(
+  '/api/custom-indicators/:id',
+  requirePermission('catalog.manage'),
+  route(async (req, res) => {
+    const removed = await store.deleteCustomIndicator(tenantOf(req), req.params.id);
+    if (!removed) return res.status(404).json({ error: 'شاخص پیدا نشد.' });
+    logger.security('Indicator removed', { by: req.user!.id, indicatorId: req.params.id });
+    res.json({ ok: true });
   })
 );
 
