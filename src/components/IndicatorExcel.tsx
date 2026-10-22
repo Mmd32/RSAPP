@@ -95,7 +95,7 @@ export const IndicatorExcel: React.FC<Props> = ({ indicators, canEdit, onChanged
             </button>
           </div>
           <p className="ie-hint">
-            هر ردیف یک شاخص است. با «کد» شاخص‌های موجود شناسایی می‌شوند؛ ردیف بدون کد (یا با کد تازه) شاخص جدید می‌شود. برای شاخص‌های فایل چک‌لیست فقط متن، نکته و فعال/غیرفعال تغییر می‌کند.
+            قالب همان قالب نیماست: گروه، کد، موضوع، KPI و یک ستون X برای هر سکتور (برگهٔ «فروشگاه») یا نوع مرکز خرید (برگهٔ «مرکز خرید»). ردیف بدون کد یا با کد تازه شاخص جدید می‌شود. برای شاخص‌های فایل چک‌لیست فقط KPI، نکته و فعال/غیرفعال تغییر می‌کند.
           </p>
         </div>
 
@@ -126,7 +126,7 @@ export const IndicatorExcel: React.FC<Props> = ({ indicators, canEdit, onChanged
                 <tbody>
                   {plan.rows.filter((r) => r.action !== 'same').map((r) => (
                     <tr key={r.line}>
-                      <td>{faDigits(r.line)}</td>
+                      <td>{r.sheet ? `${r.sheet} · ` : ''}{faDigits(r.line)}</td>
                       <td dir="ltr">{r.code || '—'}</td>
                       <td className={r.action === 'error' ? 'xl-err' : ''}>{LABEL[r.action]}</td>
                       <td>{r.action === 'error' ? r.error : <>{r.statement.slice(0, 80)} <span className="ie-hint">{r.changes.join('، ')}</span></>}</td>
