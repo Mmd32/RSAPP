@@ -48,6 +48,10 @@ const CODE_PATTERN = /^[A-Za-z0-9_-]{2,20}$/;
 
 const norm = (v: unknown) => String(v ?? '').replace(/[‌\s]+/g, ' ').trim();
 const fold = (v: unknown) => norm(v).replace(/ي/g, 'ی').replace(/ك/g, 'ک').toLowerCase();
+/** A statement that is only digits is a count from a summary sheet, not an indicator. */
+const isCount = (v: string) => /^[\d.,٠-٩۰-۹\s]+$/.test(v);
+/** A formula in the KPI column (COUNTIF totals of a summary sheet) is not an indicator. */
+const isFormula = (v: any) => !!v && typeof v === 'object' && ('formula' in v || 'sharedFormula' in v);
 const yes = (v: unknown) => ['بله', 'yes', 'true', '1', '✓'].includes(fold(v));
 const no = (v: unknown) => ['', 'خیر', 'no', 'false', '0'].includes(fold(v));
 
@@ -176,7 +180,8 @@ function cellText(v: any): string {
   if (v == null) return '';
   if (typeof v === 'object') {
     if (Array.isArray(v.richText)) return v.richText.map((t: any) => t.text).join('');
-    if ('result' in v) return String(v.result ?? '');
+    if ('error' in v) return '';
+    if ('result' in v) return cellText(v.result);
     if ('text' in v) return String(v.text ?? '');
   }
   return String(v);
@@ -186,7 +191,7 @@ const HEADER_NAMES: Record<keyof typeof COLUMNS, string[]> = {
   group: ['گروه', 'منطقه / گروه'],
   code: ['کد'],
   subject: ['موضوع'],
-  statement: ['kpi', 'متن شاخص'],
+  statement: ['kpi', 'شاخص', 'متن شاخص'],
   note: ['نکته برای ارزیاب'],
   photo: ['عکس الزامی'],
   comment: ['توضیح الزامی'],
@@ -210,7 +215,7 @@ function findLayout(ws: any, sheetName: string): Layout | null {
       const hit = HEADER_NAMES[k].map((n) => names.get(fold(n))).find((c) => c);
       if (hit) cols[k] = hit;
     });
-    if (!cols.statement || !cols.code) continue;
+    if (!cols.statement) continue; // the code column is optional: a template without one gets automatic codes
     const match = (universe: string[]) =>
       universe.flatMap((u) => {
         const col = names.get(fold(SECTOR_HEADER[u])) ?? names.get(fold(u)) ?? names.get(fold(profileLabel(u)));
@@ -229,9 +234,40 @@ function dataRows(ws: any, layout: Layout): number {
   let n = 0;
   for (let r = layout.headerRow + 1; r <= ws.rowCount; r++) {
     const row = ws.getRow(r);
-    if (norm(cellText(row.getCell(layout.cols.code!).value)) && norm(cellText(row.getCell(layout.cols.statement!).value))) n += 1;
+    const cell = row.getCell(layout.cols.statement!).value;
+    const t = norm(cellText(cell));
+    if (t && !isCount(t) && !isFormula(cell)) n += 1;
   }
   return n;
+}
+
+/** Topic → zone, from the bank and from every sheet that lists group and topic (even hidden ones), for rows whose group cell is broken. */
+function topicZones(wb: any, current: Indicator[]): Map<string, string> {
+  const map = new Map<string, string>();
+  const zoneOf = (text: string) => ZONES.find((c) => fold(text).includes(fold(c)) || fold(text).includes(fold(groupLabel(c))));
+  for (const i of current) if (i.template === 'STORE' && !map.has(fold(i.subject))) map.set(fold(i.subject), i.group);
+  for (const ws of wb.worksheets as any[]) {
+    for (let r = 1; r <= Math.min(15, ws.rowCount); r++) {
+      let gc = 0, tc = 0;
+      ws.getRow(r).eachCell((cell: any, col: number) => {
+        const t = fold(cellText(cell.value));
+        if (t === 'گروه') gc = col;
+        if (t === 'موضوع') tc = col;
+      });
+      if (!gc || !tc) continue;
+      let group = '', topic = '';
+      for (let k = r + 1; k <= ws.rowCount; k++) {
+        const g = norm(cellText(ws.getRow(k).getCell(gc).value));
+        const t = norm(cellText(ws.getRow(k).getCell(tc).value));
+        if (g && !g.includes('#REF')) group = g;
+        if (t && !t.includes('#REF')) topic = t;
+        const z = zoneOf(group);
+        if (topic && z && !map.has(fold(topic))) map.set(fold(topic), z);
+      }
+      break;
+    }
+  }
+  return map;
 }
 
 export async function planImport(file: File, current: Indicator[]): Promise<Plan> {
@@ -247,10 +283,11 @@ export async function planImport(file: File, current: Indicator[]): Promise<Plan
     // Hidden sheets are never read: in the Nima template the hidden one is a shortened copy kept for the form, not the person's rows.
     .filter((x: any) => x.layout && x.ws.state === 'visible')
     .map((x: any) => ({ ...x, rows: dataRows(x.ws, x.layout) }));
-  if (!sheets.length) throw new Error('ستون‌های «کد» و «KPI» در هیچ برگه‌ای پیدا نشد. از «دانلود قالب» استفاده کنید.');
+  if (!sheets.length) throw new Error('ستون «KPI» (یا «شاخص») در ردیف‌های اول هیچ برگه‌ای پیدا نشد. از «دانلود قالب» استفاده کنید.');
   const used = sheets.filter((x: any) => x.rows > 0);
   if (!used.length) throw new Error('برگهٔ «' + sheets.map((x: any) => x.ws.name).join('، ') + '» هیچ ردیف شاخصی ندارد. هر شاخص را زیر سرتیتر در یک ردیف بنویسید (کد، موضوع، KPI و X در ستون سکتور) و دوباره بارگذاری کنید.');
   const notes: string[] = [];
+  const zoneByTopic = topicZones(wb, current);
   const byId = new Map(current.map((i) => [i.id, i]));
   const codeCount = new Map<string, number>();
   current.forEach((i) => codeCount.set(i.code.toLowerCase(), (codeCount.get(i.code.toLowerCase()) || 0) + 1));
@@ -262,6 +299,7 @@ export async function planImport(file: File, current: Indicator[]): Promise<Plan
     const { cols } = layout;
     const multiSheet = used.length > 1;
     let lastGroup = '';
+    let lastSubject = '';
     for (let r = layout.headerRow + 1; r <= ws.rowCount; r++) {
       const row = ws.getRow(r);
       const get = (k: keyof typeof COLUMNS) => (cols[k] ? norm(cellText(row.getCell(cols[k]!).value)) : '');
@@ -272,7 +310,11 @@ export async function planImport(file: File, current: Indicator[]): Promise<Plan
       else lastGroup = groupText;
       const code = get('code');
       const statement = raw('statement');
-      if (!code && !statement) continue; // section labels and blank rows
+      if (isCount(statement) || isFormula(cols.statement ? row.getCell(cols.statement).value : null)) continue; // totals of a summary sheet
+      if (!statement && !code) continue; // blank rows and section labels
+      let subjectText = get('subject');
+      if (!subjectText || subjectText.includes('#REF')) subjectText = lastSubject;
+      else lastSubject = subjectText; // section labels and blank rows
       const base: PlanRow = { line: r, sheet: multiSheet ? ws.name : undefined, action: 'same', code, statement, changes: [] };
       const fail = (error: string) => rows.push({ ...base, action: 'error', error });
 
@@ -285,7 +327,9 @@ export async function planImport(file: File, current: Indicator[]): Promise<Plan
         seen.add(code.toLowerCase());
         if ((codeCount.get(code.toLowerCase()) || 0) > 1) { fail('این کد برای چند شاخص تکراری است؛ ستون «شناسه» را پر کنید.'); continue; }
       }
-      const target = byIdTarget || (code ? byCode.get(code.toLowerCase()) : undefined);
+      // A row without a code that repeats an indicator added earlier (same topic and wording) updates it instead of adding a copy.
+      const sameText = (i: Indicator) => i.custom && i.template === layout.template && fold(i.subject) === fold(subjectText) && fold(i.statement) === fold(statement);
+      const target = byIdTarget || (code ? byCode.get(code.toLowerCase()) : current.find(sameText));
       const statusText = fold(get('status'));
       const disabled = statusText === 'غیرفعال' || statusText === 'disabled';
       if (get('status') && !['فعال', 'غیرفعال', 'active', 'disabled'].includes(statusText)) { fail('وضعیت باید «فعال» یا «غیرفعال» باشد.'); continue; }
@@ -310,9 +354,9 @@ export async function planImport(file: File, current: Indicator[]): Promise<Plan
 
       // Added-by-hand row (existing) or a new one: all columns.
       const template = target ? target.template : layout.template;
-      const subject = get('subject') || target?.subject || '';
+      const subject = subjectText || target?.subject || '';
       if (!subject) { fail('موضوع خالی است.'); continue; }
-      let group = groupText || target?.group || '';
+      let group = (groupText && !groupText.includes('#REF') ? groupText : '') || target?.group || (template === 'STORE' ? zoneByTopic.get(fold(subject)) : '') || '';
       if (template === 'STORE') {
         const z = ZONES.find((c) => fold(group).includes(fold(c)) || fold(group).includes(fold(groupLabel(c))));
         if (!z) { fail(`گروه «${group.replace(/\s+/g, ' ')}» شناخته نشد. یکی از ${ZONES.map(groupLabel).join('، ')} را بنویسید.`); continue; }
