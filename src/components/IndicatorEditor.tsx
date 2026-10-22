@@ -218,9 +218,6 @@ export const IndicatorForm: React.FC<FormProps> = ({ indicator, all, onCreate, o
   const [note, setNote] = useState(indicator?.auditorNote ?? '');
   const [sectors, setSectors] = useState<string[]>(indicator?.applicableBusinessTypes ?? SECTORS);
   const [mallTypes, setMallTypes] = useState<string[]>(indicator?.applicableMallTypes ?? MALL_TYPES);
-  const [photo, setPhoto] = useState(!!indicator?.requiresPhoto);
-  const [comment, setComment] = useState(!!indicator?.requiresComment);
-  const [weight, setWeight] = useState(String(indicator?.weight ?? 1));
   const [active, setActive] = useState(indicator ? indicator.status === 'ACTIVE' : true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -236,14 +233,12 @@ export const IndicatorForm: React.FC<FormProps> = ({ indicator, all, onCreate, o
     setSubject('');
   };
 
-  const weightNum = Number(weight);
   const problem =
     statement.trim().length < 3 ? 'متن شاخص را بنویسید.'
     : !group.trim() ? 'منطقه یا گروه را مشخص کنید.'
     : !subject.trim() ? 'موضوع را بنویسید.'
     : template === 'STORE' && !sectors.length ? 'دست‌کم یک سکتور را انتخاب کنید.'
     : template === 'MALL' && !mallTypes.length ? 'دست‌کم یک نوع مرکز خرید را انتخاب کنید.'
-    : !(weightNum >= 0.5 && weightNum <= 5) ? 'وزن باید بین ۰٫۵ و ۵ باشد.'
     : null;
 
   const submit = async () => {
@@ -258,9 +253,6 @@ export const IndicatorForm: React.FC<FormProps> = ({ indicator, all, onCreate, o
       auditorNote: note.trim() || null,
       applicableBusinessTypes: template === 'STORE' ? sectors : [],
       applicableMallTypes: template === 'MALL' ? mallTypes : [],
-      requiresPhoto: photo,
-      requiresComment: comment,
-      weight: weightNum,
       status: active ? 'ACTIVE' : 'ARCHIVED',
     };
     try {
@@ -374,24 +366,10 @@ export const IndicatorForm: React.FC<FormProps> = ({ indicator, all, onCreate, o
           </div>
         </fieldset>
 
-        <div className="ie-grid">
-          <label className="ie-check">
-            <input type="checkbox" checked={photo} onChange={(e) => setPhoto(e.target.checked)} />
-            <span>ثبت عکس الزامی باشد</span>
-          </label>
-          <label className="ie-check">
-            <input type="checkbox" checked={comment} onChange={(e) => setComment(e.target.checked)} />
-            <span>توضیح الزامی باشد</span>
-          </label>
-          <label className="ie-field">
-            <span className="ie-label">وزن (۰٫۵ تا ۵)</span>
-            <input className="ie-input ltr-num" dir="ltr" type="number" step="0.5" min="0.5" max="5" value={weight} onChange={(e) => setWeight(e.target.value)} />
-          </label>
-          <label className="ie-check">
-            <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
-            <span>فعال (در پرسشنامه پرسیده شود)</span>
-          </label>
-        </div>
+        <label className="ie-check">
+          <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
+          <span>فعال (در پرسشنامه پرسیده شود)</span>
+        </label>
 
         {(error || (problem && statement.length + subject.length > 0)) && (
           <div className="auth-error" role="alert">{error || problem}</div>
