@@ -218,6 +218,8 @@ export const IndicatorForm: React.FC<FormProps> = ({ indicator, all, onCreate, o
   const [note, setNote] = useState(indicator?.auditorNote ?? '');
   const [sectors, setSectors] = useState<string[]>(indicator?.applicableBusinessTypes ?? SECTORS);
   const [mallTypes, setMallTypes] = useState<string[]>(indicator?.applicableMallTypes ?? MALL_TYPES);
+  const [photo, setPhoto] = useState(!!indicator?.requiresPhoto);
+  const [comment, setComment] = useState(!!indicator?.requiresComment);
   const [active, setActive] = useState(indicator ? indicator.status === 'ACTIVE' : true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -253,6 +255,8 @@ export const IndicatorForm: React.FC<FormProps> = ({ indicator, all, onCreate, o
       auditorNote: note.trim() || null,
       applicableBusinessTypes: template === 'STORE' ? sectors : [],
       applicableMallTypes: template === 'MALL' ? mallTypes : [],
+      requiresPhoto: photo,
+      requiresComment: comment,
       status: active ? 'ACTIVE' : 'ARCHIVED',
     };
     try {
@@ -366,10 +370,20 @@ export const IndicatorForm: React.FC<FormProps> = ({ indicator, all, onCreate, o
           </div>
         </fieldset>
 
-        <label className="ie-check">
-          <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
-          <span>فعال (در پرسشنامه پرسیده شود)</span>
-        </label>
+        <div className="ie-grid">
+          <label className="ie-check">
+            <input type="checkbox" checked={photo} onChange={(e) => setPhoto(e.target.checked)} />
+            <span>ثبت عکس الزامی باشد</span>
+          </label>
+          <label className="ie-check">
+            <input type="checkbox" checked={comment} onChange={(e) => setComment(e.target.checked)} />
+            <span>توضیح الزامی باشد</span>
+          </label>
+          <label className="ie-check">
+            <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
+            <span>فعال (در پرسشنامه پرسیده شود)</span>
+          </label>
+        </div>
 
         {(error || (problem && statement.length + subject.length > 0)) && (
           <div className="auth-error" role="alert">{error || problem}</div>

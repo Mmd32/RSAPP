@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Indicator } from '../types';
 import { Database, Filter, CheckCircle, AlertTriangle, Layers, Plus } from 'lucide-react';
-import { groupLabel, faDigits, profileLabel } from '../utils/format';
+import { stageLabel, groupLabel, faDigits, profileLabel } from '../utils/format';
 import { IndicatorEditor, IndicatorForm } from './IndicatorEditor';
 import type { IndicatorEdit, CustomIndicatorInput } from '../services/indicatorService';
 
@@ -357,12 +357,14 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
         </div>
 
         <div style={{ overflowX: 'auto', maxHeight: '600px' }}>
-          <table style={{ width: '100%', minWidth: 560, borderCollapse: 'collapse', fontSize: 13 }}>
+          <table style={{ width: '100%', minWidth: 720, borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--theme-card-border)', color: 'var(--text-muted)', position: 'sticky', top: 0, background: 'var(--surface-sunken)' }}>
                 <th style={{ textAlign: 'right', padding: '10px 8px' }}>کد شاخص</th>
                 <th style={{ textAlign: 'right', padding: '10px 8px' }}>گروه و موضوع</th>
                 <th style={{ textAlign: 'right', padding: '10px 8px' }}>متن استاندارد KPI</th>
+                <th style={{ textAlign: 'center', padding: '10px 8px' }}>مرحله سفر</th>
+                <th style={{ textAlign: 'center', padding: '10px 8px' }}>عکس</th>
                 <th style={{ textAlign: 'center', padding: '10px 8px' }}>{canEdit ? 'ویرایش' : 'جزئیات'}</th>
               </tr>
             </thead>
@@ -391,6 +393,16 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
                         {ind.disabled && <span className="ie-chip ie-chip--off">غیرفعال</span>}
                         {ind.auditorNote && <span className="ie-chip ie-chip--note" title={ind.auditorNote}>دارای نکته</span>}
                       </div>
+                    )}
+                  </td>
+                  <td style={{ textAlign: 'center', padding: '10px 8px', fontSize: 11, color: 'var(--rs-color-brand-cyan)' }}>
+                    {stageLabel(ind.journeyStage)}
+                  </td>
+                  <td style={{ textAlign: 'center', padding: '10px 8px' }}>
+                    {ind.requiresPhoto ? (
+                      <span style={{ color: 'var(--rs-color-error)', fontSize: 11, fontWeight: 700 }}>الزامی</span>
+                    ) : (
+                      <span style={{ color: 'var(--text-dim)', fontSize: 11 }}>اختیاری</span>
                     )}
                   </td>
                   <td style={{ textAlign: 'center', padding: '10px 8px' }}>
