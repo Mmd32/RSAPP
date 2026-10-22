@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Indicator } from '../types';
 import { Database, Filter, CheckCircle, AlertTriangle, Layers, Plus } from 'lucide-react';
-import { stageLabel, groupLabel, faDigits, profileLabel } from '../utils/format';
+import { groupLabel, faDigits, profileLabel } from '../utils/format';
 import { IndicatorEditor, IndicatorForm } from './IndicatorEditor';
 import type { IndicatorEdit, CustomIndicatorInput } from '../services/indicatorService';
 
