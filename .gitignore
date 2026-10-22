@@ -52,3 +52,6 @@ data/settings.json
 
 # Python bytecode (scripts import each other)
 __pycache__/
+
+# Hand edits of indicator wording (local JSON store)
+data/indicator_overrides.json

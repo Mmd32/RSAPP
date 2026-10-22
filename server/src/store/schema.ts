@@ -113,6 +113,15 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users (email);
 CREATE INDEX IF NOT EXISTS idx_users_tenant ON users (tenant_id);
 
+-- Hand edits of indicator wording and auditor notes, one row per indicator.
+CREATE TABLE IF NOT EXISTS indicator_overrides (
+    tenant_id     TEXT NOT NULL,
+    indicator_id  TEXT NOT NULL,
+    doc           JSONB NOT NULL,
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (tenant_id, indicator_id)
+);
+
 -- Small server-side key/value settings, e.g. the session signing key.
 CREATE TABLE IF NOT EXISTS app_settings (
     key         TEXT PRIMARY KEY,

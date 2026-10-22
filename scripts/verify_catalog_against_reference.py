@@ -47,6 +47,8 @@ def check_store(catalog):
                             ("statement", got["statement"])):
             if norm(have) != norm(want[field]):
                 problems.append(f"{tag}: {field} differs ({have!r} vs {want[field]!r})")
+        if norm(got.get("auditorNote", "")) != norm(want["note"]):
+            problems.append(f"{tag}: auditor note differs ({got.get('auditorNote', '')!r} vs {want['note']!r})")
         if sorted(got["applicableBusinessTypes"]) != sorted(want["sectors"]):
             problems.append(f"{tag}: sectors differ ({sorted(got['applicableBusinessTypes'])} vs {sorted(want['sectors'])})")
     return problems, len(expected)

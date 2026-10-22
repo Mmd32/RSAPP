@@ -203,6 +203,14 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           </h2>
         </div>
 
+        {/* A note the checklist's authors left for whoever audits this KPI. */}
+        {indicator.auditorNote && (
+          <aside className="kpi-note" aria-label="نکته برای ارزیاب">
+            <span className="kpi-note__label">نکته برای ارزیاب</span>
+            <span className="kpi-note__text">{indicator.auditorNote}</span>
+          </aside>
+        )}
+
         {/* Guidance: useful on question one, noise by question fifty. */}
         <p className="question-guidance">
           <Info size={14} color="var(--rs-color-action-primary)" style={{ flexShrink: 0, marginTop: 2 }} />

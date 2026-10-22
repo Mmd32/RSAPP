@@ -12,6 +12,8 @@ What is taken from where:
   * The indicator list, order, codes, zone, topic and statement come from "Check List".
   * Which sectors a KPI applies to comes from the same code in "Check List-V5 (2)".
     Fashion always applies (it is the Fashion list). A KPI that has no row in V5 gets Fashion only.
+  * Excel notes (the red triangles) on a KPI cell become that KPI's auditor note. Notes on the code
+    column only spell out what a code prefix means ("Floor Signboard") and are not imported.
   * Nothing is written by this script: no wording, no weights.
 
 Reading quirks of the workbook (both are properties of the file, not choices made here):
@@ -53,6 +55,18 @@ def clean(value):
     return " ".join(str(value or "").split())
 
 
+def note_of(cell):
+    """Text of an Excel note on the KPI cell, without the author's name Excel puts in front."""
+    comment = cell.comment
+    if not comment:
+        return ""
+    text = (comment.text or "").strip()
+    author = (comment.author or "").strip()
+    if author and text.startswith(author):
+        text = text[len(author):].lstrip(" :\n\t")
+    return clean(text)
+
+
 def key(value):
     return re.sub(r"[\s‌()/.\-–]+", "", clean(value))
 
@@ -72,7 +86,7 @@ def read_sheet(wb_formulas, wb_values, name):
         if not code:
             continue  # label-only rows carry no KPI
         row = {header[i]: wv.cell(r, i + 1).value for i in range(len(header)) if header[i]}
-        row.update(_row=r, _zone=zone, _code=clean(code))
+        row.update(_row=r, _zone=zone, _code=clean(code), _note=note_of(wf.cell(r, 4)))
         rows.append(row)
     return header, rows
 
@@ -125,7 +139,8 @@ def parse_workbook():
             if "Fashion" not in sectors:
                 sectors.insert(0, "Fashion")  # it is on the Fashion list, whatever V5 says
         rows.append({"order": n, "code": row["_code"], "group": row["_zone"], "subject": clean(row["_topic"]),
-                     "statement": clean(row["KPI"]), "sectors": sectors, "in_matrix": twin is not None})
+                     "statement": clean(row["KPI"]), "note": row["_note"], "sectors": sectors,
+                     "in_matrix": twin is not None})
     return rows, topic_stats
 
 
@@ -182,6 +197,7 @@ def main(dry_run):
             "displayOrder": row["order"],
             "applicableBusinessTypes": row["sectors"],
             "applicableMallTypes": [],
+            **({"auditorNote": row["note"]} if row["note"] else {}),
         })
 
     fashion_only = [r["code"] for r in rows if not r["in_matrix"]]

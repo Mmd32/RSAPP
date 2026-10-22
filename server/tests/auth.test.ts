@@ -14,6 +14,8 @@ import type { AddressInfo } from 'node:net';
 
 const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'rsapp-auth-'));
 process.env.DATA_DIR = dataDir;
+// The indicator-edit routes validate against the catalog the server loads from its data directory.
+fs.copyFileSync(path.resolve(process.cwd(), 'data/catalog.json'), path.join(dataDir, 'catalog.json'));
 process.env.SERVE_CLIENT = 'false';
 delete process.env.DATABASE_URL;
 delete process.env.SETUP_TOKEN;
@@ -206,6 +208,66 @@ try {
     assert.equal(r.json.user.mustChangePassword, false);
     assert.equal((await evaluator.req('GET', '/auth/me')).status, 200, 'this device stays signed in');
     assert.equal((await other.req('GET', '/auth/me')).status, 401, 'other devices are signed out');
+  });
+
+  console.log('indicator edits');
+
+  let target: any;
+  await test('everyone signed in can read the edits; none exist yet', async () => {
+    const list = await evaluator.req('GET', '/indicator-overrides');
+    assert.equal(list.status, 200);
+    assert.deepEqual(list.json, []);
+    target = (await admin.req('GET', '/indicators?template=STORE')).json.indicators.find((i: any) => i.code === 'FS05');
+    assert.ok(target?.id, 'FS05 is in the catalog');
+  });
+
+  await test('only people with catalog access can edit', async () => {
+    const body = { statement: 'متن آزمایشی شاخص' };
+    assert.equal((await evaluator.req('PUT', `/indicator-overrides/${target.id}`, body)).status, 403);
+    assert.equal((await manager.req('PUT', `/indicator-overrides/${target.id}`, body)).status, 403);
+    assert.equal((await anon.req('PUT', `/indicator-overrides/${target.id}`, body)).status, 401);
+    assert.equal((await evaluator.req('DELETE', `/indicator-overrides/${target.id}`)).status, 403);
+  });
+
+  await test('an edit is validated, stored with who made it, and read back by everyone', async () => {
+    const put = (body: any, id = target.id) => admin.req('PUT', `/indicator-overrides/${id}`, body);
+    assert.equal((await put({ statement: 'ab' })).status, 400, 'too short');
+    assert.equal((await put({ statement: 'x'.repeat(601) })).status, 400, 'too long');
+    assert.equal((await put({ auditorNote: 'y'.repeat(1201) })).status, 400, 'note too long');
+    assert.equal((await put({ statement: 'متن' }, 'IND_NOPE')).status, 404, 'unknown indicator');
+    const ok = await put({ statement: '  تابلوی سر در   متناسب نیست  ', auditorNote: 'نکته برای ارزیاب' });
+    assert.equal(ok.status, 200, JSON.stringify(ok.json));
+    assert.equal(ok.json.override.statement, 'تابلوی سر در متناسب نیست', 'whitespace is collapsed');
+    assert.equal(ok.json.override.code, 'FS05');
+    assert.ok(ok.json.override.updatedByName);
+    const seen = (await evaluator.req('GET', '/indicator-overrides')).json;
+    assert.equal(seen.length, 1);
+    assert.equal(seen[0].auditorNote, 'نکته برای ارزیاب');
+    assert.equal((await admin.req('DELETE', `/indicator-overrides/${target.id}`)).status, 200, 'reset');
+    assert.deepEqual((await evaluator.req('GET', '/indicator-overrides')).json, []);
+  });
+
+  await test('a field equal to the checklist is not an edit; clearing everything removes the row', async () => {
+    const plain = (await admin.req('GET', '/indicators?template=STORE')).json.indicators.find((i: any) => i.code === 'FS02');
+    assert.ok(plain && !plain.auditorNote, 'FS02 has no note in the checklist');
+    const put = (body: any) => admin.req('PUT', `/indicator-overrides/${plain.id}`, body);
+    assert.equal((await put({ statement: 'روشنایی تابلو مناسب نیست', auditorNote: 'یک نکته' })).status, 200);
+    const back = await put({ statement: plain.statement });
+    assert.equal(back.status, 200);
+    assert.equal(back.json.override.statement, undefined, 'statement is back to the checklist text');
+    assert.equal(back.json.override.auditorNote, 'یک نکته', 'the note stays');
+    const cleared = await put({ auditorNote: '' });
+    assert.equal(cleared.json.override, null, 'nothing left to store: ' + JSON.stringify(cleared.json));
+    assert.deepEqual((await admin.req('GET', '/indicator-overrides')).json, []);
+  });
+
+  await test('a note can hide the checklist\'s own note, and reset restores it', async () => {
+    const fs01 = (await admin.req('GET', '/indicators?template=STORE')).json.indicators.find((i: any) => i.code === 'FS01');
+    assert.ok(fs01.auditorNote, 'FS01 carries a note from the checklist');
+    const hidden = await admin.req('PUT', `/indicator-overrides/${fs01.id}`, { auditorNote: null });
+    assert.equal(hidden.json.override.auditorNote, '', 'an empty note is stored so it hides the original');
+    assert.equal((await admin.req('DELETE', `/indicator-overrides/${fs01.id}`)).status, 200);
+    assert.deepEqual((await admin.req('GET', '/indicator-overrides')).json, []);
   });
 
   console.log('visits');

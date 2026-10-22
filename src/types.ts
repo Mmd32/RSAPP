@@ -114,6 +114,10 @@ export interface Indicator {
   version?: number;
   requiresPhoto: boolean;
   requiresComment: boolean;
+  /** A note for the auditor, from the checklist or written in the question bank. */
+  auditorNote?: string;
+  /** True when this row's wording or note was changed from the checklist's. */
+  edited?: boolean;
   displayOrder: number;
   needsReview?: boolean;
   applicableBusinessTypes: string[];

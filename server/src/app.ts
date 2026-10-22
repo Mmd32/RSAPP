@@ -297,6 +297,81 @@ app.get('/api/indicators', (req: Request, res: Response) => {
 // ----------------------------------------------------------------------------
 // ORGANIZATIONS & TENANTS (Requirement 25)
 // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// INDICATOR EDITS (wording and auditor notes)
+// ----------------------------------------------------------------------------
+const MAX_STATEMENT = 600;
+const MAX_NOTE = 1200;
+
+const catalogIndicator = (id: string): any | undefined =>
+  catalog?.indicators?.find((i: any) => i.id === id);
+
+/** Everyone signed in reads the edits (a questionnaire is built from them); only catalog managers write. */
+app.get(
+  '/api/indicator-overrides',
+  route(async (req, res) => {
+    res.json(await store.listIndicatorOverrides(tenantOf(req)));
+  })
+);
+
+app.put(
+  '/api/indicator-overrides/:indicatorId',
+  requirePermission('catalog.manage'),
+  route(async (req, res) => {
+    const indicator = catalogIndicator(req.params.indicatorId);
+    if (!indicator) return res.status(404).json({ error: 'شاخص پیدا نشد.' });
+
+    const body = req.body || {};
+    const clean = (v: unknown) => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim() : undefined);
+    const existing = (await store.listIndicatorOverrides(tenantOf(req))).find((o) => o.indicatorId === indicator.id);
+    let statement = existing?.statement;
+    let auditorNote = existing?.auditorNote;
+
+    if (body.statement !== undefined) {
+      const text = clean(body.statement);
+      if (text === undefined || text.length < 3) return res.status(400).json({ error: 'متن شاخص باید دست‌کم ۳ نویسه باشد.' });
+      if (text.length > MAX_STATEMENT) return res.status(400).json({ error: `متن شاخص حداکثر ${MAX_STATEMENT} نویسه است.` });
+      statement = text;
+    }
+    if (body.auditorNote !== undefined) {
+      const text = body.auditorNote === null ? '' : clean(body.auditorNote);
+      if (text === undefined) return res.status(400).json({ error: 'نکتهٔ ارزیاب معتبر نیست.' });
+      if (text.length > MAX_NOTE) return res.status(400).json({ error: `نکتهٔ ارزیاب حداکثر ${MAX_NOTE} نویسه است.` });
+      auditorNote = text;
+    }
+
+    // A field equal to the workbook's own value is not an edit.
+    if (statement !== undefined && statement === indicator.statement) statement = undefined;
+    if (auditorNote !== undefined && auditorNote === (indicator.auditorNote || '')) auditorNote = undefined;
+
+    if (statement === undefined && auditorNote === undefined) {
+      await store.deleteIndicatorOverride(tenantOf(req), indicator.id);
+      return res.json({ override: null });
+    }
+    const override = {
+      indicatorId: indicator.id,
+      code: indicator.code,
+      ...(statement !== undefined ? { statement } : {}),
+      ...(auditorNote !== undefined ? { auditorNote } : {}),
+      updatedAt: new Date().toISOString(),
+      updatedBy: req.user!.id,
+      updatedByName: req.user!.name,
+    };
+    await store.saveIndicatorOverride(tenantOf(req), override);
+    logger.security('Indicator edited', { by: req.user!.id, indicatorId: indicator.id, code: indicator.code });
+    res.json({ override });
+  })
+);
+
+app.delete(
+  '/api/indicator-overrides/:indicatorId',
+  requirePermission('catalog.manage'),
+  route(async (req, res) => {
+    await store.deleteIndicatorOverride(tenantOf(req), req.params.indicatorId);
+    res.json({ override: null });
+  })
+);
+
 app.get(
   '/api/organizations',
   route(async (req, res) => {
