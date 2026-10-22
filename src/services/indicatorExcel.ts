@@ -64,14 +64,37 @@ function lookup(value: string, codes: string[]): string | null {
 
 export type PlanAction = 'create' | 'update' | 'update-file' | 'same' | 'error';
 
+/** One row of the uploaded sheet as the person can still change it before saving. */
+export interface Draft {
+  key: string;
+  line: number;
+  sheet?: string;
+  /** Unticked rows are not saved. */
+  include: boolean;
+  /** Set when the sheet carries the indicator's id; cleared when the person changes the code. */
+  targetId?: string;
+  template: 'STORE' | 'MALL';
+  code: string;
+  group: string;
+  subject: string;
+  statement: string;
+  note: string;
+  scope: string[];
+  photo: boolean;
+  comment: boolean;
+  active: boolean;
+  /** Problem found while reading the cell values, shown until the row is edited. */
+  readError?: string;
+}
+
 export interface PlanRow {
+  key: string;
   line: number;
   /** Sheet name, shown when the workbook has several. */
   sheet?: string;
   action: PlanAction;
   code: string;
   statement: string;
-  /** Fixed list of what changes, for the preview. */
   changes: string[];
   error?: string;
   /** Existing indicator for updates. */
@@ -80,10 +103,8 @@ export interface PlanRow {
   fileEdit?: { statement?: string; auditorNote?: string | null; disabled?: boolean };
 }
 
-export interface Plan {
-  rows: PlanRow[];
-  count: Record<PlanAction, number>;
-  /** Things the person should know before saving. */
+export interface ParsedWorkbook {
+  drafts: Draft[];
   notes: string[];
 }
 
@@ -270,7 +291,7 @@ function topicZones(wb: any, current: Indicator[]): Map<string, string> {
   return map;
 }
 
-export async function planImport(file: File, current: Indicator[]): Promise<Plan> {
+export async function parseWorkbook(file: File, current: Indicator[]): Promise<ParsedWorkbook> {
   const ExcelJS = (await import('exceljs')).default;
   const wb = new ExcelJS.Workbook();
   try {
@@ -286,18 +307,13 @@ export async function planImport(file: File, current: Indicator[]): Promise<Plan
   if (!sheets.length) throw new Error('ستون «KPI» (یا «شاخص») در ردیف‌های اول هیچ برگه‌ای پیدا نشد. از «دانلود قالب» استفاده کنید.');
   const used = sheets.filter((x: any) => x.rows > 0);
   if (!used.length) throw new Error('برگهٔ «' + sheets.map((x: any) => x.ws.name).join('، ') + '» هیچ ردیف شاخصی ندارد. هر شاخص را زیر سرتیتر در یک ردیف بنویسید (کد، موضوع، KPI و X در ستون سکتور) و دوباره بارگذاری کنید.');
-  const notes: string[] = [];
+
   const zoneByTopic = topicZones(wb, current);
   const byId = new Map(current.map((i) => [i.id, i]));
-  const codeCount = new Map<string, number>();
-  current.forEach((i) => codeCount.set(i.code.toLowerCase(), (codeCount.get(i.code.toLowerCase()) || 0) + 1));
-  const byCode = new Map(current.map((i) => [i.code.toLowerCase(), i]));
-  const seen = new Set<string>();
-  const rows: PlanRow[] = [];
+  const drafts: Draft[] = [];
 
   for (const { ws, layout } of used as { ws: any; layout: Layout }[]) {
     const { cols } = layout;
-    const multiSheet = used.length > 1;
     let lastGroup = '';
     let lastSubject = '';
     for (let r = layout.headerRow + 1; r <= ws.rowCount; r++) {
@@ -312,103 +328,132 @@ export async function planImport(file: File, current: Indicator[]): Promise<Plan
       const statement = raw('statement');
       if (isCount(statement) || isFormula(cols.statement ? row.getCell(cols.statement).value : null)) continue; // totals of a summary sheet
       if (!statement && !code) continue; // blank rows and section labels
-      let subjectText = get('subject');
-      if (!subjectText || subjectText.includes('#REF')) subjectText = lastSubject;
-      else lastSubject = subjectText; // section labels and blank rows
-      const base: PlanRow = { line: r, sheet: multiSheet ? ws.name : undefined, action: 'same', code, statement, changes: [] };
-      const fail = (error: string) => rows.push({ ...base, action: 'error', error });
+      let subject = get('subject');
+      if (!subject || subject.includes('#REF')) subject = lastSubject;
+      else lastSubject = subject;
 
       const idText = get('id');
-      const byIdTarget = idText ? byId.get(idText) : undefined;
-      if (idText && !byIdTarget) { fail('شناسه در بانک شاخص‌ها پیدا نشد؛ ستون شناسه را تغییر ندهید.'); continue; }
-      if (!byIdTarget && code) {
-        if (!CODE_PATTERN.test(code)) { fail('کد فقط حروف انگلیسی، عدد، خط تیره یا زیرخط و بین ۲ تا ۲۰ نویسه است.'); continue; }
-        if (seen.has(code.toLowerCase())) { fail('این کد در فایل تکراری است.'); continue; }
-        seen.add(code.toLowerCase());
-        if ((codeCount.get(code.toLowerCase()) || 0) > 1) { fail('این کد برای چند شاخص تکراری است؛ ستون «شناسه» را پر کنید.'); continue; }
-      }
-      // A row without a code that repeats an indicator added earlier (same topic and wording) updates it instead of adding a copy.
-      const sameText = (i: Indicator) => i.custom && i.template === layout.template && fold(i.subject) === fold(subjectText) && fold(i.statement) === fold(statement);
-      const target = byIdTarget || (code ? byCode.get(code.toLowerCase()) : current.find(sameText));
-      const statusText = fold(get('status'));
-      const disabled = statusText === 'غیرفعال' || statusText === 'disabled';
-      if (get('status') && !['فعال', 'غیرفعال', 'active', 'disabled'].includes(statusText)) { fail('وضعیت باید «فعال» یا «غیرفعال» باشد.'); continue; }
-
-      if (target && !target.custom) {
-        // Checklist-file row: wording, note, on/off.
-        const edit: NonNullable<PlanRow['fileEdit']> = {};
-        const changes: string[] = [];
-        if (statement && statement !== target.statement) {
-          if (statement.length < 3 || statement.length > 600) { fail('متن شاخص باید بین ۳ و ۶۰۰ نویسه باشد.'); continue; }
-          edit.statement = statement; changes.push('متن');
-        }
-        const note = raw('note');
-        if (cols.note && note !== (target.auditorNote || '')) {
-          if (note.length > 1200) { fail('نکتهٔ ارزیاب حداکثر ۱۲۰۰ نویسه است.'); continue; }
-          edit.auditorNote = note || null; changes.push('نکته');
-        }
-        if (cols.status && get('status') && disabled !== !!target.disabled) { edit.disabled = disabled; changes.push(disabled ? 'غیرفعال‌سازی' : 'فعال‌سازی'); }
-        rows.push({ ...base, action: changes.length ? 'update-file' : 'same', target, fileEdit: edit, changes });
-        continue;
-      }
-
-      // Added-by-hand row (existing) or a new one: all columns.
+      const target = idText ? byId.get(idText) : undefined;
       const template = target ? target.template : layout.template;
-      const subject = subjectText || target?.subject || '';
-      if (!subject) { fail('موضوع خالی است.'); continue; }
-      let group = (groupText && !groupText.includes('#REF') ? groupText : '') || target?.group || (template === 'STORE' ? zoneByTopic.get(fold(subject)) : '') || '';
-      if (template === 'STORE') {
-        const z = ZONES.find((c) => fold(group).includes(fold(c)) || fold(group).includes(fold(groupLabel(c))));
-        if (!z) { fail(`گروه «${group.replace(/\s+/g, ' ')}» شناخته نشد. یکی از ${ZONES.map(groupLabel).join('، ')} را بنویسید.`); continue; }
-        group = z;
-      } else if (!group) { fail('گروه خالی است.'); continue; }
-      const text = statement || target?.statement || '';
-      if (text.length < 3 || text.length > 600) { fail('متن شاخص باید بین ۳ و ۶۰۰ نویسه باشد.'); continue; }
+      let readError: string | undefined;
+      if (idText && !target) readError = 'شناسه در بانک شاخص‌ها پیدا نشد؛ ستون شناسه را تغییر ندهید.';
+
+      let group = groupText.includes('#REF') ? '' : groupText;
+      if (!group && !target && template === 'STORE') group = zoneByTopic.get(fold(subject)) || '';
+      if (template === 'STORE') group = ZONES.find((c) => fold(group).includes(fold(c)) || fold(group).includes(fold(groupLabel(c)))) || group.replace(/\s+/g, ' ');
 
       const universe = template === 'STORE' ? SECTORS : MALL_TYPES;
       let scope: string[];
       if (layout.scope.length && layout.template === template) {
         scope = layout.scope.filter((s) => norm(cellText(row.getCell(s.col).value))).map((s) => s.code);
-        if (!scope.length) { fail(template === 'STORE' ? 'هیچ سکتوری با X مشخص نشده است.' : 'هیچ نوع مرکز خریدی با X مشخص نشده است.'); continue; }
       } else scope = (template === 'STORE' ? target?.applicableBusinessTypes : target?.applicableMallTypes) || universe;
 
+      const statusText = fold(get('status'));
+      if (get('status') && !['فعال', 'غیرفعال', 'active', 'disabled'].includes(statusText)) readError ||= 'وضعیت باید «فعال» یا «غیرفعال» باشد.';
       const flag = (k: 'photo' | 'comment', old: boolean) => {
         const v = get(k);
         if (!cols[k] || (v === '' && target)) return old;
-        return yes(v) ? true : no(v) ? false : null;
+        if (yes(v)) return true;
+        if (no(v)) return false;
+        readError ||= 'عکس/توضیح الزامی باید «بله» یا «خیر» باشد.';
+        return old;
       };
-      const photo = flag('photo', !!target?.requiresPhoto);
-      const comment = flag('comment', !!target?.requiresComment);
-      if (photo === null || comment === null) { fail('عکس/توضیح الزامی باید «بله» یا «خیر» باشد.'); continue; }
-      const note = cols.note ? raw('note') : target?.auditorNote || '';
-      if (note.length > 1200) { fail('نکتهٔ ارزیاب حداکثر ۱۲۰۰ نویسه است.'); continue; }
 
-      const input: CustomIndicatorInput = {
-        template, group, subject, statement: text, auditorNote: note || null,
-        applicableBusinessTypes: template === 'STORE' ? scope : [],
-        applicableMallTypes: template === 'MALL' ? scope : [],
-        requiresPhoto: photo, requiresComment: comment,
-        status: disabled ? 'ARCHIVED' : 'ACTIVE',
-      };
-      if (!target) {
-        if (code) input.code = code;
-        rows.push({ ...base, action: 'create', input, changes: ['شاخص جدید'] });
-        continue;
-      }
-      const changes: string[] = [];
-      if (group !== target.group) changes.push('گروه');
-      if (subject !== target.subject) changes.push('موضوع');
-      if (text !== target.statement) changes.push('متن');
-      if (note !== (target.auditorNote || '')) changes.push('نکته');
-      if ([...scope].sort().join() !== [...((template === 'STORE' ? target.applicableBusinessTypes : target.applicableMallTypes) || [])].sort().join()) changes.push('دامنه');
-      if (photo !== !!target.requiresPhoto || comment !== !!target.requiresComment) changes.push('عکس/توضیح');
-      if ((input.status === 'ARCHIVED') !== !!target.disabled) changes.push(disabled ? 'غیرفعال‌سازی' : 'فعال‌سازی');
-      rows.push({ ...base, action: changes.length ? 'update' : 'same', target, input, changes });
+      drafts.push({
+        key: `${ws.name}:${r}`,
+        line: r,
+        sheet: used.length > 1 ? ws.name : undefined,
+        include: true,
+        targetId: target?.id,
+        template,
+        code,
+        group,
+        subject,
+        statement,
+        note: cols.note ? raw('note') : target?.auditorNote || '',
+        scope,
+        photo: flag('photo', !!target?.requiresPhoto),
+        comment: flag('comment', !!target?.requiresComment),
+        active: get('status') ? statusText !== 'غیرفعال' && statusText !== 'disabled' : target ? !target.disabled : true,
+        readError,
+      });
     }
   }
+  if (!drafts.length) throw new Error('هیچ ردیف شاخصی (با ستون «KPI» پر) در فایل پیدا نشد.');
+  return { drafts, notes: [] };
+}
 
-  if (!rows.length) throw new Error('هیچ ردیف شاخصی (با ستون‌های «کد» و «KPI» پر) در فایل پیدا نشد.');
-  const count = { create: 0, update: 0, 'update-file': 0, same: 0, error: 0 } as Record<PlanAction, number>;
-  rows.forEach((r) => (count[r.action] += 1));
-  return { rows, count, notes };
+/** What saving each draft would do, with the problems that keep a row from being saved. Recomputed whenever a draft is edited. */
+export function evaluateDrafts(drafts: Draft[], current: Indicator[]): PlanRow[] {
+  const byId = new Map(current.map((i) => [i.id, i]));
+  const byCode = new Map(current.map((i) => [i.code.toLowerCase(), i]));
+  const codeCount = new Map<string, number>();
+  current.forEach((i) => codeCount.set(i.code.toLowerCase(), (codeCount.get(i.code.toLowerCase()) || 0) + 1));
+  const seen = new Set<string>();
+
+  return drafts.map((d): PlanRow => {
+    const base = { key: d.key, line: d.line, sheet: d.sheet, code: d.code, statement: d.statement, changes: [] as string[] };
+    const fail = (error: string): PlanRow => ({ ...base, action: 'error', error });
+    if (d.readError) return fail(d.readError);
+
+    const code = d.code.trim();
+    if (!d.targetId && code) {
+      if (!CODE_PATTERN.test(code)) return fail('کد فقط حروف انگلیسی، عدد، خط تیره یا زیرخط و بین ۲ تا ۲۰ نویسه است.');
+      if (d.include) {
+        if (seen.has(code.toLowerCase())) return fail('این کد در فایل تکراری است.');
+        seen.add(code.toLowerCase());
+      }
+      if ((codeCount.get(code.toLowerCase()) || 0) > 1) return fail('این کد برای چند شاخص موجود است؛ کد را خالی کنید تا شاخص جدید شود یا کد دیگری بدهید.');
+    }
+    // A row without a code that repeats an indicator added earlier (same topic and wording) updates it instead of adding a copy.
+    const sameText = (i: Indicator) => i.custom && i.template === d.template && fold(i.subject) === fold(d.subject) && fold(i.statement) === fold(d.statement);
+    const target = (d.targetId ? byId.get(d.targetId) : undefined) || (code ? byCode.get(code.toLowerCase()) : current.find(sameText));
+
+    const statement = (d.statement || target?.statement || '').replace(/\s+/g, ' ').trim();
+    const note = d.note.replace(/\s+/g, ' ').trim();
+    if (statement.length < 3 || statement.length > 600) return fail('متن شاخص باید بین ۳ و ۶۰۰ نویسه باشد.');
+    if (note.length > 1200) return fail('نکتهٔ ارزیاب حداکثر ۱۲۰۰ نویسه است.');
+
+    if (target && !target.custom) {
+      // Checklist-file row: wording, note, on/off.
+      const edit: NonNullable<PlanRow['fileEdit']> = {};
+      const changes: string[] = [];
+      if (statement !== target.statement) { edit.statement = statement; changes.push('متن'); }
+      if (note !== (target.auditorNote || '')) { edit.auditorNote = note || null; changes.push('نکته'); }
+      if (d.active === !!target.disabled) { edit.disabled = !d.active; changes.push(d.active ? 'فعال‌سازی' : 'غیرفعال‌سازی'); }
+      return { ...base, action: changes.length ? 'update-file' : 'same', target, fileEdit: edit, changes };
+    }
+
+    const template = target ? target.template : d.template;
+    const subject = (d.subject || target?.subject || '').trim();
+    if (!subject) return fail('موضوع خالی است.');
+    const group = (d.group || target?.group || '').trim();
+    if (template === 'STORE') {
+      if (!ZONES.includes(group)) return fail(group ? `گروه «${group}» شناخته نشد. یکی از ${ZONES.map(groupLabel).join('، ')} را انتخاب کنید.` : 'گروه (منطقه) را انتخاب کنید.');
+    } else if (!group) return fail('گروه خالی است.');
+    const universe = template === 'STORE' ? SECTORS : MALL_TYPES;
+    const scope = d.scope.filter((s) => universe.includes(s));
+    if (!scope.length) return fail(template === 'STORE' ? 'دست‌کم یک سکتور را انتخاب کنید.' : 'دست‌کم یک نوع مرکز خرید را انتخاب کنید.');
+
+    const input: CustomIndicatorInput = {
+      template, group, subject, statement, auditorNote: note || null,
+      applicableBusinessTypes: template === 'STORE' ? scope : [],
+      applicableMallTypes: template === 'MALL' ? scope : [],
+      requiresPhoto: d.photo, requiresComment: d.comment,
+      status: d.active ? 'ACTIVE' : 'ARCHIVED',
+    };
+    if (!target) {
+      if (code) input.code = code;
+      return { ...base, action: 'create', input, changes: ['شاخص جدید'] };
+    }
+    const changes: string[] = [];
+    if (group !== target.group) changes.push('گروه');
+    if (subject !== target.subject) changes.push('موضوع');
+    if (statement !== target.statement) changes.push('متن');
+    if (note !== (target.auditorNote || '')) changes.push('نکته');
+    if ([...scope].sort().join() !== [...((template === 'STORE' ? target.applicableBusinessTypes : target.applicableMallTypes) || [])].sort().join()) changes.push('دامنه');
+    if (d.photo !== !!target.requiresPhoto || d.comment !== !!target.requiresComment) changes.push('عکس/توضیح');
+    if (d.active === !!target.disabled) changes.push(d.active ? 'فعال‌سازی' : 'غیرفعال‌سازی');
+    return { ...base, action: changes.length ? 'update' : 'same', target, input, changes };
+  });
 }

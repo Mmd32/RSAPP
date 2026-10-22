@@ -1,9 +1,10 @@
-import React, { useRef, useState } from 'react';
-import { Download, FileSpreadsheet, Upload, X } from 'lucide-react';
+import React, { useMemo, useRef, useState } from 'react';
+import { Download, FileSpreadsheet, Pencil, Trash2, Upload, X } from 'lucide-react';
 import type { Indicator } from '../types';
-import { IndicatorService } from '../services/indicatorService';
-import { downloadWorkbook, planImport, type Plan, type PlanAction } from '../services/indicatorExcel';
-import { faDigits } from '../utils/format';
+import { IndicatorService, type CustomIndicatorInput } from '../services/indicatorService';
+import { downloadWorkbook, evaluateDrafts, parseWorkbook, type Draft, type PlanAction, type PlanRow } from '../services/indicatorExcel';
+import { faDigits, groupLabel } from '../utils/format';
+import { IndicatorForm } from './IndicatorEditor';
 
 const LABEL: Record<PlanAction, string> = {
   create: 'جدید',
@@ -21,14 +22,35 @@ interface Props {
   onClose: () => void;
 }
 
-/** Download the indicators or an empty template as Excel, and upload an edited sheet to add and change many at once. */
+const noop = async () => {};
+
+/** The row as an indicator, so the same form that adds an indicator by hand can edit it. */
+function draftAsIndicator(d: Draft): Indicator {
+  return {
+    id: d.key, code: d.code, template: d.template, group: d.group, subject: d.subject, journeyStage: '', reportingDimension: '',
+    originalText: d.statement, statement: d.statement, status: d.active ? 'ACTIVE' : 'ARCHIVED', version: 1, weight: 1,
+    requiresPhoto: d.photo, requiresComment: d.comment, displayOrder: 0,
+    applicableBusinessTypes: d.template === 'STORE' ? d.scope : [], applicableMallTypes: d.template === 'MALL' ? d.scope : [],
+    auditorNote: d.note || undefined,
+  } as Indicator;
+}
+
+/**
+ * Download the indicators or an empty template as Excel, and upload a sheet.
+ * An uploaded sheet is first shown as a list: every row can be ticked or
+ * unticked, edited like an indicator added by hand (topic, group, sectors,
+ * wording, note, …) or removed, and only then saved.
+ */
 export const IndicatorExcel: React.FC<Props> = ({ indicators, canEdit, onChanged, onClose }) => {
   const input = useRef<HTMLInputElement>(null);
-  const [plan, setPlan] = useState<Plan | null>(null);
+  const [drafts, setDrafts] = useState<Draft[] | null>(null);
+  const [notes, setNotes] = useState<string[]>([]);
   const [fileName, setFileName] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [showSame, setShowSame] = useState(false);
 
   const guard = async (job: () => Promise<void>) => {
     setBusy(true);
@@ -42,20 +64,33 @@ export const IndicatorExcel: React.FC<Props> = ({ indicators, canEdit, onChanged
     }
   };
 
+  const plan: PlanRow[] = useMemo(() => (drafts ? evaluateDrafts(drafts, indicators) : []), [drafts, indicators]);
+  const planByKey = useMemo(() => new Map(plan.map((p) => [p.key, p])), [plan]);
+  const included = (d: Draft) => d.include && planByKey.get(d.key)?.action !== 'same';
+  const saveable = drafts ? drafts.filter((d) => d.include && ['create', 'update', 'update-file'].includes(planByKey.get(d.key)?.action || '')) : [];
+  const count = (a: PlanAction) => plan.filter((p) => p.action === a).length;
+
+  const patch = (key: string, change: Partial<Draft>) => setDrafts((prev) => prev && prev.map((d) => (d.key === key ? { ...d, ...change } : d)));
+
   const onFile = (file: File | undefined) => {
     if (!file) return;
     setResult(null);
-    setPlan(null);
+    setDrafts(null);
+    setNotes([]);
     setFileName(file.name);
-    guard(async () => setPlan(await planImport(file, indicators)));
+    guard(async () => {
+      const parsed = await parseWorkbook(file, indicators);
+      setDrafts(parsed.drafts);
+      setNotes(parsed.notes);
+    });
   };
 
   const apply = () =>
     guard(async () => {
-      if (!plan) return;
       let done = 0;
       const failed: string[] = [];
-      for (const row of plan.rows) {
+      for (const d of saveable) {
+        const row = planByKey.get(d.key)!;
         try {
           if (row.action === 'create' && row.input) await IndicatorService.createCustom(row.input);
           else if (row.action === 'update' && row.target && row.input) await IndicatorService.updateCustom(row.target.id, row.input);
@@ -67,19 +102,22 @@ export const IndicatorExcel: React.FC<Props> = ({ indicators, canEdit, onChanged
         }
       }
       await onChanged();
-      setPlan(null);
+      setDrafts(null);
       setResult(`${faDigits(done)} ردیف ذخیره شد.${failed.length ? ` ${faDigits(failed.length)} ردیف ذخیره نشد: ${failed.join(' | ')}` : ''}`);
     });
 
-  const writable = plan ? plan.count.create + plan.count.update + plan.count['update-file'] : 0;
+  const editingDraft = drafts?.find((d) => d.key === editing);
+  const editingTarget = editingDraft ? planByKey.get(editingDraft.key)?.target : undefined;
+  const visible = drafts ? drafts.filter((d) => showSame || planByKey.get(d.key)?.action !== 'same') : [];
+  const allTicked = visible.length > 0 && visible.every((d) => d.include);
 
   return (
     <div className="ie-backdrop" role="dialog" aria-modal="true" aria-labelledby="xl-title" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="ie-dialog ie-dialog--wide">
+      <div className="ie-dialog ie-dialog--wide ie-dialog--xl">
         <header className="ie-head">
           <div>
             <h3 id="xl-title" className="ie-title"><FileSpreadsheet size={20} />مدیریت شاخص‌ها با اکسل</h3>
-            <p className="ie-sub">شاخص‌ها را دانلود کنید، در اکسل ویرایش یا اضافه کنید و دوباره بارگذاری کنید.</p>
+            <p className="ie-sub">شاخص‌ها را دانلود کنید، در اکسل ویرایش یا اضافه کنید و بارگذاری کنید. پیش از ذخیره می‌توانید هر ردیف را انتخاب، ویرایش یا حذف کنید.</p>
           </div>
           <button type="button" className="ie-close" onClick={onClose} aria-label="بستن"><X size={18} /></button>
         </header>
@@ -109,34 +147,67 @@ export const IndicatorExcel: React.FC<Props> = ({ indicators, canEdit, onChanged
               </button>
               {fileName && <span className="ie-hint">{fileName}</span>}
             </div>
-            <p className="ie-hint">پیش از ذخیره، فهرست تغییرات را می‌بینید و چیزی تا تأیید شما ذخیره نمی‌شود.</p>
+            <p className="ie-hint">پیش از ذخیره، فهرست ردیف‌ها را می‌بینید؛ چیزی تا تأیید شما ذخیره نمی‌شود.</p>
           </div>
         )}
 
-        {plan && (
+        {drafts && (
           <>
-            {plan.notes.map((n) => <div key={n} className="auth-error" role="note">{n}</div>)}
+            {notes.map((n) => <div key={n} className="auth-error" role="note">{n}</div>)}
             <div className="xl-summary">
               {(['create', 'update', 'update-file', 'same', 'error'] as PlanAction[]).map((a) => (
-                <span key={a} className={`ie-chip${a === 'error' && plan.count.error ? ' xl-err' : ''}`}>{LABEL[a]}: {faDigits(plan.count[a])}</span>
+                <span key={a} className={`ie-chip${a === 'error' && count('error') ? ' xl-err' : ''}`}>{LABEL[a]}: {faDigits(count(a))}</span>
               ))}
+              <label className="ie-check" style={{ marginInlineStart: 'auto' }}>
+                <input type="checkbox" checked={showSame} onChange={(e) => setShowSame(e.target.checked)} />
+                <span>نمایش ردیف‌های بدون تغییر</span>
+              </label>
             </div>
-            <div className="xl-list">
+            <div className="xl-list xl-list--tall">
               <table>
-                <thead><tr><th>ردیف</th><th>کد</th><th>وضعیت</th><th>متن / توضیح</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>
+                      <input
+                        type="checkbox"
+                        aria-label="انتخاب همه"
+                        checked={allTicked}
+                        onChange={(e) => setDrafts((prev) => prev && prev.map((d) => (visible.some((v) => v.key === d.key) ? { ...d, include: e.target.checked } : d)))}
+                      />
+                    </th>
+                    <th>ردیف</th><th>کد</th><th>وضعیت</th><th>گروه / موضوع</th><th>متن شاخص</th><th />
+                  </tr>
+                </thead>
                 <tbody>
-                  {plan.rows.filter((r) => r.action !== 'same').map((r) => (
-                    <tr key={r.line}>
-                      <td>{r.sheet ? `${r.sheet} · ` : ''}{faDigits(r.line)}</td>
-                      <td dir="ltr">{r.code || '—'}</td>
-                      <td className={r.action === 'error' ? 'xl-err' : ''}>{LABEL[r.action]}</td>
-                      <td>{r.action === 'error' ? r.error : <>{r.statement.slice(0, 80)} <span className="ie-hint">{r.changes.join('، ')}</span></>}</td>
-                    </tr>
-                  ))}
+                  {visible.map((d) => {
+                    const row = planByKey.get(d.key)!;
+                    return (
+                      <tr key={d.key} className={d.include ? '' : 'xl-off'}>
+                        <td><input type="checkbox" aria-label="ذخیره این ردیف" checked={d.include} onChange={(e) => patch(d.key, { include: e.target.checked })} /></td>
+                        <td>{row.sheet ? `${row.sheet} · ` : ''}{faDigits(row.line)}</td>
+                        <td dir="ltr">{row.target?.code || d.code || '—'}</td>
+                        <td className={row.action === 'error' ? 'xl-err' : ''}>
+                          {LABEL[row.action]}
+                          {row.action === 'error' && <div className="ie-hint xl-err">{row.error}</div>}
+                          {row.changes.length > 0 && row.action !== 'create' && row.action !== 'error' && <div className="ie-hint">{row.changes.join('، ')}</div>}
+                        </td>
+                        <td>
+                          {d.template === 'STORE' ? groupLabel(row.target?.group || d.group) : row.target?.group || d.group}
+                          <div className="ie-hint">{row.target?.subject || d.subject}</div>
+                        </td>
+                        <td>{(row.fileEdit?.statement ?? row.input?.statement ?? d.statement).slice(0, 110)}</td>
+                        <td className="xl-actions">
+                          <button type="button" className="btn-secondary" title="ویرایش ردیف" aria-label="ویرایش ردیف" onClick={() => setEditing(d.key)}><Pencil size={14} /></button>
+                          <button type="button" className="btn-secondary" title="حذف ردیف از فهرست" aria-label="حذف ردیف از فهرست" onClick={() => setDrafts((prev) => prev && prev.filter((x) => x.key !== d.key))}><Trash2 size={14} /></button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {!visible.length && <tr><td colSpan={7} className="ie-hint">ردیفی برای نمایش نیست.</td></tr>}
                 </tbody>
               </table>
             </div>
-            {plan.count.error > 0 && <p className="ie-hint">ردیف‌های دارای خطا ذخیره نمی‌شوند؛ می‌توانید فایل را اصلاح و دوباره بارگذاری کنید.</p>}
+            {count('error') > 0 && <p className="ie-hint">ردیف‌های دارای خطا ذخیره نمی‌شوند؛ با دکمهٔ ویرایش اصلاحشان کنید یا حذفشان کنید.</p>}
           </>
         )}
 
@@ -147,14 +218,45 @@ export const IndicatorExcel: React.FC<Props> = ({ indicators, canEdit, onChanged
           <span />
           <div className="ie-actions">
             <button type="button" className="btn-secondary" onClick={onClose}>بستن</button>
-            {plan && (
-              <button type="button" className="btn-primary" disabled={busy || !writable} onClick={apply}>
-                ذخیرهٔ {faDigits(writable)} تغییر
+            {drafts && (
+              <button type="button" className="btn-primary" disabled={busy || !saveable.length} onClick={apply}>
+                ذخیرهٔ {faDigits(saveable.length)} ردیف
               </button>
             )}
           </div>
         </footer>
       </div>
+
+      {editingDraft && (
+        <IndicatorForm
+          key={editingDraft.key}
+          indicator={draftAsIndicator(editingDraft)}
+          all={indicators}
+          fileRow={!!editingTarget && !editingTarget.custom}
+          onCreate={noop}
+          onUpdate={noop}
+          onDelete={noop}
+          onClose={() => setEditing(null)}
+          onDraft={(v: CustomIndicatorInput) => {
+            patch(editingDraft.key, {
+              ...(editingTarget ? {} : { template: v.template ?? editingDraft.template }),
+              group: v.group ?? editingDraft.group,
+              subject: v.subject ?? editingDraft.subject,
+              code: v.code ?? '',
+              targetId: v.code && v.code !== editingDraft.code ? undefined : editingDraft.targetId,
+              statement: v.statement ?? '',
+              note: v.auditorNote ?? '',
+              scope: (v.template === 'MALL' ? v.applicableMallTypes : v.applicableBusinessTypes) ?? editingDraft.scope,
+              photo: !!v.requiresPhoto,
+              comment: !!v.requiresComment,
+              active: v.status !== 'ARCHIVED',
+              readError: undefined,
+              include: true,
+            });
+            setEditing(null);
+          }}
+        />
+      )}
     </div>
   );
 };

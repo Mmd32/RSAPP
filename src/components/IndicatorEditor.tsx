@@ -205,11 +205,15 @@ interface FormProps {
   onUpdate: (id: string, input: CustomIndicatorInput) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onClose: () => void;
+  /** Review mode (Excel upload): hands the edited values back instead of saving them. */
+  onDraft?: (input: CustomIndicatorInput) => void;
+  /** A row of the checklist file: only wording, note and on/off can change. */
+  fileRow?: boolean;
 }
 
 /** Add an indicator by hand, or edit one that was added by hand: every field a checklist row has. */
-export const IndicatorForm: React.FC<FormProps> = ({ indicator, all, onCreate, onUpdate, onDelete, onClose }) => {
-  const editing = !!indicator;
+export const IndicatorForm: React.FC<FormProps> = ({ indicator, all, onCreate, onUpdate, onDelete, onClose, onDraft, fileRow }) => {
+  const editing = !!indicator && !onDraft;
   const [template, setTemplate] = useState<'STORE' | 'MALL'>(indicator?.template ?? 'STORE');
   const [group, setGroup] = useState(indicator?.group ?? 'FLOOR');
   const [subject, setSubject] = useState(indicator?.subject ?? '');
@@ -235,30 +239,37 @@ export const IndicatorForm: React.FC<FormProps> = ({ indicator, all, onCreate, o
     setSubject('');
   };
 
-  const problem =
-    statement.trim().length < 3 ? 'متن شاخص را بنویسید.'
+  const problem = fileRow
+    ? statement.trim().length < 3 ? 'متن شاخص را بنویسید.' : null
+    : statement.trim().length < 3 ? 'متن شاخص را بنویسید.'
     : !group.trim() ? 'منطقه یا گروه را مشخص کنید.'
     : !subject.trim() ? 'موضوع را بنویسید.'
     : template === 'STORE' && !sectors.length ? 'دست‌کم یک سکتور را انتخاب کنید.'
     : template === 'MALL' && !mallTypes.length ? 'دست‌کم یک نوع مرکز خرید را انتخاب کنید.'
     : null;
 
+  const buildInput = (): CustomIndicatorInput => ({
+    template,
+    group: group.trim(),
+    subject: subject.trim(),
+    ...(code.trim() ? { code: code.trim() } : {}),
+    statement: statement.trim(),
+    auditorNote: note.trim() || null,
+    applicableBusinessTypes: template === 'STORE' ? sectors : [],
+    applicableMallTypes: template === 'MALL' ? mallTypes : [],
+    requiresPhoto: photo,
+    requiresComment: comment,
+    status: active ? 'ACTIVE' : 'ARCHIVED',
+  });
+
   const submit = async () => {
+    if (onDraft) {
+      onDraft(buildInput());
+      return;
+    }
     setBusy(true);
     setError(null);
-    const input: CustomIndicatorInput = {
-      template,
-      group: group.trim(),
-      subject: subject.trim(),
-      ...(code.trim() ? { code: code.trim() } : {}),
-      statement: statement.trim(),
-      auditorNote: note.trim() || null,
-      applicableBusinessTypes: template === 'STORE' ? sectors : [],
-      applicableMallTypes: template === 'MALL' ? mallTypes : [],
-      requiresPhoto: photo,
-      requiresComment: comment,
-      status: active ? 'ACTIVE' : 'ARCHIVED',
-    };
+    const input = buildInput();
     try {
       if (indicator) await onUpdate(indicator.id, input);
       else await onCreate(input);
@@ -288,7 +299,7 @@ export const IndicatorForm: React.FC<FormProps> = ({ indicator, all, onCreate, o
           <div>
             <h3 id="ie-title" className="ie-title">
               {editing && <span className="indicator-code-badge">{indicator!.code}</span>}
-              {editing ? 'ویرایش شاخص افزوده‌شده' : 'افزودن شاخص جدید'}
+              {onDraft ? 'ویرایش ردیف پیش از ذخیره' : editing ? 'ویرایش شاخص افزوده‌شده' : 'افزودن شاخص جدید'}
             </h3>
             <p className="ie-sub">شاخص تازه کنار موضوع خودش قرار می‌گیرد و در پرسشنامه‌های بعدی پرسیده می‌شود.</p>
           </div>
@@ -297,6 +308,7 @@ export const IndicatorForm: React.FC<FormProps> = ({ indicator, all, onCreate, o
           </button>
         </header>
 
+        {!fileRow && (
         <div className="ie-grid">
           <label className="ie-field">
             <span className="ie-label">نوع ارزیابی</span>
@@ -309,6 +321,7 @@ export const IndicatorForm: React.FC<FormProps> = ({ indicator, all, onCreate, o
             <span className="ie-label">{template === 'STORE' ? 'منطقه' : 'گروه'}</span>
             {template === 'STORE' ? (
               <select className="ie-input" value={group} onChange={(e) => setGroup(e.target.value)}>
+                {!ZONES.includes(group) && <option value="">انتخاب کنید…</option>}
                 {ZONES.map((z) => <option key={z} value={z}>{groupLabel(z)}</option>)}
               </select>
             ) : (
@@ -329,6 +342,7 @@ export const IndicatorForm: React.FC<FormProps> = ({ indicator, all, onCreate, o
           </label>
         </div>
 
+        )}
         <label className="ie-field">
           <span className="ie-label">متن شاخص</span>
           <textarea className="ie-input" rows={3} value={statement} maxLength={MAX_STATEMENT} onChange={(e) => setStatement(e.target.value)} />
@@ -338,6 +352,7 @@ export const IndicatorForm: React.FC<FormProps> = ({ indicator, all, onCreate, o
           <textarea className="ie-input" rows={2} value={note} maxLength={MAX_NOTE} onChange={(e) => setNote(e.target.value)} />
         </label>
 
+        {!fileRow && (
         <fieldset className="ie-set">
           <legend className="ie-label">
             {template === 'STORE' ? 'سکتورهای مشمول' : 'انواع مرکز خرید مشمول'}
@@ -369,16 +384,21 @@ export const IndicatorForm: React.FC<FormProps> = ({ indicator, all, onCreate, o
             })}
           </div>
         </fieldset>
+        )}
 
         <div className="ie-grid">
-          <label className="ie-check">
-            <input type="checkbox" checked={photo} onChange={(e) => setPhoto(e.target.checked)} />
-            <span>ثبت عکس الزامی باشد</span>
-          </label>
-          <label className="ie-check">
-            <input type="checkbox" checked={comment} onChange={(e) => setComment(e.target.checked)} />
-            <span>توضیح الزامی باشد</span>
-          </label>
+          {!fileRow && (
+            <>
+              <label className="ie-check">
+                <input type="checkbox" checked={photo} onChange={(e) => setPhoto(e.target.checked)} />
+                <span>ثبت عکس الزامی باشد</span>
+              </label>
+              <label className="ie-check">
+                <input type="checkbox" checked={comment} onChange={(e) => setComment(e.target.checked)} />
+                <span>توضیح الزامی باشد</span>
+              </label>
+            </>
+          )}
           <label className="ie-check">
             <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
             <span>فعال (در پرسشنامه پرسیده شود)</span>
@@ -396,7 +416,7 @@ export const IndicatorForm: React.FC<FormProps> = ({ indicator, all, onCreate, o
           <div className="ie-actions">
             <button type="button" className="btn-secondary" onClick={onClose}>انصراف</button>
             <button type="button" className="btn-primary" disabled={busy || !!problem} onClick={submit}>
-              {editing ? 'ذخیره' : 'افزودن شاخص'}
+              {onDraft ? 'تأیید' : editing ? 'ذخیره' : 'افزودن شاخص'}
             </button>
           </div>
         </footer>
