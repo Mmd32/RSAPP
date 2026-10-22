@@ -593,3 +593,8 @@ svg.lucide { stroke-width: 1.75px; }
 .xl-list table { width: 100%; border-collapse: collapse; font-size: var(--fs-caption); }
 .xl-list th, .xl-list td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--rd-line); vertical-align: top; }
 .xl-err { color: var(--rd-danger, #c0392b); }
+.ie-dialog--xl { width: min(1080px, 100%); }
+.xl-list--tall { max-height: 380px; }
+.xl-off { opacity: 0.45; }
+.xl-actions { white-space: nowrap; }
+.xl-actions .btn-secondary { min-height: 30px; padding: 0 8px; margin-inline-end: 4px; }
