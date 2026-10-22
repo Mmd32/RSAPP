@@ -115,6 +115,7 @@ export const IndicatorExcel: React.FC<Props> = ({ indicators, canEdit, onChanged
 
         {plan && (
           <>
+            {plan.notes.map((n) => <div key={n} className="auth-error" role="note">{n}</div>)}
             <div className="xl-summary">
               {(['create', 'update', 'update-file', 'same', 'error'] as PlanAction[]).map((a) => (
                 <span key={a} className={`ie-chip${a === 'error' && plan.count.error ? ' xl-err' : ''}`}>{LABEL[a]}: {faDigits(plan.count[a])}</span>
