@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Indicator } from '../types';
-import { Database, Filter, CheckCircle, AlertTriangle, Layers, Plus } from 'lucide-react';
+import { Database, Filter, CheckCircle, AlertTriangle, Layers, Plus, FileSpreadsheet } from 'lucide-react';
 import { stageLabel, groupLabel, faDigits, profileLabel } from '../utils/format';
 import { IndicatorEditor, IndicatorForm } from './IndicatorEditor';
+import { IndicatorExcel } from './IndicatorExcel';
 import type { IndicatorEdit, CustomIndicatorInput } from '../services/indicatorService';
 
 /** The five store zones and the thirteen retail sectors of the FR model. */
@@ -76,6 +77,7 @@ interface AdminQuestionBankProps {
   onCreateIndicator?: (input: CustomIndicatorInput) => Promise<void>;
   onUpdateCustom?: (id: string, input: CustomIndicatorInput) => Promise<void>;
   onDeleteCustom?: (id: string) => Promise<void>;
+  onReload?: () => Promise<void>;
 }
 
 const PAGE_SIZE = 100;
@@ -198,6 +200,7 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
   onCreateIndicator,
   onUpdateCustom,
   onDeleteCustom,
+  onReload,
 }) => {
   // Archived indicators are kept for old visits only; rows switched off by hand stay listed so they can be switched on again.
   const indicators = useMemo(() => allIndicators.filter((i) => i.status !== 'ARCHIVED' || i.disabled), [allIndicators]);
@@ -207,6 +210,7 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
   const addedCount = indicators.filter((i) => i.custom).length;
   const disabledCount = indicators.filter((i) => i.disabled).length;
   const [creating, setCreating] = useState(false);
+  const [excelOpen, setExcelOpen] = useState(false);
   const [onlyAdded, setOnlyAdded] = useState(false);
   const editedCount = indicators.filter((i) => i.edited).length;
   const noteCount = indicators.filter((i) => i.auditorNote).length;
@@ -266,6 +270,12 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
           </div>
 
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            {onReload && (
+              <button type="button" className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 38, padding: '0 14px' }} onClick={() => setExcelOpen(true)}>
+                <FileSpreadsheet size={16} />
+                <span>اکسل</span>
+              </button>
+            )}
             {canEdit && onCreateIndicator && (
               <button type="button" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 38, padding: '0 14px' }} onClick={() => setCreating(true)}>
                 <Plus size={16} />
@@ -436,6 +446,9 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
       <SectorZoneMatrix indicators={indicators} />
       <IndicatorPivot indicators={indicators} />
 
+      {excelOpen && onReload && (
+        <IndicatorExcel indicators={indicators} canEdit={canEdit} onChanged={onReload} onClose={() => setExcelOpen(false)} />
+      )}
       {creating && onCreateIndicator && onUpdateCustom && onDeleteCustom && (
         <IndicatorForm
           all={indicators}
