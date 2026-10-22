@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Indicator } from '../types';
-import { Database, Filter, CheckCircle, AlertTriangle, Layers, Plus } from 'lucide-react';
-import { groupLabel, faDigits, profileLabel } from '../utils/format';
+import { Database, Filter, CheckCircle, AlertTriangle, Layers, Plus, FileSpreadsheet } from 'lucide-react';
+import { stageLabel, groupLabel, faDigits, profileLabel } from '../utils/format';
 import { IndicatorEditor, IndicatorForm } from './IndicatorEditor';
+import { IndicatorExcel } from './IndicatorExcel';
 import type { IndicatorEdit, CustomIndicatorInput } from '../services/indicatorService';
 
 /** The five store zones and the thirteen retail sectors of the FR model. */
@@ -76,6 +77,7 @@ interface AdminQuestionBankProps {
   onCreateIndicator?: (input: CustomIndicatorInput) => Promise<void>;
   onUpdateCustom?: (id: string, input: CustomIndicatorInput) => Promise<void>;
   onDeleteCustom?: (id: string) => Promise<void>;
+  onReload?: () => Promise<void>;
 }
 
 const PAGE_SIZE = 100;
@@ -198,6 +200,7 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
   onCreateIndicator,
   onUpdateCustom,
   onDeleteCustom,
+  onReload,
 }) => {
   // Archived indicators are kept for old visits only; rows switched off by hand stay listed so they can be switched on again.
   const indicators = useMemo(() => allIndicators.filter((i) => i.status !== 'ARCHIVED' || i.disabled), [allIndicators]);
@@ -207,6 +210,7 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
   const addedCount = indicators.filter((i) => i.custom).length;
   const disabledCount = indicators.filter((i) => i.disabled).length;
   const [creating, setCreating] = useState(false);
+  const [excelOpen, setExcelOpen] = useState(false);
   const [onlyAdded, setOnlyAdded] = useState(false);
   const editedCount = indicators.filter((i) => i.edited).length;
   const noteCount = indicators.filter((i) => i.auditorNote).length;
@@ -266,6 +270,12 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
           </div>
 
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            {onReload && (
+              <button type="button" className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 38, padding: '0 14px' }} onClick={() => setExcelOpen(true)}>
+                <FileSpreadsheet size={16} />
+                <span>اکسل</span>
+              </button>
+            )}
             {canEdit && onCreateIndicator && (
               <button type="button" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 38, padding: '0 14px' }} onClick={() => setCreating(true)}>
                 <Plus size={16} />
@@ -357,12 +367,14 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
         </div>
 
         <div style={{ overflowX: 'auto', maxHeight: '600px' }}>
-          <table style={{ width: '100%', minWidth: 560, borderCollapse: 'collapse', fontSize: 13 }}>
+          <table style={{ width: '100%', minWidth: 720, borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--theme-card-border)', color: 'var(--text-muted)', position: 'sticky', top: 0, background: 'var(--surface-sunken)' }}>
                 <th style={{ textAlign: 'right', padding: '10px 8px' }}>کد شاخص</th>
                 <th style={{ textAlign: 'right', padding: '10px 8px' }}>گروه و موضوع</th>
                 <th style={{ textAlign: 'right', padding: '10px 8px' }}>متن استاندارد KPI</th>
+                <th style={{ textAlign: 'center', padding: '10px 8px' }}>مرحله سفر</th>
+                <th style={{ textAlign: 'center', padding: '10px 8px' }}>عکس</th>
                 <th style={{ textAlign: 'center', padding: '10px 8px' }}>{canEdit ? 'ویرایش' : 'جزئیات'}</th>
               </tr>
             </thead>
@@ -391,6 +403,16 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
                         {ind.disabled && <span className="ie-chip ie-chip--off">غیرفعال</span>}
                         {ind.auditorNote && <span className="ie-chip ie-chip--note" title={ind.auditorNote}>دارای نکته</span>}
                       </div>
+                    )}
+                  </td>
+                  <td style={{ textAlign: 'center', padding: '10px 8px', fontSize: 11, color: 'var(--rs-color-brand-cyan)' }}>
+                    {stageLabel(ind.journeyStage)}
+                  </td>
+                  <td style={{ textAlign: 'center', padding: '10px 8px' }}>
+                    {ind.requiresPhoto ? (
+                      <span style={{ color: 'var(--rs-color-error)', fontSize: 11, fontWeight: 700 }}>الزامی</span>
+                    ) : (
+                      <span style={{ color: 'var(--text-dim)', fontSize: 11 }}>اختیاری</span>
                     )}
                   </td>
                   <td style={{ textAlign: 'center', padding: '10px 8px' }}>
@@ -424,6 +446,9 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
       <SectorZoneMatrix indicators={indicators} />
       <IndicatorPivot indicators={indicators} />
 
+      {excelOpen && onReload && (
+        <IndicatorExcel indicators={indicators} canEdit={canEdit} onChanged={onReload} onClose={() => setExcelOpen(false)} />
+      )}
       {creating && onCreateIndicator && onUpdateCustom && onDeleteCustom && (
         <IndicatorForm
           all={indicators}

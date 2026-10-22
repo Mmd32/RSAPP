@@ -585,3 +585,11 @@ svg.lucide { stroke-width: 1.75px; }
 .ie-checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--sp-2); }
 .ie-check, .ie-switch { display: flex; align-items: center; gap: 8px; font-size: var(--fs-small); color: var(--rd-ink-2); cursor: pointer; }
 .ie-chip--off { border-color: var(--rd-line); background: var(--rd-surface-2); color: var(--rd-muted); }
+
+/* Excel manager */
+.xl-drop { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-4); border: 1px dashed var(--rd-line); border-radius: var(--r-md); background: var(--rd-surface-2); }
+.xl-summary { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.xl-list { max-height: 260px; overflow: auto; border: 1px solid var(--rd-line); border-radius: var(--r-md); }
+.xl-list table { width: 100%; border-collapse: collapse; font-size: var(--fs-caption); }
+.xl-list th, .xl-list td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--rd-line); vertical-align: top; }
+.xl-err { color: var(--rd-danger, #c0392b); }

@@ -294,6 +294,14 @@ export const App: React.FC = () => {
       IndicatorService.rememberCustom(currentUser.tenantId, next);
       return next;
     });
+  const reloadIndicators = async () => {
+    const [overrides, customs] = await Promise.all([
+      IndicatorService.load(currentUser.tenantId),
+      IndicatorService.loadCustom(currentUser.tenantId),
+    ]);
+    setIndicatorOverrides(overrides);
+    setCustomIndicators(customs);
+  };
   const createIndicator = async (input: CustomIndicatorInput) => {
     const created = await IndicatorService.createCustom(input);
     changeCustom((prev) => [...prev, created]);
@@ -1836,6 +1844,7 @@ export const App: React.FC = () => {
               onCreateIndicator={createIndicator}
               onUpdateCustom={updateCustomIndicator}
               onDeleteCustom={deleteCustomIndicator}
+              onReload={reloadIndicators}
             />
           )}
 
