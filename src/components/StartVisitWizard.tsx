@@ -32,6 +32,8 @@ import {
   Sliders,
 } from 'lucide-react';
 import { profileLabel } from '../utils/format';
+import { BrandService, type Brand } from '../services/brandService';
+import { nameKey } from '../engine/frModel';
 import { PHOTOS_REQUIRED } from '../config/policy';
 
 interface StartVisitWizardProps {
@@ -40,6 +42,9 @@ interface StartVisitWizardProps {
   onCancel?: () => void;
   /** Recorded as the evaluator of the new visit. */
   currentUserName?: string;
+  /** Registered brands: a visit is for one of them, or for a brand defined right here. */
+  brands?: Brand[];
+  onBrandsChanged?: () => Promise<void>;
 }
 
 export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
@@ -47,6 +52,8 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
   onStartVisit,
   onCancel,
   currentUserName,
+  brands = [],
+  onBrandsChanged,
 }) => {
   const [step, setStep] = useState<number>(1);
   const [wizardMode, setWizardMode] = useState<'DIRECTORY' | 'MANUAL'>('DIRECTORY');
@@ -69,7 +76,10 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
 
   // Wizard fields state
   const [assessmentType, setAssessmentType] = useState<AssessmentType>('STORE');
-  const [brandName, setBrandName] = useState('زارا');
+  const [brandName, setBrandName] = useState('');
+  const [newBrand, setNewBrand] = useState('');
+  const [brandBusy, setBrandBusy] = useState(false);
+  const [brandError, setBrandError] = useState<string | null>(null);
   const [branchName, setBranchName] = useState('');
   const [businessType, setBusinessType] = useState<BusinessTypeCode>('Fashion');
   const [mallType, setMallType] = useState<MallTypeCode>('Regional');
@@ -113,10 +123,23 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
     if (store.businessType) setBusinessType(store.businessType);
     if (store.mallType) setMallType(store.mallType);
     if (store.locationContext) setLocationContext(store.locationContext);
-    if (store.attributes) setAttributes(store.attributes);
+    // Branches defined in the brand manager have no feature answers yet: keep the defaults.
+    if (store.attributes && Object.keys(store.attributes).length) setAttributes(store.attributes);
 
     // Jump straight to confirmation step!
     setStep(7);
+  };
+
+  // Choosing a branch in the branch step fills what is known about it and carries on with the next steps.
+  const pickBranch = (store: SavedStoreDirectoryItem) => {
+    setSelectedStoreId(store.id);
+    setBranchName(store.branchName);
+    if (store.locationContext) setLocationContext(store.locationContext);
+    if (store.assessmentType === assessmentType) {
+      if (store.businessType) setBusinessType(store.businessType);
+      if (store.mallType) setMallType(store.mallType);
+    }
+    if (store.attributes && Object.keys(store.attributes).length) setAttributes(store.attributes);
   };
 
   const handleDeleteSavedStore = async (e: React.MouseEvent, id: string) => {
@@ -166,19 +189,51 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
 
   const estimatedMinutes = Math.max(15, Math.round(previewIndicators.length * 0.35));
 
+  const activeBrands = useMemo(() => brands.filter((b) => b.isActive), [brands]);
+  // Branches of the chosen brand: its directory entries, under its current name or any earlier one.
+  const brandBranches = useMemo(() => {
+    const brand = brands.find((b) => nameKey(b.name) === nameKey(brandName));
+    const keys = new Set([brandName, ...(brand ? [brand.name, ...brand.aliases] : [])].map(nameKey));
+    return savedStores.filter((s) => keys.has(nameKey(s.brandName)) && s.isActive !== false);
+  }, [brands, brandName, savedStores]);
+
+  const chooseBrand = (name: string) => {
+    if (nameKey(name) !== nameKey(brandName)) {
+      setBranchName('');
+      setSelectedStoreId(null);
+    }
+    setBrandName(name);
+  };
+
+  const defineBrand = async () => {
+    if (newBrand.trim().length < 2) return;
+    setBrandBusy(true);
+    setBrandError(null);
+    try {
+      const brand = await BrandService.create({ name: newBrand, businessType: assessmentType === 'STORE' ? businessType : undefined });
+      await onBrandsChanged?.();
+      chooseBrand(brand.name);
+      setNewBrand('');
+    } catch (e: any) {
+      setBrandError(e?.message || 'تعریف برند انجام نشد.');
+    } finally {
+      setBrandBusy(false);
+    }
+  };
+
   const handleStart = async () => {
     // 1. Persist to database if toggle is checked
     if (saveToDirectory) {
       await StoreService.saveStore({
         brandName,
-        branchName,
+        branchName: brandBranches.find((b) => nameKey(b.branchName) === nameKey(branchName))?.branchName || branchName,
         assessmentType,
         businessType: assessmentType === 'STORE' ? businessType : undefined,
         mallType: assessmentType === 'MALL' ? mallType : undefined,
         locationContext,
         attributes,
-        auditorName,
-        supervisorName,
+        ...(auditorName ? { auditorName } : {}),
+        ...(supervisorName ? { supervisorName } : {}),
       });
     }
 
@@ -570,43 +625,54 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
             <div>
               <h2 style={{ fontSize: 17, fontWeight: 800, marginBottom: 6 }}>مرحله ۲: مجموعه یا برند</h2>
               <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
-                نام مجموعه مورد ارزیابی را مشخص کنید.
+                برند مورد ارزیابی را انتخاب کنید، یا اگر برای اولین بار است برند جدید تعریف کنید. گزارش کل کسب‌وکار همهٔ شعب هر برند را با هم مقایسه می‌کند.
               </p>
 
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
-                  نام برند / مرکز:
-                </label>
-                <input
-                  type="text"
-                  value={brandName}
-                  onChange={(e) => setBrandName(e.target.value)}
-                  className="friction-textarea"
-                  style={{ minHeight: 44, padding: '10px 14px', fontSize: 14 }}
-                  placeholder="مثلاً: زارا، ال‌سی وایکیکی، هایپراستار..."
-                />
-              </div>
+              {activeBrands.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }} role="group" aria-label="برندهای تعریف‌شده">
+                  {activeBrands.map((b) => (
+                    <button
+                      key={b.id}
+                      type="button"
+                      onClick={() => chooseBrand(b.name)}
+                      aria-pressed={nameKey(brandName) === nameKey(b.name)}
+                      style={{
+                        padding: '8px 14px',
+                        borderRadius: 'var(--radius-full)',
+                        border: '1px solid var(--border-subtle)',
+                        background: nameKey(brandName) === nameKey(b.name) ? 'var(--rs-color-brand-cyan)' : 'var(--theme-input-bg)',
+                        color: nameKey(brandName) === nameKey(b.name) ? '#FFFFFF' : 'var(--theme-text-primary)',
+                        fontSize: 13,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {b.name}
+                    </button>
+                  ))}
+                </div>
+              )}
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
-                {['زارا', 'ال‌سی وایکیکی', 'مانگو', 'هایپراستار', 'مرکز خرید کوروش', 'ایران مال', 'پالادیوم'].map((b) => (
-                  <button
-                    key={b}
-                    type="button"
-                    onClick={() => setBrandName(b)}
-                    style={{
-                      padding: '5px 10px',
-                      borderRadius: 'var(--radius-full)',
-                      border: '1px solid var(--border-subtle)',
-                      background: brandName === b ? 'var(--rs-color-brand-cyan)' : 'var(--theme-input-bg)',
-                      color: brandName === b ? '#FFFFFF' : 'var(--theme-text-primary)',
-                      fontSize: 11,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {b}
+              <div style={{ marginBottom: 6 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
+                  {activeBrands.length ? 'برند جدید:' : 'نام برند / مرکز:'}
+                </label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input
+                    type="text"
+                    value={newBrand}
+                    onChange={(e) => setNewBrand(e.target.value)}
+                    className="friction-textarea"
+                    style={{ minHeight: 44, padding: '10px 14px', fontSize: 14, flex: 1 }}
+                    placeholder="نام برند را بنویسید…"
+                    onKeyDown={(e) => e.key === 'Enter' && defineBrand()}
+                  />
+                  <button type="button" className="btn-secondary" disabled={brandBusy || newBrand.trim().length < 2} onClick={defineBrand}>
+                    <Plus size={15} /> تعریف برند
                   </button>
-                ))}
+                </div>
+                {brandError && <div className="auth-error" role="alert" style={{ marginTop: 8 }}>{brandError}</div>}
               </div>
+              {brandName && <p style={{ fontSize: 12, marginTop: 10 }}>برند انتخاب‌شده: <strong>{brandName}</strong></p>}
             </div>
           )}
 
@@ -634,26 +700,31 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                 />
               </div>
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {['شعبه خیابان ولیعصر', 'شعبه مجتمع کوروش', 'شعبه پالادیوم', 'شعبه بزرگراه باکری'].map((br) => (
-                  <button
-                    key={br}
-                    type="button"
-                    onClick={() => setBranchName(br)}
-                    style={{
-                      padding: '5px 10px',
-                      borderRadius: 'var(--radius-full)',
-                      border: '1px solid var(--border-subtle)',
-                      background: branchName === br ? 'var(--rs-color-brand-cyan)' : 'var(--theme-input-bg)',
-                      color: branchName === br ? '#FFFFFF' : 'var(--theme-text-primary)',
-                      fontSize: 11,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {br}
-                  </button>
-                ))}
-              </div>
+              {brandBranches.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }} role="group" aria-label="شعب این برند">
+                  {brandBranches.map((br) => (
+                    <button
+                      key={br.id}
+                      type="button"
+                      onClick={() => pickBranch(br)}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: 'var(--radius-full)',
+                        border: '1px solid var(--border-subtle)',
+                        background: nameKey(branchName) === nameKey(br.branchName) ? 'var(--rs-color-brand-cyan)' : 'var(--theme-input-bg)',
+                        color: nameKey(branchName) === nameKey(br.branchName) ? '#FFFFFF' : 'var(--theme-text-primary)',
+                        fontSize: 12,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {br.branchName}{br.city ? ` · ${br.city}` : ''}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 10 }}>
+                {brandBranches.length ? 'یکی از شعب بالا را انتخاب کنید یا نام شعبهٔ جدید را بنویسید؛ شعبهٔ جدید به فهرست شعب این برند اضافه می‌شود.' : 'این برند هنوز شعبه‌ای ندارد؛ نام شعبه را بنویسید تا به فهرست اضافه شود.'}
+              </p>
             </div>
           )}
 

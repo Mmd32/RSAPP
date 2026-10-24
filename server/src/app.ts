@@ -656,6 +656,161 @@ app.post(
 );
 
 // ----------------------------------------------------------------------------
+// BRANDS (businesses). A brand's branches are the stores directory entries that
+// carry its name. Renaming or merging keeps the old names as aliases, so visits
+// recorded under them still belong to the brand in reports.
+// ----------------------------------------------------------------------------
+/** Spellings of one name are the same name: spaces, Arabic ي/ك, half-spaces, case. */
+const nameKey = (v: unknown) =>
+  String(v ?? '')
+    .replace(/ي/g, 'ی')
+    .replace(/ك/g, 'ک')
+    .replace(/[\u200c\u200f\u200e\s]+/g, ' ')
+    .trim()
+    .toLowerCase();
+const tidyName = (v: unknown) => String(v ?? '').replace(/\s+/g, ' ').trim();
+const brandKeys = (b: { name: string; aliases?: string[] }) => [b.name, ...(b.aliases || [])].map(nameKey);
+const MAX_NAME = 80;
+
+/** Brands that exist only as names on stores or visits get a registry entry, once. */
+async function backfillBrands(tenantId: string) {
+  const brands = await store.listBrands(tenantId);
+  const known = new Set(brands.flatMap(brandKeys));
+  const names = new Map<string, string>();
+  for (const s of await store.listStores()) if (s.brandName) names.set(nameKey(s.brandName), tidyName(s.brandName));
+  for (const v of await store.listVisits({ tenantId })) if (v.brandName) names.set(nameKey(v.brandName), tidyName(v.brandName));
+  const now = new Date().toISOString();
+  for (const [key, name] of names) {
+    if (!key || known.has(key)) continue;
+    const brand = { id: `brand_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, name, aliases: [], isActive: true, createdAt: now, updatedAt: now };
+    await store.saveBrand(tenantId, brand);
+    brands.push(brand);
+    known.add(key);
+  }
+  return brands;
+}
+
+app.get(
+  '/api/brands',
+  route(async (req, res) => {
+    const list = await backfillBrands(tenantOf(req));
+    res.json(list.sort((a, b) => a.name.localeCompare(b.name, 'fa')));
+  })
+);
+
+app.post(
+  '/api/brands',
+  requirePermission('visits.fill', 'catalog.manage'),
+  route(async (req, res) => {
+    const name = tidyName(req.body?.name);
+    if (name.length < 2 || name.length > MAX_NAME) return res.status(400).json({ error: `نام برند باید بین ۲ و ${MAX_NAME} نویسه باشد.` });
+    const brands = await store.listBrands(tenantOf(req));
+    const taken = brands.find((b) => brandKeys(b).includes(nameKey(name)));
+    if (taken) return res.status(409).json({ error: 'این برند قبلاً تعریف شده است.', brand: taken });
+    const now = new Date().toISOString();
+    const brand = {
+      id: `brand_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
+      name,
+      aliases: [] as string[],
+      ...(typeof req.body?.businessType === 'string' && req.body.businessType ? { businessType: req.body.businessType } : {}),
+      ...(tidyName(req.body?.notes) ? { notes: tidyName(req.body.notes).slice(0, 500) } : {}),
+      isActive: true,
+      createdAt: now,
+      createdBy: req.user!.id,
+      updatedAt: now,
+    };
+    await store.saveBrand(tenantOf(req), brand);
+    res.status(201).json(brand);
+  })
+);
+
+/** Points every directory branch of `from` (a brand's names) at `to`. */
+async function moveBranches(fromKeys: string[], toName: string) {
+  for (const s of await store.listStores()) {
+    if (fromKeys.includes(nameKey(s.brandName))) await store.saveStore({ ...s, brandName: toName, updatedAt: new Date().toISOString() });
+  }
+}
+
+app.put(
+  '/api/brands/:id',
+  requirePermission('catalog.manage'),
+  route(async (req, res) => {
+    const tenantId = tenantOf(req);
+    const brands = await store.listBrands(tenantId);
+    const brand = brands.find((b) => b.id === req.params.id);
+    if (!brand) return res.status(404).json({ error: 'برند پیدا نشد.' });
+    const body = req.body || {};
+    const updated: any = { ...brand, updatedAt: new Date().toISOString() };
+    if (body.name !== undefined) {
+      const name = tidyName(body.name);
+      if (name.length < 2 || name.length > MAX_NAME) return res.status(400).json({ error: `نام برند باید بین ۲ و ${MAX_NAME} نویسه باشد.` });
+      const clash = brands.find((b) => b.id !== brand.id && brandKeys(b).includes(nameKey(name)));
+      if (clash) return res.status(409).json({ error: `نام «${clash.name}» برای برند دیگری است؛ برای یکی کردن، از «ادغام» استفاده کنید.` });
+      if (nameKey(name) !== nameKey(brand.name) || name !== brand.name) {
+        updated.aliases = [...new Set([...brand.aliases, brand.name].filter((a) => nameKey(a) !== nameKey(name)))];
+        updated.name = name;
+      }
+    }
+    if (body.businessType !== undefined) updated.businessType = typeof body.businessType === 'string' && body.businessType ? body.businessType : undefined;
+    if (body.notes !== undefined) updated.notes = tidyName(body.notes).slice(0, 500) || undefined;
+    if (body.isActive !== undefined) {
+      if (typeof body.isActive !== 'boolean') return res.status(400).json({ error: 'وضعیت معتبر نیست.' });
+      updated.isActive = body.isActive;
+    }
+    await store.saveBrand(tenantId, updated);
+    if (updated.name !== brand.name) await moveBranches(brandKeys(brand), updated.name);
+    logger.security('Brand changed', { by: req.user!.id, brandId: brand.id });
+    res.json(updated);
+  })
+);
+
+// Merge a brand into another: its name and aliases become aliases of the target, its branches move over.
+app.post(
+  '/api/brands/:id/merge',
+  requirePermission('catalog.manage'),
+  route(async (req, res) => {
+    const tenantId = tenantOf(req);
+    const brands = await store.listBrands(tenantId);
+    const from = brands.find((b) => b.id === req.params.id);
+    const into = brands.find((b) => b.id === req.body?.intoId);
+    if (!from || !into) return res.status(404).json({ error: 'برند پیدا نشد.' });
+    if (from.id === into.id) return res.status(400).json({ error: 'یک برند را نمی‌شود در خودش ادغام کرد.' });
+    const merged = {
+      ...into,
+      aliases: [...new Set([...into.aliases, from.name, ...from.aliases].filter((a) => nameKey(a) !== nameKey(into.name)))],
+      updatedAt: new Date().toISOString(),
+    };
+    await store.saveBrand(tenantId, merged);
+    await moveBranches(brandKeys(from), into.name);
+    await store.deleteBrand(tenantId, from.id);
+    logger.security('Brands merged', { by: req.user!.id, from: from.id, into: into.id });
+    res.json(merged);
+  })
+);
+
+// Removes the brand and its branches from the directory. Visits already recorded are kept as they are.
+app.delete(
+  '/api/brands/:id',
+  requirePermission('catalog.manage'),
+  route(async (req, res) => {
+    const tenantId = tenantOf(req);
+    const brand = (await store.listBrands(tenantId)).find((b) => b.id === req.params.id);
+    if (!brand) return res.status(404).json({ error: 'برند پیدا نشد.' });
+    const keys = brandKeys(brand);
+    let branches = 0;
+    for (const s of await store.listStores()) {
+      if (keys.includes(nameKey(s.brandName))) {
+        await store.deleteStore(s.id);
+        branches += 1;
+      }
+    }
+    await store.deleteBrand(tenantId, brand.id);
+    logger.security('Brand removed', { by: req.user!.id, brandId: brand.id, branches });
+    res.json({ ok: true, removedBranches: branches });
+  })
+);
+
+// ----------------------------------------------------------------------------
 // STORES DIRECTORY PERSISTENCE ENDPOINTS
 // ----------------------------------------------------------------------------
 app.get(
@@ -724,8 +879,63 @@ app.post(
           updatedAt: now,
         };
 
+    // A branch always belongs to a registered brand, under the brand's current name.
+    const tenantId = tenantOf(req);
+    const brands = await store.listBrands(tenantId);
+    let brand = brands.find((b) => brandKeys(b).includes(nameKey(savedStore.brandName)));
+    if (!brand) {
+      const now = new Date().toISOString();
+      brand = { id: `brand_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, name: tidyName(savedStore.brandName), aliases: [], isActive: true, createdAt: now, updatedAt: now };
+      await store.saveBrand(tenantId, brand);
+    }
+    savedStore.brandName = brand.name;
     await store.saveStore(savedStore);
     res.status(201).json(savedStore);
+  })
+);
+
+// Edit a branch: name (the old one stays as an alias), city, address, manager, active, or move it to another brand.
+app.put(
+  '/api/stores/:id',
+  requirePermission('catalog.manage'),
+  route(async (req, res) => {
+    const tenantId = tenantOf(req);
+    const list = await store.listStores();
+    const current = list.find((s) => s.id === req.params.id);
+    if (!current) return res.status(404).json({ error: 'شعبه پیدا نشد.' });
+    const body = req.body || {};
+    const updated: any = { ...current, updatedAt: new Date().toISOString() };
+    const text = (k: string, max: number) => {
+      if (body[k] === undefined) return;
+      const v = tidyName(body[k]).slice(0, max);
+      updated[k] = v || undefined;
+    };
+    text('city', 60);
+    text('address', 200);
+    text('supervisorName', 80);
+    if (body.isActive !== undefined) {
+      if (typeof body.isActive !== 'boolean') return res.status(400).json({ error: 'وضعیت معتبر نیست.' });
+      updated.isActive = body.isActive;
+    }
+    if (body.brandId !== undefined) {
+      const target = (await store.listBrands(tenantId)).find((b) => b.id === body.brandId);
+      if (!target) return res.status(404).json({ error: 'برند مقصد پیدا نشد.' });
+      if (nameKey(target.name) !== nameKey(current.brandName)) updated.previousBrands = [...new Set([...(current.previousBrands || []), current.brandName])];
+      updated.brandName = target.name;
+    }
+    if (body.branchName !== undefined) {
+      const name = tidyName(body.branchName);
+      if (name.length < 1 || name.length > MAX_NAME) return res.status(400).json({ error: `نام شعبه باید بین ۱ و ${MAX_NAME} نویسه باشد.` });
+      if (nameKey(name) !== nameKey(current.branchName)) updated.aliases = [...new Set([...(current.aliases || []), current.branchName])];
+      updated.branchName = name;
+    }
+    if (updated.brandName !== current.brandName || updated.branchName !== current.branchName) {
+      const clash = list.find((s) => s.id !== current.id && nameKey(s.brandName) === nameKey(updated.brandName) && nameKey(s.branchName) === nameKey(updated.branchName));
+      if (clash) return res.status(409).json({ error: 'در این برند شعبه‌ای با همین نام وجود دارد.' });
+    }
+    await store.saveStore(updated);
+    logger.security('Branch changed', { by: req.user!.id, storeId: current.id });
+    res.json(updated);
   })
 );
 

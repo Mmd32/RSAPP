@@ -4,156 +4,8 @@ import { apiFetch } from './apiClient';
 const LOCAL_STORAGE_KEY = 'RSAPP_STORE_DIRECTORY_CACHE';
 const STORES_ENDPOINT = '/stores';
 
-// Default seed stores if offline or empty
-const SEED_STORES: SavedStoreDirectoryItem[] = [
-  {
-    id: 'store_zara_valiasr',
-    brandName: 'زارا (Zara)',
-    branchName: 'شعبه خیابان ولیعصر',
-    assessmentType: 'STORE',
-    businessType: 'Fashion',
-    locationContext: 'STREET_STORE',
-    attributes: {
-      has_window_display: true,
-      has_fitting_room: true,
-      has_mannequins: true,
-      has_elevator: false,
-      has_stairs: false,
-      has_parking: false,
-      has_customer_toilet: false,
-      has_checkout_counter: true,
-      has_food_service: false,
-      has_anti_theft_gate: true,
-      hasFittingRoom: true,
-      hasShowcase: true,
-      hasMannequins: true,
-    },
-    auditorName: 'نیما ذوقی (ارزیاب ارشد)',
-    supervisorName: 'مهندس سارا احمدی (سرپرست)',
-    address: 'تهران، خیابان ولیعصر، بالاتر از میدان ونک',
-    city: 'تهران',
-    lastVisitedAt: '2026-09-20T10:30:00.000Z',
-    createdAt: '2026-09-01T08:00:00.000Z',
-  },
-  {
-    id: 'store_lcw_kourosh',
-    brandName: 'ال‌سی وایکیکی (LC Waikiki)',
-    branchName: 'شعبه کوروش مال',
-    assessmentType: 'STORE',
-    businessType: 'Fashion',
-    locationContext: 'MALL_STORE',
-    attributes: {
-      has_window_display: true,
-      has_fitting_room: true,
-      has_mannequins: true,
-      has_elevator: false,
-      has_stairs: false,
-      has_parking: true,
-      has_customer_toilet: true,
-      has_checkout_counter: true,
-      has_food_service: false,
-      has_anti_theft_gate: true,
-      hasFittingRoom: true,
-      hasShowcase: true,
-      hasMannequins: true,
-    },
-    auditorName: 'علی کاظمی (ارزیاب)',
-    supervisorName: 'مهندس سارا احمدی (سرپرست)',
-    address: 'تهران، بزرگراه ستاری، مجتمع کوروش مال، طبقه ۱',
-    city: 'تهران',
-    lastVisitedAt: '2026-09-18T14:15:00.000Z',
-    createdAt: '2026-09-01T08:00:00.000Z',
-  },
-  {
-    id: 'store_mango_palladium',
-    brandName: 'مانگو (Mango)',
-    branchName: 'شعبه مرکز خرید پالادیوم',
-    assessmentType: 'STORE',
-    businessType: 'Fashion',
-    locationContext: 'MALL_STORE',
-    attributes: {
-      has_window_display: true,
-      has_fitting_room: true,
-      has_mannequins: true,
-      has_elevator: false,
-      has_stairs: false,
-      has_parking: true,
-      has_customer_toilet: true,
-      has_checkout_counter: true,
-      has_food_service: false,
-      has_anti_theft_gate: true,
-      hasFittingRoom: true,
-      hasShowcase: true,
-      hasMannequins: true,
-    },
-    auditorName: 'مریم اکبری (ارزیاب)',
-    supervisorName: 'مهندس سارا احمدی (سرپرست)',
-    address: 'تهران، زعفرانیه، خیابان مقدس اردبیلی، پالادیوم مال',
-    city: 'تهران',
-    lastVisitedAt: '2026-09-15T11:00:00.000Z',
-    createdAt: '2026-09-01T08:00:00.000Z',
-  },
-  {
-    id: 'store_hyperstar_bakeri',
-    brandName: 'هایپراستار (Hyperstar)',
-    branchName: 'شعبه شهید باکری',
-    assessmentType: 'STORE',
-    businessType: 'FMCG',
-    locationContext: 'STANDALONE',
-    attributes: {
-      has_window_display: false,
-      has_fitting_room: false,
-      has_mannequins: false,
-      has_elevator: true,
-      has_stairs: true,
-      has_parking: true,
-      has_customer_toilet: true,
-      has_checkout_counter: true,
-      has_food_service: true,
-      has_anti_theft_gate: true,
-      hasElevator: true,
-      hasParking: true,
-      hasCustomerToilet: true,
-    },
-    auditorName: 'نیما ذوقی (ارزیاب ارشد)',
-    supervisorName: 'مهندس سارا احمدی (سرپرست)',
-    address: 'تهران، اتوبان باکری جنوب، مجتمع ارم هایپراستار',
-    city: 'تهران',
-    lastVisitedAt: '2026-09-10T16:00:00.000Z',
-    createdAt: '2026-09-01T08:00:00.000Z',
-  },
-  {
-    id: 'mall_kourosh',
-    brandName: 'مرکز خرید کوروش',
-    branchName: 'مجتمع تجاری فرهنگی کوروش مال',
-    assessmentType: 'MALL',
-    mallType: 'Regional',
-    locationContext: 'STANDALONE',
-    attributes: {
-      has_window_display: true,
-      has_fitting_room: false,
-      has_mannequins: false,
-      has_elevator: true,
-      has_stairs: true,
-      has_parking: true,
-      has_customer_toilet: true,
-      has_checkout_counter: false,
-      has_food_service: true,
-      has_anti_theft_gate: false,
-      hasElevator: true,
-      hasParking: true,
-      hasCustomerToilet: true,
-    },
-    auditorName: 'نیما ذوقی (ارزیاب ارشد)',
-    supervisorName: 'مهندس سارا احمدی (سرپرست)',
-    address: 'تهران، بزرگراه ستاری شمال، تقاطع پیامبر مرکزی',
-    city: 'تهران',
-    lastVisitedAt: '2026-09-05T09:30:00.000Z',
-    createdAt: '2026-09-01T08:00:00.000Z',
-  },
-];
-
-const SEED_IDS = new Set(SEED_STORES.map((s) => s.id));
+// Demo stores that older builds cached next to real ones; they are dropped when found.
+const SEED_IDS = new Set(['store_zara_valiasr', 'store_lcw_kourosh', 'store_mango_palladium', 'store_hyperstar_bakeri']);
 
 export const StoreService = {
   getLocalStores(): SavedStoreDirectoryItem[] {
@@ -169,7 +21,7 @@ export const StoreService = {
     } catch (e) {
       console.warn('Could not read store directory from localStorage', e);
     }
-    return SEED_STORES;
+    return [];
   },
 
   setLocalStores(stores: SavedStoreDirectoryItem[]) {
@@ -257,6 +109,20 @@ export const StoreService = {
     }
 
     return saved;
+  },
+
+  /** Edits a branch on the server (name, city, address, manager, active, brand). */
+  async updateStore(id: string, patch: Record<string, unknown>): Promise<SavedStoreDirectoryItem> {
+    const res = await apiFetch(`${STORES_ENDPOINT}/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body?.error || 'ذخیره انجام نشد.');
+    const local = this.getLocalStores().map((s) => (s.id === id ? { ...s, ...body } : s));
+    this.setLocalStores(local);
+    return body as SavedStoreDirectoryItem;
   },
 
   async deleteStore(id: string): Promise<boolean> {

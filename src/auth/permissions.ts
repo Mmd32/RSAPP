@@ -65,7 +65,7 @@ export const PERMISSION_INFO: Record<Permission, { group: string; label: string;
   },
   'catalog.manage': {
     group: 'تنظیمات',
-    label: 'بانک شاخص‌ها و تست سناریو',
+    label: 'بانک شاخص‌ها، مدیریت برندها و تست سناریو',
     hint: 'ابزارهای مدیریتی فرم ارزیابی',
   },
   'users.manage': {

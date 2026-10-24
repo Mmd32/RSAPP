@@ -602,3 +602,12 @@ svg.lucide { stroke-width: 1.75px; }
 .business-merge { margin-bottom: var(--sp-4); }
 .business-merge summary { cursor: pointer; font-weight: var(--fw-semibold); }
 .business-merge__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--sp-2); margin-top: var(--sp-3); }
+
+/* Brand manager */
+.brand-card { margin-bottom: var(--sp-4); }
+.brand-card__head { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; }
+.brand-card__toggle { display: inline-flex; align-items: center; gap: var(--sp-2); border: none; background: none; cursor: pointer; color: var(--rd-ink); min-height: 0 !important; padding: 0; }
+.brand-card__name { font-size: var(--fs-lead); font-weight: var(--fw-bold); }
+.brand-card__meta { color: var(--rd-muted); font-size: var(--fs-caption); }
+.brand-card__actions { margin-inline-start: auto; display: flex; gap: var(--sp-1); }
+.brand-card__actions .btn-secondary { min-height: 32px; padding: 0 9px; }

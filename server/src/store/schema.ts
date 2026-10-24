@@ -122,6 +122,15 @@ CREATE TABLE IF NOT EXISTS indicator_overrides (
     PRIMARY KEY (tenant_id, indicator_id)
 );
 
+-- Brands (businesses) of the stores directory.
+CREATE TABLE IF NOT EXISTS brands (
+    tenant_id   TEXT NOT NULL,
+    brand_id    TEXT NOT NULL,
+    doc         JSONB NOT NULL,
+    updated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (tenant_id, brand_id)
+);
+
 -- Indicators added by hand in the question bank.
 CREATE TABLE IF NOT EXISTS custom_indicators (
     tenant_id     TEXT NOT NULL,

@@ -10,6 +10,7 @@ import {
   Archive,
   Building2,
   Target,
+  Briefcase,
   Database,
   Sun,
   Moon,
@@ -41,6 +42,7 @@ export type ViewMode =
   | 'REVISIT'
   | 'ARCHIVE'
   | 'USERS'
+  | 'BRANDS'
   | 'PASSWORD';
 
 interface AppSidebarProps {
@@ -373,6 +375,18 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                 <Database size={18} />
               </div>
               {!isCollapsed && <span className="nav-item-label">بانک شاخص‌ها</span>}
+            </button>
+
+            <button
+              type="button"
+              className={`sidebar-nav-item ${viewMode === 'BRANDS' ? 'active' : ''}`}
+              onClick={() => handleNavClick('BRANDS')}
+              title="مدیریت برندها و شعب"
+            >
+              <div className="nav-icon-wrap">
+                <Briefcase size={18} />
+              </div>
+              {!isCollapsed && <span className="nav-item-label">مدیریت برندها</span>}
             </button>
 
                       {can.manageUsers && (

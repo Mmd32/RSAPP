@@ -38,6 +38,20 @@ export interface IndicatorOverride {
  * An indicator added by hand in the question bank, with everything a row of the
  * checklist has. Stored apart from the checklist file, which stays untouched.
  */
+/** A brand (business) assessed by the app; its branches are the stores directory entries with the same brand name. */
+export interface Brand {
+  id: string;
+  name: string;
+  /** Earlier names and merged-in spellings: visits recorded under them still belong to this brand. */
+  aliases: string[];
+  businessType?: string;
+  notes?: string;
+  isActive: boolean;
+  createdAt: string;
+  createdBy?: string;
+  updatedAt: string;
+}
+
 export interface CustomIndicator {
   id: string;
   code: string;
@@ -148,6 +162,9 @@ export interface DataStore {
    */
   setSettingIfAbsent(key: string, value: string): Promise<string>;
 
+  listBrands(tenantId: string): Promise<Brand[]>;
+  saveBrand(tenantId: string, brand: Brand): Promise<void>;
+  deleteBrand(tenantId: string, brandId: string): Promise<boolean>;
   listCustomIndicators(tenantId: string): Promise<CustomIndicator[]>;
   saveCustomIndicator(tenantId: string, indicator: CustomIndicator): Promise<void>;
   deleteCustomIndicator(tenantId: string, indicatorId: string): Promise<boolean>;
