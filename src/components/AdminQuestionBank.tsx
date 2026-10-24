@@ -121,16 +121,20 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[] }> = ({ indicators }) =
   const [features, setFeatures] = useState<Record<string, boolean>>(() => Object.fromEntries(FEATURES.map((f) => [f.key, true])));
   const [sort, setSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
   const [open, setOpen] = useState<Set<string>>(() => new Set());
+  const [format, setFormat] = useState<string>('ALL');
 
   const store = useMemo(
     () => indicators.filter((i) => i.template === 'STORE' && i.status !== 'ARCHIVED'),
     [indicators],
   );
   // Indicators the workbook marks for the sector (all of them for "all sectors").
-  const ofSector = useMemo(
+  const inSector = useMemo(
     () => store.filter((i) => sector === 'ALL' || !i.applicableBusinessTypes?.length || i.applicableBusinessTypes.includes(sector)),
     [store, sector],
   );
+  // The sector has its own checklist file per store format (Fashion): the format's X decides, not the facilities.
+  const hasFormatFiles = sector !== 'ALL' && inSector.some((i) => i.applicableFormats?.length);
+  const activeFormat = hasFormatFiles ? format : 'ALL';
   // Per format: the ids the questionnaire would ask, by the same rules a new visit uses.
   const askedIn = useMemo(() => {
     const attributes: Record<string, boolean> = {};
@@ -153,6 +157,11 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[] }> = ({ indicators }) =
     }
     return out;
   }, [store, sector, features]);
+
+  const ofSector = useMemo(
+    () => (activeFormat === 'ALL' ? inSector : inSector.filter((i) => askedIn.get(activeFormat)?.has(i.id))),
+    [inSector, activeFormat, askedIn],
+  );
 
   const countOf = (items: Indicator[], format: string) => (format === 'total' ? items.length : items.filter((i) => askedIn.get(format)?.has(i.id)).length);
 
@@ -197,7 +206,7 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[] }> = ({ indicators }) =
       <button type="button" className="pivot-sort" onClick={() => sortBy(key)}>{label}{arrow(key)}</button>
     </th>
   );
-  const formatCols = sector === 'ALL' ? [] : FORMATS;
+  const formatCols = sector === 'ALL' || activeFormat !== 'ALL' ? [] : FORMATS;
 
   return (
     <section className="fr-card" aria-labelledby="pivot-title">
@@ -205,7 +214,7 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[] }> = ({ indicators }) =
         <div>
           <h3 id="pivot-title" className="fr-card__title">جدول محوری شاخص‌ها (منطقه ← موضوع ← کد)</h3>
           <p className="fr-card__subtitle">
-            سکتور را انتخاب کنید. «کل» تعداد شاخص‌های فایل چک‌لیست برای آن سکتور است و هر ستون فرمت، تعداد شاخص‌هایی که در همان فرمت پرسیده می‌شود (با توجه به امکانات تیک‌خورده). روی عنوان ستون‌ها بزنید تا مرتب شوند؛ روی هر منطقه بزنید تا موضوع‌ها و کدها را ببینید.
+            سکتور را انتخاب کنید. «کل» تعداد شاخص‌های فایل چک‌لیست برای آن سکتور است و هر ستون فرمت، تعداد شاخص‌هایی که در همان فرمت پرسیده می‌شود. برای پوشاک هر قالب فایل اکسل خودش را دارد؛ قالب را انتخاب کنید تا فقط موضوع‌ها و کدهای همان قالب دیده شود (برای سایر سکتورها امکانات تیک‌خورده اثر دارد). روی عنوان ستون‌ها بزنید تا مرتب شوند؛ روی هر منطقه بزنید تا موضوع‌ها و کدها را ببینید.
           </p>
         </div>
         <label className="business-brand">
@@ -219,7 +228,21 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[] }> = ({ indicators }) =
         </label>
       </header>
 
-      {sector !== 'ALL' && (
+      {hasFormatFiles && (
+        <div className="pivot-features">
+          <span className="ie-label">قالب فروشگاه (شاخص‌ها دقیقاً از فایل اکسل همان قالب)</span>
+          <div className="ie-checks">
+            {[{ code: 'ALL', label: 'همه قالب‌ها' }, ...FORMATS].map((f) => (
+              <label key={f.code} className="ie-check">
+                <input type="radio" name="pivot-format" checked={activeFormat === f.code} onChange={() => setFormat(f.code)} />
+                <span>{f.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {sector !== 'ALL' && !hasFormatFiles && (
         <fieldset className="pivot-features">
           <legend className="ie-label">امکانات فروشگاه (مثل مرحلهٔ «امکانات فیزیکی» بازدید جدید)</legend>
           <div className="ie-checks">
@@ -238,7 +261,7 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[] }> = ({ indicators }) =
           <thead>
             <tr>
               {head('name', 'منطقه / موضوع')}
-              {head('total', 'کل (بر اساس اکسل)')}
+              {head('total', activeFormat === 'ALL' ? (hasFormatFiles ? 'همه قالب‌ها (اجتماع فایل‌ها)' : 'کل (بر اساس اکسل)') : 'شاخص‌های این قالب')}
               {formatCols.map((f) => head(f.code, f.label))}
               <th scope="col">کدها</th>
             </tr>
