@@ -184,6 +184,16 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
     return generateDynamicChecklistWithAudit(allIndicators, profile);
   }, [allIndicators, profile]);
 
+  // How many indicators each store format asks for this sector (shown when the format is chosen).
+  const formatCounts = useMemo(() => {
+    const out: Record<string, number> = {};
+    if (assessmentType !== 'STORE') return out;
+    for (const code of ['STREET_STORE', 'MALL_STORE', 'SHOP_IN_SHOP', 'KIOSK'] as const) {
+      out[code] = generateDynamicChecklistWithAudit(allIndicators, { ...profile, locationContext: code }).indicators.length;
+    }
+    return out;
+  }, [allIndicators, profile, assessmentType]);
+
   const uniqueSectionsCount = useMemo(() => {
     return new Set(previewIndicators.map((i) => i.journeyStage)).size;
   }, [previewIndicators]);
@@ -938,7 +948,10 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                       transition: 'all 120ms ease',
                     }}
                   >
-                    <strong style={{ fontSize: 13, display: 'block' }}>{lc.label}</strong>
+                    <strong style={{ fontSize: 13, display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                      <span>{lc.label}</span>
+                      <span className="ltr-num" style={{ color: 'var(--rs-color-brand-cyan)' }}>{faDigits(formatCounts[lc.code] ?? 0)} شاخص</span>
+                    </strong>
                     <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{lc.desc}</span>
                   </button>
                 ))}
@@ -1046,6 +1059,14 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                     {assessmentType === 'STORE' ? profileLabel(locationContext) : 'مرکز تجاری'}
                   </span>
                 </div>
+                {assessmentType === 'STORE' && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>شاخص‌های این قالب:</span>
+                    <span style={{ fontSize: 12, color: 'var(--theme-text-primary)' }}>
+                      {faDigits(previewIndicators.length)} شاخص ({profileLabel(businessType)} · {profileLabel(locationContext)})
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Metrics Strip */}
