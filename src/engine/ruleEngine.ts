@@ -90,6 +90,19 @@ export const SYSTEM_RULES: Record<string, Rule> = {
     createdBy: 'EXCEL_INGESTION_PIPELINE',
     createdAt: '2026-09-22T00:00:00Z',
   },
+  RULE_STORE_FORMAT_EXCEL: {
+    id: 'RULE_STORE_FORMAT_EXCEL',
+    name: 'شمول قالب فروشگاه بر اساس فایل اکسل همان قالب',
+    ruleType: 'APPLICABILITY',
+    ruleSource: 'IMPORTED',
+    status: 'APPROVED',
+    priority: RULE_PRECEDENCE.MANUAL_EXPLICIT,
+    conditions: { field: 'applicableFormats', operator: 'contains', value: '$profile.location_context' },
+    effect: 'INCLUDE',
+    reason: 'تطبیق علامت X در ستون قالب فروشگاه (کیوسک، شاپ این شاپ، مرکز خرید، خیابان) در فایل چک‌لیست همان قالب',
+    createdBy: 'EXCEL_INGESTION_PIPELINE',
+    createdAt: '2026-10-24T00:00:00Z',
+  },
   RULE_LOC_STREET_01: {
     id: 'RULE_LOC_STREET_01',
     name: 'حذف شاخص‌های مختص راهرو و کریدور مال در فروشگاه خیابانی',
@@ -302,8 +315,37 @@ export function explainIndicatorApplicability(
       };
     }
 
-    // 3. Location Context Rules
+    // 3. Store format: the format's own workbook decides, so the location and facility rules below
+    // (written for the earlier code numbering) do not apply to a row that carries its formats.
     const loc = profile.locationContext || 'STREET_STORE';
+    if (ind.applicableFormats && ind.applicableFormats.length > 0) {
+      const fr = SYSTEM_RULES.RULE_STORE_FORMAT_EXCEL;
+      const inFormat = ind.applicableFormats.includes(loc);
+      lines.push(`Store format ${loc}: ${inFormat ? 'X' : 'no X'} in the format workbook`);
+      lines.push(`Rule ID: ${fr.id}`);
+      lines.push(`Final result:\n${inFormat ? 'INCLUDED' : 'EXCLUDED'}`);
+      return {
+        indicatorCode: code,
+        indicatorStatement: stmt,
+        baseApplicability: { isApplicable: true, source: `Excel / ${baseRule.ruleSource}`, ruleId: baseRule.id, reason: 'BASE_EXCEL_ACTIVE' },
+        contextRulesEvaluated: inFormat
+          ? []
+          : [{
+              ruleId: fr.id,
+              ruleName: fr.name,
+              ruleType: fr.ruleType,
+              ruleSource: fr.ruleSource,
+              status: fr.status,
+              priority: fr.priority,
+              decision: 'EXCLUDED',
+              reason: `در فایل اکسل این قالب فروشگاه علامت X ندارد`,
+            }],
+        finalResult: inFormat ? 'INCLUDED' : 'EXCLUDED',
+        formattedExplanation: lines.join('\n'),
+      };
+    }
+
+    // 4. Location Context Rules
     if (loc === 'STREET_STORE') {
       if (
         stmt.includes('راهروی مال') ||
@@ -389,7 +431,7 @@ export function explainIndicatorApplicability(
       }
     }
 
-    // 4. Attribute Dependencies (RULE_DEP_*)
+    // 5. Attribute Dependencies (RULE_DEP_*)
     const attrs = profile.attributes;
     const hasFitting = getAttributeValue(attrs, 'has_fitting_room', 'hasFittingRoom', true);
     if (!hasFitting && ['FFR02', 'FFR03', 'FFR04', 'FFR05', 'FFR06'].includes(code)) {

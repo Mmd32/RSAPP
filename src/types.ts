@@ -131,6 +131,11 @@ export interface Indicator {
   needsReview?: boolean;
   applicableBusinessTypes: string[];
   applicableMallTypes: string[];
+  /**
+   * Store formats (location contexts) whose workbook has an X for this row. Only the Fashion rows carry
+   * it; a row without it applies to every format.
+   */
+  applicableFormats?: LocationContextCode[];
 }
 
 export type AnswerState =

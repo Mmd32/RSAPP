@@ -2,9 +2,11 @@
 """
 Checks that the indicator catalog is exactly the reference workbooks in data/reference/:
 
-  store  FR Checklist- Fashion-Nima.xlsx  (read with the same code the importer uses:
-         scripts/import_store_checklist.py) - every KPI, in order, with code, zone, topic,
-         statement and the sectors it applies to, and nothing else active.
+  store  the four Fashion store-format workbooks (Stand alone, Shopping mall, Shop in Shop, Kiosk)
+         for Fashion, and FR Checklist- Fashion-Nima.xlsx for the other 12 sectors (read with the
+         same code the importer uses: scripts/import_store_checklist.py) - every KPI, in order, with
+         code, zone, topic, statement, the sectors and (Fashion) the store formats it applies to,
+         and nothing else active.
   mall   FR_Report_Mall V2Final Version.xlsx - every row with code, zone, topic, statement
          and the mall types it applies to.
 
@@ -51,6 +53,8 @@ def check_store(catalog):
             problems.append(f"{tag}: auditor note differs ({got.get('auditorNote', '')!r} vs {want['note']!r})")
         if sorted(got["applicableBusinessTypes"]) != sorted(want["sectors"]):
             problems.append(f"{tag}: sectors differ ({sorted(got['applicableBusinessTypes'])} vs {sorted(want['sectors'])})")
+        if sorted(got.get("applicableFormats", [])) != sorted(want.get("formats", [])):
+            problems.append(f"{tag}: store formats differ ({sorted(got.get('applicableFormats', []))} vs {sorted(want.get('formats', []))})")
     return problems, len(expected)
 
 
