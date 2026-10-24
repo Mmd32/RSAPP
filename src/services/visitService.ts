@@ -41,23 +41,31 @@ class VisitSyncService {
     this.timer = setTimeout(() => this.flush(tenantId), SYNC_DEBOUNCE_MS);
   }
 
+  /** The server's reason for the last refusal, for the person to read. */
+  lastError: string | null = null;
+
   /**
    * Sends the queued session now. Used on submit, approve and page hide.
+   * Resolves true once nothing is left waiting (sent, or nothing queued) and
+   * false when the server could not take it. A refusal that may pass (offline,
+   * server trouble, expired sign-in) is kept and retried; a final refusal (for
+   * example a visit that was already submitted) is reported and dropped.
    *
    * If a send is already in flight, waits for it and then sends whatever is
    * queued. Returning early there used to strand a milestone (e.g. SUBMITTED)
    * that arrived while an ordinary autosave was on the wire.
    */
-  async flush(tenantId: string): Promise<void> {
+  async flush(tenantId: string): Promise<boolean> {
     if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null;
     }
     while (this.inFlight) await this.inFlight;
-    if (!this.pending) return;
+    if (!this.pending) return true;
 
     const session = this.pending;
     this.pending = null;
+    let ok = false;
 
     this.inFlight = (async () => {
       try {
@@ -66,15 +74,26 @@ class VisitSyncService {
           body: JSON.stringify(session),
           tenantId,
         });
-        // 401: the session expired. Keep the answers queued; they are sent
-        // again once the user signs back in. Other refusals (e.g. a visit that
-        // was already submitted) are final for this state.
-        if (res.status === 401 && !this.pending) this.pending = session;
+        ok = res.ok;
+        if (res.ok) {
+          this.lastError = null;
+          this.retries = 0;
+        } else {
+          const body = await res.json().catch(() => ({}));
+          this.lastError = body?.error || `ذخیره روی سرور انجام نشد (${res.status}).`;
+          // Worth another try later: sign-in expired, throttled, or the server had trouble.
+          if ((res.status === 401 || res.status === 408 || res.status === 429 || res.status >= 500) && !this.pending) {
+            this.pending = session;
+            this.scheduleRetry(tenantId);
+          }
+        }
         this.emit(res.ok ? 'idle' : 'error');
       } catch {
         // Offline: localStorage already holds the answers, so re-queue (unless a
-        // newer state arrived meanwhile) and let the next change or flush retry.
+        // newer state arrived meanwhile) and retry shortly.
+        this.lastError = 'اتصال به سرور برقرار نیست؛ پاسخ‌ها روی همین دستگاه ذخیره شده‌اند.';
         if (!this.pending) this.pending = session;
+        this.scheduleRetry(tenantId);
         this.emit('error');
       }
     })();
@@ -83,6 +102,18 @@ class VisitSyncService {
     } finally {
       this.inFlight = null;
     }
+    return ok;
+  }
+
+  private retries = 0;
+  private scheduleRetry(tenantId: string) {
+    if (this.timer) return;
+    this.retries += 1;
+    const wait = Math.min(60000, 4000 * 2 ** Math.min(this.retries, 4));
+    this.timer = setTimeout(() => {
+      this.timer = null;
+      this.flush(tenantId).catch(() => undefined);
+    }, wait);
   }
 
   /**
