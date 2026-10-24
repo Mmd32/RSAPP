@@ -86,22 +86,31 @@ interface AdminQuestionBankProps {
 
 const PAGE_SIZE = 100;
 
+/** Column names of the sectors, as in the checklist workbook. */
+const SECTOR_SHORT: Record<string, string> = {
+  Fashion: 'Fashion', Shoe_Bag: 'Shoe & Bag', Watch_Jewelry: 'Watch & Jewelry', FMCG: 'FMCG', F_B: 'F&B',
+  Hardware: 'Hardware', Homeware: 'Homeware', Beauty_Cosmetics: 'Beauty/Cosmetics', Electronics: 'Electronics',
+  Entertainment: 'Entertainment', Sports: 'Sports', Specialty: 'Specialty', Services: 'Services',
+};
+
 /**
  * Pivot of the store checklist: zone → topic, with the number of KPIs and
- * their codes, for one sector or for all. Answers "which indicator belongs
- * where" at a glance.
+ * their codes, and one column per sector (the workbook's X columns) counting
+ * the KPIs that sector gets. Any column can be clicked to sort by it, and the
+ * sector columns can be switched on and off.
  */
 const IndicatorPivot: React.FC<{ indicators: Indicator[] }> = ({ indicators }) => {
-  const [sector, setSector] = useState<string>('ALL');
+  const [shown, setShown] = useState<string[]>(RETAIL_SECTORS);
+  const [sort, setSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
   const [open, setOpen] = useState<Set<string>>(() => new Set());
+  const store = useMemo(() => indicators.filter((i) => i.template === 'STORE' && i.status !== 'ARCHIVED'), [indicators]);
+
+  const countOf = (items: Indicator[], sector: string) =>
+    items.filter((i) => !i.applicableBusinessTypes?.length || i.applicableBusinessTypes.includes(sector)).length;
+
   const rows = useMemo(() => {
-    const store = indicators.filter(
-      (i) =>
-        i.template === 'STORE' &&
-        i.status !== 'ARCHIVED' &&
-        (sector === 'ALL' || !i.applicableBusinessTypes?.length || i.applicableBusinessTypes.includes(sector)),
-    );
-    return STORE_ZONES.map((zone) => {
+    const value = (items: Indicator[], key: string) => (key === 'total' ? items.length : key === 'name' ? 0 : countOf(items, key));
+    const zones = STORE_ZONES.map((zone) => {
       const inZone = store.filter((i) => i.group === zone).sort((a, b) => a.displayOrder - b.displayOrder);
       const topics = new Map<string, Indicator[]>();
       for (const i of inZone) {
@@ -109,47 +118,62 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[] }> = ({ indicators }) =
         if (!topics.has(key)) topics.set(key, []);
         topics.get(key)!.push(i);
       }
-      return { zone, count: inZone.length, topics: [...topics.entries()] };
+      let list = [...topics.entries()];
+      if (sort) {
+        const dir = sort.dir === 'asc' ? 1 : -1;
+        list = list.sort((a, b) => (sort.key === 'name' ? a[0].localeCompare(b[0], 'fa') * dir : (value(a[1], sort.key) - value(b[1], sort.key)) * dir));
+      }
+      return { zone, items: inZone, topics: list };
     });
-  }, [indicators, sector]);
-  const total = rows.reduce((n, r) => n + r.count, 0);
-  if (!total && sector === 'ALL') return null;
-  const toggle = (zone: string) =>
+    if (sort && sort.key !== 'name') {
+      const dir = sort.dir === 'asc' ? 1 : -1;
+      zones.sort((a, b) => (value(a.items, sort.key) - value(b.items, sort.key)) * dir);
+    }
+    return zones;
+  }, [store, sort]);
+  const total = store.length;
+  if (!total) return null;
+
+  const toggleZone = (zone: string) =>
     setOpen((prev) => {
       const next = new Set(prev);
       if (next.has(zone)) next.delete(zone);
       else next.add(zone);
       return next;
     });
+  const sortBy = (key: string) => setSort((cur) => (cur?.key === key ? (cur.dir === 'desc' ? { key, dir: 'asc' } : null) : { key, dir: 'desc' }));
+  const arrow = (key: string) => (sort?.key === key ? (sort.dir === 'desc' ? ' ▼' : ' ▲') : '');
+  const head = (key: string, label: React.ReactNode, title?: string) => (
+    <th scope="col" aria-sort={sort?.key === key ? (sort.dir === 'desc' ? 'descending' : 'ascending') : 'none'} title={title}>
+      <button type="button" className="pivot-sort" onClick={() => sortBy(key)}>{label}{arrow(key)}</button>
+    </th>
+  );
 
   return (
     <section className="fr-card" aria-labelledby="pivot-title">
       <header className="fr-card__header">
         <div>
-          <h3 id="pivot-title" className="fr-card__title">جدول محوری شاخص‌ها (منطقه ← موضوع ← کد)</h3>
+          <h3 id="pivot-title" className="fr-card__title">جدول محوری شاخص‌ها (منطقه ← موضوع ← کد) به تفکیک سکتور</h3>
           <p className="fr-card__subtitle">
-            هر شاخص (KPI) کد ثابت خود را دارد و به یک موضوع در یکی از پنج منطقه تعلق دارد. روی هر منطقه بزنید تا موضوع‌ها و
-            کدهایش را ببینید.
+            هر ستون سکتور تعداد شاخص‌هایی است که در فایل چک‌لیست برای آن سکتور ضربدر دارند. روی عنوان هر ستون بزنید تا موضوع‌ها و مناطق بر اساس آن مرتب شوند؛ روی هر منطقه بزنید تا موضوع‌هایش را ببینید.
           </p>
         </div>
-        <label className="business-brand">
-          <span>سکتور</span>
-          <select className="select-rs" value={sector} onChange={(e) => setSector(e.target.value)}>
-            <option value="ALL">همه‌ی سکتورها</option>
-            {RETAIL_SECTORS.map((s) => (
-              <option key={s} value={s}>
-                {profileLabel(s)}
-              </option>
-            ))}
-          </select>
-        </label>
       </header>
+      <div className="pivot-cols" role="group" aria-label="ستون‌های سکتور">
+        {RETAIL_SECTORS.map((s) => (
+          <label key={s} className="ie-check" title={profileLabel(s)}>
+            <input type="checkbox" checked={shown.includes(s)} onChange={() => setShown((cur) => (cur.includes(s) ? cur.filter((x) => x !== s) : RETAIL_SECTORS.filter((x) => cur.includes(x) || x === s)))} />
+            <span>{SECTOR_SHORT[s]}</span>
+          </label>
+        ))}
+      </div>
       <div className="fr-table-wrap">
         <table className="fr-table pivot-table">
           <thead>
             <tr>
-              <th scope="col">منطقه / موضوع</th>
-              <th scope="col">تعداد KPI</th>
+              {head('name', 'منطقه / موضوع')}
+              {head('total', 'کل')}
+              {RETAIL_SECTORS.filter((s) => shown.includes(s)).map((s) => head(s, <span dir="ltr">{SECTOR_SHORT[s]}</span>, profileLabel(s)))}
               <th scope="col">کدها</th>
             </tr>
           </thead>
@@ -158,13 +182,16 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[] }> = ({ indicators }) =
               <React.Fragment key={r.zone}>
                 <tr className="pivot-zone">
                   <th scope="row">
-                    <button type="button" className="pivot-toggle" aria-expanded={open.has(r.zone)} onClick={() => toggle(r.zone)}>
+                    <button type="button" className="pivot-toggle" aria-expanded={open.has(r.zone)} onClick={() => toggleZone(r.zone)}>
                       <span className="fr-swatch" style={{ background: `var(--zone-${r.zone})` }} aria-hidden="true" />
                       {groupLabel(r.zone)}
                       <span className="pivot-caret" aria-hidden="true">{open.has(r.zone) ? '−' : '+'}</span>
                     </button>
                   </th>
-                  <td className="ltr-num fr-table__rate">{faDigits(r.count)}</td>
+                  <td className="ltr-num fr-table__rate">{faDigits(r.items.length)}</td>
+                  {RETAIL_SECTORS.filter((s) => shown.includes(s)).map((s) => (
+                    <td key={s} className="ltr-num">{faDigits(countOf(r.items, s))}</td>
+                  ))}
                   <td className="pivot-muted">{faDigits(r.topics.length)} موضوع</td>
                 </tr>
                 {open.has(r.zone) &&
@@ -172,10 +199,11 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[] }> = ({ indicators }) =
                     <tr key={topic} className="pivot-topic">
                       <th scope="row">{topic}</th>
                       <td className="ltr-num">{faDigits(items.length)}</td>
+                      {RETAIL_SECTORS.filter((s) => shown.includes(s)).map((s) => (
+                        <td key={s} className="ltr-num">{faDigits(countOf(items, s))}</td>
+                      ))}
                       <td>
-                        <span className="pivot-codes" dir="ltr">
-                          {items.map((i) => i.code).join(' · ')}
-                        </span>
+                        <span className="pivot-codes" dir="ltr">{items.map((i) => i.code).join(' · ')}</span>
                       </td>
                     </tr>
                   ))}
@@ -186,6 +214,9 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[] }> = ({ indicators }) =
             <tr>
               <th scope="row">جمع کل</th>
               <td className="ltr-num">{faDigits(total)}</td>
+              {RETAIL_SECTORS.filter((s) => shown.includes(s)).map((s) => (
+                <td key={s} className="ltr-num">{faDigits(countOf(store, s))}</td>
+              ))}
               <td />
             </tr>
           </tfoot>

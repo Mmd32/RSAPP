@@ -67,6 +67,10 @@ def note_of(cell):
     return clean(text)
 
 
+def key_of(value):
+    return key(value)
+
+
 def key(value):
     return re.sub(r"[\s‌()/.\-–]+", "", clean(value))
 
@@ -122,7 +126,14 @@ def resolve_topics(rows, other_by_code):
 
 
 def parse_workbook():
-    """The workbook's KPI list as plain rows: order, code, zone, topic, statement, sectors."""
+    """The workbook's KPI list as plain rows: order, code, zone, topic, statement, sectors.
+
+    The visible sheet is the Fashion checklist (full wording, the order people read). The hidden
+    all-sector sheet also carries KPIs that only other sectors have (a column with an X marks the
+    sectors a KPI applies to). Those rows are added too, in the place the all-sector sheet gives
+    them (right after the last KPI before them that the visible sheet has), so every sector gets
+    exactly the KPIs marked for it.
+    """
     wf = openpyxl.load_workbook(XLSX)
     wv = openpyxl.load_workbook(XLSX, data_only=True)
     _, fashion = read_sheet(wf, wv, FASHION_SHEET)
@@ -130,18 +141,67 @@ def parse_workbook():
     f_idx, m_idx = occurrence_index(fashion), occurrence_index(matrix)
     topic_stats = resolve_topics(fashion, m_idx)
     resolve_topics(matrix, f_idx)
+
+    def sectors_of(twin):
+        found = [SECTORS[h] for h in matrix_header if h in SECTORS and twin.get(h) not in (None, "")]
+        return found
+
+    # A KPI can carry another code in the all-sector sheet (visible FI03 is FI02 there): the same
+    # KPI then has the same wording once the topic is taken off, and the two are one KPI.
+    renamed = {}
+    claimed = set()
+    for key, row in m_idx.items():
+        if key in f_idx:
+            continue
+        text = clean(row["KPI"])
+        hits = [k for k, v in f_idx.items()
+                if k not in m_idx and k not in claimed and text and clean(v["KPI"]).endswith(text)
+                and key_of(v["_topic"]) == key_of(row["_topic"])]
+        if len(hits) == 1:
+            renamed[hits[0]] = row
+            claimed.add(hits[0])
+    renamed_matrix = {id(r) for r in renamed.values()}
+
     rows = []
-    for n, (code_occ, row) in enumerate(f_idx.items(), start=1):
-        twin = m_idx.get(code_occ)
+    for code_occ, row in f_idx.items():
+        twin = m_idx.get(code_occ) or renamed.get(code_occ)
         sectors = ["Fashion"]
         if twin:
-            sectors = [SECTORS[h] for h in matrix_header if h in SECTORS and twin.get(h) not in (None, "")]
+            sectors = sectors_of(twin)
             if "Fashion" not in sectors:
-                sectors.insert(0, "Fashion")  # it is on the Fashion list, whatever V5 says
-        rows.append({"order": n, "code": row["_code"], "group": row["_zone"], "subject": clean(row["_topic"]),
+                sectors.insert(0, "Fashion")  # it is on the Fashion list, whatever the matrix says
+        rows.append({"code": row["_code"], "group": row["_zone"], "subject": clean(row["_topic"]),
                      "statement": clean(row["KPI"]), "note": row["_note"], "sectors": sectors,
-                     "in_matrix": twin is not None})
-    return rows, topic_stats
+                     "in_matrix": twin is not None, "source": "checklist"})
+
+    # KPIs only the all-sector sheet has, placed after the last matrix KPI before them that the visible sheet has.
+    position = {(r["code"], n): i for i, r in enumerate(rows) for n in [1 + sum(1 for q in rows[:i] if q["code"] == r["code"])]}
+    seen = collections.Counter()
+    anchor = -1
+    inserted_after = collections.defaultdict(int)
+    extras = []
+    for row in matrix:
+        seen[row["_code"]] += 1
+        key = (row["_code"], seen[row["_code"]])
+        if key in f_idx:
+            anchor = position[key]
+            continue
+        if id(row) in renamed_matrix:
+            continue
+        sectors = sectors_of(row)
+        if not sectors:
+            continue
+        extras.append((anchor, {"code": row["_code"], "group": row["_zone"], "subject": clean(row["_topic"]),
+                                "statement": clean(row["KPI"]), "note": row["_note"], "sectors": sectors,
+                                "in_matrix": True, "source": "matrix"}))
+    merged = []
+    for i, r in enumerate(rows):
+        merged.append(r)
+        merged.extend(e for a, e in extras if a == i)
+    merged = [e for a, e in extras if a == -1] + merged
+    for n, r in enumerate(merged, start=1):
+        r["order"] = n
+    return merged, topic_stats
 
 
 def main(dry_run):
@@ -164,7 +224,17 @@ def main(dry_run):
 
     source = collections.Counter()
     store = []
+    # Ids stay as they were for the visible-sheet KPIs (numbered in that sheet's order); the
+    # all-sector-only KPIs follow in the order they come.
+    n_checklist = n_matrix = 0
+    n_visible = sum(1 for r in rows if r["source"] == "checklist")
     for row in rows:
+        if row["source"] == "checklist":
+            n_checklist += 1
+            number = n_checklist
+        else:
+            n_matrix += 1
+            number = n_visible + n_matrix
         old = by_code.get(row["code"])
         if old and key(old["subject"]) == key(row["subject"]):
             origin, donor = "same code and topic", old
@@ -180,7 +250,7 @@ def main(dry_run):
             stage, dim = majority(donor, "journeyStage"), majority(donor, "reportingDimension")
             photo, comment, weight = False, False, 1.0
         store.append({
-            "id": f"IND_FR_{row['order']:04d}",
+            "id": f"IND_FR_{number:04d}",
             "code": row["code"],
             "template": "STORE",
             "group": row["group"],
@@ -201,8 +271,9 @@ def main(dry_run):
         })
 
     fashion_only = [r["code"] for r in rows if not r["in_matrix"]]
+    by_source = collections.Counter(r["source"] for r in rows)
     by_zone_count = collections.Counter(i["group"] for i in store)
-    print(f"{len(store)} store indicators from '{FASHION_SHEET}':", dict(by_zone_count))
+    print(f"{len(store)} store indicators ({dict(by_source)}):", dict(by_zone_count))
     print("unreadable topic cells filled from:", dict(topic_stats))
     print("no row in the all-sector sheet (Fashion only):", fashion_only)
     print("journeyStage / reportingDimension / weight taken from:", dict(source))

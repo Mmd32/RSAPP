@@ -228,48 +228,19 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
     return [...(summary.prioritizedFindings || [])].sort((a, b) => (order.get(a.indicator.id) ?? 0) - (order.get(b.indicator.id) ?? 0));
   }, [summary.prioritizedFindings, visit.indicators]);
 
-  const handleExportCsv = () => {
-    let csv =
-      '\uFEFFکد شاخص,منطقه,موضوع شاخص,وضعیت پاسخ,شرح گزاره,پیشنهاد اصلاحی,توضیح ارزیاب\n';
-
-    visit.indicators.forEach((ind) => {
-      const resp = visit.responses[ind.id];
-      if (!resp) return;
-      const row = [
-        `"${ind.code}"`,
-        `"${groupLabel(ind.group).replace(/"/g, '""')}"`,
-        `"${(ind.subject || '').replace(/"/g, '""')}"`,
-        `"${ANSWER_FA[resp.answerState] || resp.answerState}"`,
-        `"${(ind.statement || '').replace(/"/g, '""')}"`,
-        `"${(resp.recommendation || '').replace(/"/g, '""')}"`,
-        `"${(resp.comment || '').replace(/"/g, '""')}"`,
-      ];
-      csv += row.join(',') + '\n';
-    });
-
-    // FR tables: F% = FR / (Indicators − N/A), per zone and per topic.
-    const fr = computeStoreFrictionRate(visit.indicators, visit.responses);
-    const q = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`;
-    const pct = (r: number) => (r * 100).toFixed(1);
-    csv += '\n' + q('نرخ اصطکاک به تفکیک منطقه') + '\n';
-    csv += ['منطقه', 'شاخص‌ها', 'FR', 'N/A', 'F%'].map(q).join(',') + '\n';
-    for (const z of [...fr.zones, { ...fr.total, group: 'کل فروشگاه' }]) {
-      csv += [groupLabel(z.group), z.indicators, z.frictions, z.notApplicable, pct(z.rate)].map(q).join(',') + '\n';
+  // The filled questionnaire in the checklist workbook's layout.
+  const [isExportingXlsx, setIsExportingXlsx] = useState(false);
+  const handleExportXlsx = async () => {
+    setIsExportingXlsx(true);
+    try {
+      const { downloadVisitWorkbook } = await import('../services/visitExcel');
+      await downloadVisitWorkbook(visit);
+    } catch (err) {
+      console.error('Excel export failed:', err);
+      alert('ساخت فایل اکسل انجام نشد. دوباره تلاش کنید.');
+    } finally {
+      setIsExportingXlsx(false);
     }
-    csv += '\n' + q('نرخ اصطکاک به تفکیک موضوع') + '\n';
-    csv += ['منطقه', 'موضوع', 'شاخص‌ها', 'FR', 'N/A', 'F%'].map(q).join(',') + '\n';
-    for (const t of fr.topics) {
-      csv += [groupLabel(t.group), t.subject, t.indicators, t.frictions, t.notApplicable, pct(t.rate)].map(q).join(',') + '\n';
-    }
-
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `RetailSolutions_${visit.visitCode || 'Audit'}_Findings.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
 
   return (
@@ -295,12 +266,13 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
           <button
             type="button"
             className="btn-secondary"
-            onClick={handleExportCsv}
-            title="دانلود فایل CSV داده‌های ارزیابی"
+            onClick={handleExportXlsx}
+            disabled={isExportingXlsx}
+            title="دانلود پرسشنامه با همان قالب اکسل چک‌لیست"
             style={{ fontSize: 12, padding: '7px 12px' }}
           >
             <FileSpreadsheet size={15} color="var(--rs-color-success)" />
-            <span>خروجی اکسل / CSV</span>
+            <span>{isExportingXlsx ? 'در حال ساخت اکسل…' : 'خروجی اکسل (قالب چک‌لیست)'}</span>
           </button>
 
           {/* PowerPoint: the report deck, all in Persian */}

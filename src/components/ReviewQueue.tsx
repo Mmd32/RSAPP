@@ -44,6 +44,7 @@ export const ReviewQueue: React.FC<{
                       </span>
                     </span>
                     <span className="ie-actions">
+                      <button type="button" className="btn-secondary" style={{ minHeight: 32 }} title="خروجی اکسل با قالب چک‌لیست" onClick={async () => { const { downloadVisitWorkbook } = await import('../services/visitExcel'); await downloadVisitWorkbook(v); }}>اکسل</button>
                       {onReport && <button type="button" className="btn-secondary" style={{ minHeight: 32 }} onClick={() => onReport(v)}>گزارش</button>}
                       <button type="button" className="btn-primary" style={{ minHeight: 32 }} onClick={() => onOpen(v)}>بررسی و تأیید</button>
                     </span>

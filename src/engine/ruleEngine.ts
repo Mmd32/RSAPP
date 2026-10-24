@@ -647,15 +647,8 @@ export function generateDynamicChecklistWithAudit(
     }
   });
 
-  const orderMap = profile.assessmentType === 'STORE' ? STORE_JOURNEY_ORDER : MALL_JOURNEY_ORDER;
-  const sorted = selected.sort((a, b) => {
-    const stageA = orderMap[a.journeyStage]?.order || 99;
-    const stageB = orderMap[b.journeyStage]?.order || 99;
-    if (stageA !== stageB) {
-      return stageA - stageB;
-    }
-    return a.displayOrder - b.displayOrder;
-  });
+  // The questionnaire follows the checklist file row by row: its order is the display order.
+  const sorted = selected.sort((a, b) => a.displayOrder - b.displayOrder);
 
   const auditTrail: FormGenerationAuditTrail = {
     profileSnapshot: profile,
