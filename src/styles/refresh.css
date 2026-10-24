@@ -617,3 +617,12 @@ svg.lucide { stroke-width: 1.75px; }
 .bd-zone > summary { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; cursor: pointer; list-style: none; }
 .bd-zone > summary::-webkit-details-marker { display: none; }
 .bd-chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-3) 0; }
+
+/* After sending a questionnaire */
+.submit-done { display: flex; flex-direction: column; gap: var(--sp-4); padding: var(--sp-6); }
+.submit-done__icon { display: flex; justify-content: center; color: var(--rd-success, #1f9d6b); }
+.submit-done__stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-3); margin: 0; }
+.submit-done__stats > div { background: var(--rd-surface-2); border: 1px solid var(--rd-line); border-radius: var(--r-md); padding: var(--sp-3); text-align: center; }
+.submit-done__stats dt { font-size: var(--fs-caption); color: var(--rd-muted); }
+.submit-done__stats dd { margin: 4px 0 0; font-size: var(--fs-lead); font-weight: var(--fw-bold); }
+@media (max-width: 560px) { .submit-done__stats { grid-template-columns: 1fr; } }

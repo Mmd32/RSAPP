@@ -43,6 +43,7 @@ export type ViewMode =
   | 'ARCHIVE'
   | 'USERS'
   | 'BRANDS'
+  | 'SENT'
   | 'PASSWORD';
 
 interface AppSidebarProps {
