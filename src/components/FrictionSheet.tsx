@@ -49,8 +49,6 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
   onClose,
   onSave,
 }) => {
-  if (!isOpen) return null;
-
   const [comment, setComment] = useState(currentResponse?.comment || '');
   const [recommendation, setRecommendation] = useState(
     currentResponse?.recommendation || ''
@@ -195,6 +193,8 @@ export const FrictionSheet: React.FC<FrictionSheetProps> = ({
     });
     onClose();
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="bottom-sheet-backdrop" onClick={onClose}>

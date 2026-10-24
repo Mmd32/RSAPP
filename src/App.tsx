@@ -336,6 +336,10 @@ export const App: React.FC = () => {
   };
 
   const [activeSession, setActiveSession] = useState<VisitSession | null>(null);
+  // Finished visits are looked at without touching the questionnaire being filled in:
+  // the one a reviewer is checking, and the one whose report is on screen.
+  const [reviewVisit, setReviewVisit] = useState<VisitSession | null>(null);
+  const [viewedVisit, setViewedVisit] = useState<VisitSession | null>(null);
 
   // Deep Linking & URL Routing via window.location.hash (Audit Priority 9 / N2)
   const getInitialViewMode = (): ViewMode => {
@@ -559,14 +563,45 @@ export const App: React.FC = () => {
       const saved = localStorage.getItem(activeVisitKey);
       if (saved) {
         const parsed: VisitSession = JSON.parse(saved);
-        if (parsed && parsed.indicators && parsed.indicators.length > 0) {
+        // Only an unfinished questionnaire is offered again; one that was already sent
+        // or approved is locked on the server and would only refuse every answer.
+        const editable = parsed?.status === 'IN_PROGRESS' || parsed?.status === 'REVISION_REQUESTED';
+        if (parsed && parsed.indicators && parsed.indicators.length > 0 && editable) {
           setResumeCandidate(parsed);
+        } else {
+          localStorage.removeItem(activeVisitKey);
         }
       }
     } catch (e) {
       console.error('Failed to load session from localStorage', e);
     }
   }, []);
+
+  // A draft the server already holds as sent or approved (submitted from another
+  // device, or by an earlier session) is no longer a draft.
+  useEffect(() => {
+    const locked = (id?: string) => {
+      const server = id ? pastVisits.find((v) => v.id === id) : undefined;
+      return !!server && (server.status === 'SUBMITTED' || server.status === 'APPROVED');
+    };
+    if (resumeCandidate && locked(resumeCandidate.id)) {
+      setResumeCandidate(null);
+      try {
+        localStorage.removeItem(activeVisitKey);
+      } catch {
+        /* storage unavailable */
+      }
+    }
+    if (activeSession && (activeSession.status === 'IN_PROGRESS' || activeSession.status === 'REVISION_REQUESTED') && locked(activeSession.id) && !VisitSync.hasPendingWork()) {
+      setActiveSession(null);
+      try {
+        localStorage.removeItem(activeVisitKey);
+      } catch {
+        /* storage unavailable */
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pastVisits]);
 
   const [actionsNotice, setActionsNotice] = useState<string | null>(null);
 
@@ -797,16 +832,24 @@ export const App: React.FC = () => {
     return list;
   }, [activeSession, searchQuery, auditFilter]);
 
-  // The report shows the visit being worked on, else the latest finished one.
-  // The report is always a real visit; with none yet, an empty state is shown.
-  const latestFinishedVisit = useMemo(
+  // The report shows the visit that was opened, else the latest finished one.
+  // It is always a real, finished visit; with none yet, an empty state is shown.
+  const finishedVisits = useMemo(
     () =>
-      [...pastVisits]
+      reportVisits
         .filter((v) => (v.status === 'SUBMITTED' || v.status === 'APPROVED') && v.indicators?.length)
-        .sort((a, b) => (b.completedAt || b.startedAt).localeCompare(a.completedAt || a.startedAt))[0] || null,
-    [pastVisits]
+        .sort((a, b) => (b.completedAt || b.startedAt).localeCompare(a.completedAt || a.startedAt)),
+    [reportVisits]
   );
-  const reportVisit: VisitSession | null = activeSession || latestFinishedVisit || null;
+  const reportVisit: VisitSession | null =
+    (viewedVisit && (finishedVisits.find((v) => v.id === viewedVisit.id) || viewedVisit)) || finishedVisits[0] || null;
+
+  // A filter can shorten the list under the current position.
+  useEffect(() => {
+    if (displayedIndicators.length && currentQuestionIndex > displayedIndicators.length - 1) {
+      setCurrentQuestionIndex(displayedIndicators.length - 1);
+    }
+  }, [displayedIndicators.length, currentQuestionIndex]);
 
   const currentIndicator = displayedIndicators[currentQuestionIndex] || displayedIndicators[0] || activeSession?.indicators[0];
 
@@ -857,13 +900,15 @@ export const App: React.FC = () => {
       });
 
       // Advance with short delay
+      const answeredIndex = currentQuestionIndex;
+      const lastIndex = displayedIndicators.length - 1;
       setTimeout(() => {
         // Under the "unanswered" filter the answered question drops out of the
         // list, so the next one slides into the current index by itself.
         if (auditFilter === 'MISSING') return;
-        if (currentQuestionIndex < displayedIndicators.length - 1) {
-          setCurrentQuestionIndex((prev) => prev + 1);
-        }
+        // Move on only if the auditor is still on the question just answered:
+        // a double tap or a manual jump must not skip a question.
+        setCurrentQuestionIndex((prev) => (prev === answeredIndex && prev < lastIndex ? prev + 1 : prev));
       }, 350);
 
       // Auto dismiss undo after 4 seconds
@@ -895,6 +940,7 @@ export const App: React.FC = () => {
     comment: string;
     recommendation: string;
     photos: EvidencePhoto[];
+    isFlagged?: boolean;
   }) => {
     if (!activeSession || !currentIndicator) return;
 
@@ -913,6 +959,7 @@ export const App: React.FC = () => {
       comment: data.comment,
       recommendation: data.recommendation,
       photos: data.photos,
+      isFlagged: data.isFlagged ?? existing.isFlagged,
       answeredAt: new Date().toISOString(),
     };
 
@@ -977,24 +1024,34 @@ export const App: React.FC = () => {
     // switching away from a half-finished audit cannot drop answers.
     VisitSync.flush(currentTenantId);
 
-    setActiveSession(visit);
-    setCurrentQuestionIndex(0);
-    if (visit.indicators?.length > 0) {
-      setCurrentStage(visit.indicators[0].journeyStage);
+    // Reviewing and resuming work on the record as it was saved; reports use today's names.
+    const recorded = pastVisits.find((v) => v.id === visit.id) || visit;
+    if ((visit.status === 'IN_PROGRESS' || visit.status === 'REVISION_REQUESTED') && can.fieldWork) {
+      setActiveSession(recorded);
+      setCurrentQuestionIndex(0);
+      if (recorded.indicators?.length > 0) setCurrentStage(recorded.indicators[0].journeyStage);
+      try {
+        localStorage.setItem(activeVisitKey, JSON.stringify(recorded));
+      } catch (e) {
+        console.error('Storage error', e);
+      }
+      setResumeCandidate(null);
+      setViewMode('AUDIT');
+    } else if (visit.status === 'SUBMITTED' && can.review) {
+      // The visit under review does not replace the questionnaire being filled in.
+      setReviewVisit(recorded);
+      setViewMode('SUPERVISOR');
+    } else if (can.reports) {
+      setViewedVisit(visit);
+      setViewMode('REPORT');
+    } else {
+      setViewMode('ARCHIVE');
     }
-    try {
-      localStorage.setItem(activeVisitKey, JSON.stringify(visit));
-    } catch (e) {
-      console.error('Storage error', e);
-    }
-    setResumeCandidate(null);
-    if (visit.status === 'SUBMITTED' && can.review) setViewMode('SUPERVISOR');
-    else if ((visit.status === 'IN_PROGRESS' || visit.status === 'REVISION_REQUESTED') && can.fieldWork) setViewMode('AUDIT');
-    else setViewMode(can.reports ? 'REPORT' : 'ARCHIVE');
   };
 
-  const handleSubmitVisit = () => {
+  const handleSubmitVisit = async () => {
     if (!activeSession) return;
+    const before = activeSession;
     const updated: VisitSession = {
       ...activeSession,
       status: 'SUBMITTED',
@@ -1002,44 +1059,71 @@ export const App: React.FC = () => {
       overallScore: getVisitScore(activeSession),
     };
     saveVisitState(updated);
-    // Submitting is a milestone: push it now rather than waiting for the debounce.
-    VisitSync.flush(currentTenantId).then(loadPastVisits);
+    // Submitting is a milestone: send it now and only leave once the server has it.
+    const ok = await VisitSync.flush(currentTenantId);
+    if (!ok) {
+      // Not received: keep the questionnaire open and editable so nothing is lost.
+      saveVisitState({ ...before, completedAt: undefined });
+      alert(`ارسال برای سرپرست انجام نشد؛ پاسخ‌های شما روی همین دستگاه محفوظ است.\n${VisitSync.lastError || ''}\nدوباره تلاش کنید.`);
+      return;
+    }
+    // The questionnaire is with the supervisor now: it leaves the working draft.
+    try {
+      localStorage.removeItem(activeVisitKey);
+    } catch {
+      /* storage unavailable */
+    }
+    setActiveSession(null);
+    loadPastVisits();
     // Evaluators only record: after sending, they go back to their list.
     setViewMode(can.review ? 'SUPERVISOR' : 'ARCHIVE');
   };
 
-  const handleApproveVisit = (
+  const handleApproveVisit = async (
     notes: string,
     decisions: Record<string, { status: 'APPROVED' | 'REJECTED' | 'REQUEST_CHANGE'; comment?: string }>
   ) => {
-    if (!activeSession) return;
+    if (!reviewVisit) return;
     const updated: VisitSession = {
-      ...activeSession,
+      ...reviewVisit,
       status: 'APPROVED',
       supervisorName: currentUserName,
       supervisorNotes: notes,
       findingDecisions: decisions,
-      overallScore: getVisitScore(activeSession),
+      overallScore: getVisitScore(reviewVisit),
     };
-    saveVisitState(updated);
-    VisitSync.flush(currentTenantId).then(loadPastVisits);
+    VisitSync.queue(updated, currentTenantId);
+    const ok = await VisitSync.flush(currentTenantId);
+    if (!ok) {
+      alert(`تأیید نهایی ثبت نشد.\n${VisitSync.lastError || ''}\nدوباره تلاش کنید.`);
+      return;
+    }
+    setReviewVisit(null);
+    setViewedVisit(updated);
+    loadPastVisits();
     setViewMode('REPORT');
   };
 
-  const handleRequestRevision = (
+  const handleRequestRevision = async (
     notes: string,
     decisions: Record<string, { status: 'APPROVED' | 'REJECTED' | 'REQUEST_CHANGE'; comment?: string }>
   ) => {
-    if (!activeSession) return;
+    if (!reviewVisit) return;
     const updated: VisitSession = {
-      ...activeSession,
+      ...reviewVisit,
       status: 'REVISION_REQUESTED',
       supervisorNotes: notes,
       findingDecisions: decisions,
     };
-    saveVisitState(updated);
-    VisitSync.flush(currentTenantId).then(loadPastVisits);
-    setViewMode('AUDIT');
+    VisitSync.queue(updated, currentTenantId);
+    const ok = await VisitSync.flush(currentTenantId);
+    if (!ok) {
+      alert(`بازگرداندن به ارزیاب ثبت نشد.\n${VisitSync.lastError || ''}\nدوباره تلاش کنید.`);
+      return;
+    }
+    setReviewVisit(null);
+    loadPastVisits();
+    setViewMode('SUPERVISOR');
   };
 
   const handleConfirmDiscardSession = () => {
@@ -1732,7 +1816,9 @@ export const App: React.FC = () => {
             )}
 
             {/* Friction Flow Bottom Sheet (Section 9) */}
+            {isFrictionSheetOpen && (
             <FrictionSheet
+              key={currentIndicator.id}
               tenantId={currentTenantId}
               visitId={activeSession?.id}
               indicator={currentIndicator}
@@ -1741,6 +1827,7 @@ export const App: React.FC = () => {
               onClose={() => setIsFrictionSheetOpen(false)}
               onSave={handleSaveFriction}
             />
+            )}
 
             {/* Section 14: Undo Snackbar */}
             {undoState && (
@@ -1758,6 +1845,18 @@ export const App: React.FC = () => {
           </>
         )}
 
+        {(viewMode === 'AUDIT' || viewMode === 'REVIEW') && !activeSession && (
+          <div className="page" style={{ maxWidth: 560, margin: '40px auto' }}>
+            <div className="fr-card" style={{ textAlign: 'center' }}>
+              <p className="fr-card__empty">پرسشنامه‌ای در حال تکمیل نیست. بازدید تازه شروع کنید یا پرسشنامهٔ نیمه‌کاره را از بایگانی ادامه دهید.</p>
+              <div className="ie-actions" style={{ justifyContent: 'center' }}>
+                {can.fieldWork && <button type="button" className="btn-primary" onClick={() => setViewMode('WIZARD')}>بازدید جدید</button>}
+                <button type="button" className="btn-secondary" onClick={() => setViewMode('ARCHIVE')}>بایگانی بازدیدها</button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* REVIEW SCREEN (Section 23, 24, 25) */}
         {viewMode === 'REVIEW' && activeSession && (
           <ReviewScreen
@@ -1773,16 +1872,16 @@ export const App: React.FC = () => {
         {/* Lazy Loaded Views with Suspense Boundary */}
         <React.Suspense fallback={<ViewLoadingFallback />}>
           {/* SUPERVISOR CARPET (Section 26, 27, 28) */}
-          {viewMode === 'SUPERVISOR' && !(activeSession && activeSession.status === 'SUBMITTED') && (
+          {viewMode === 'SUPERVISOR' && !(reviewVisit && reviewVisit.status === 'SUBMITTED') && (
             <ReviewQueue visits={pastVisits} isLoading={isLoadingVisits} onOpen={handleOpenArchivedVisit} />
           )}
 
-          {viewMode === 'SUPERVISOR' && activeSession && activeSession.status === 'SUBMITTED' && (
+          {viewMode === 'SUPERVISOR' && reviewVisit && reviewVisit.status === 'SUBMITTED' && (
             <SupervisorReview
-              visit={activeSession}
+              visit={reviewVisit}
               onApproveVisit={handleApproveVisit}
               onRequestRevision={handleRequestRevision}
-              onBackToDashboard={() => setViewMode('AUDIT')}
+              onBackToDashboard={() => setReviewVisit(null)}
               onCreateCorrectiveAction={can.createActions ? handleCreateCorrectiveAction : undefined}
             />
           )}
@@ -1791,11 +1890,26 @@ export const App: React.FC = () => {
           {viewMode === 'REPORT' && !reportVisit && (
             <ReportEmpty canStart={can.fieldWork} onStart={() => setViewMode('WIZARD')} />
           )}
+          {viewMode === 'REPORT' && reportVisit && finishedVisits.length > 1 && (
+            <div className="page" style={{ paddingBottom: 0 }}>
+              <label className="business-brand" style={{ maxWidth: 520 }}>
+                <span>گزارش کدام بازدید؟</span>
+                <select className="select-rs" value={reportVisit.id} onChange={(e) => setViewedVisit(finishedVisits.find((v) => v.id === e.target.value) || null)}>
+                  {finishedVisits.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.brandName} — {v.branchName} · {new Date(v.completedAt || v.startedAt).toLocaleDateString('fa-IR')} · {v.status === 'APPROVED' ? 'تأییدشده' : 'در انتظار تأیید'}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          )}
           {viewMode === 'REPORT' && reportVisit && (
             <VisitReportView
+              key={reportVisit.id}
               visit={reportVisit}
               historyVisits={reportVisits}
-              onBackToDashboard={() => setViewMode(activeSession ? 'AUDIT' : 'WIZARD')}
+              onBackToDashboard={() => setViewMode('ARCHIVE')}
               onCreateCorrectiveAction={handleCreateCorrectiveAction}
             />
           )}
