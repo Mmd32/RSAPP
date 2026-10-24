@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Indicator } from '../types';
+import { Indicator, LocationContextCode } from '../types';
+import { generateDynamicChecklistWithAudit } from '../engine/ruleEngine';
 import { Database, Filter, CheckCircle, AlertTriangle, Layers, Plus, FileSpreadsheet, Trash2 } from 'lucide-react';
 import { stageLabel, groupLabel, faDigits, profileLabel } from '../utils/format';
 import { IndicatorEditor, IndicatorForm } from './IndicatorEditor';
@@ -86,32 +87,76 @@ interface AdminQuestionBankProps {
 
 const PAGE_SIZE = 100;
 
-/** Column names of the sectors, as in the checklist workbook. */
-const SECTOR_SHORT: Record<string, string> = {
-  Fashion: 'Fashion', Shoe_Bag: 'Shoe & Bag', Watch_Jewelry: 'Watch & Jewelry', FMCG: 'FMCG', F_B: 'F&B',
-  Hardware: 'Hardware', Homeware: 'Homeware', Beauty_Cosmetics: 'Beauty/Cosmetics', Electronics: 'Electronics',
-  Entertainment: 'Entertainment', Sports: 'Sports', Specialty: 'Specialty', Services: 'Services',
-};
+/** The formats a store can have (the "where is it" step of a new visit). */
+const FORMATS: { code: LocationContextCode; label: string }[] = [
+  { code: 'STREET_STORE', label: 'فروشگاه واقع در خیابان' },
+  { code: 'MALL_STORE', label: 'فروشگاه داخل مرکز خرید' },
+  { code: 'SHOP_IN_SHOP', label: 'شاپ این شاپ' },
+  { code: 'KIOSK', label: 'کیوسک / پاپ‌آپ' },
+];
+
+/** The facilities a new visit asks about; each switches some indicators off when missing. */
+const FEATURES: { key: string; compat?: string; label: string }[] = [
+  { key: 'has_window_display', compat: 'hasShowcase', label: 'ویترین شیشه‌ای و مانکن رو به بیرون' },
+  { key: 'has_fitting_room', compat: 'hasFittingRoom', label: 'اتاق پرو' },
+  { key: 'has_mannequins', compat: 'hasMannequins', label: 'مانکن‌های نمایشی داخل فروشگاه' },
+  { key: 'has_elevator', compat: 'hasElevator', label: 'آسانسور، پله‌برقی یا پله داخلی' },
+  { key: 'has_parking', compat: 'hasParking', label: 'پارکینگ اختصاصی' },
+  { key: 'has_customer_toilet', compat: 'hasCustomerToilet', label: 'سرویس بهداشتی مشتریان' },
+  { key: 'has_checkout_counter', label: 'صندوق' },
+  { key: 'has_anti_theft_gate', label: 'گیت دزدگیر' },
+];
 
 /**
- * Pivot of the store checklist: zone → topic, with the number of KPIs and
- * their codes, and one column per sector (the workbook's X columns) counting
- * the KPIs that sector gets. Any column can be clicked to sort by it, and the
- * sector columns can be switched on and off.
+ * Pivot of the store checklist: zone → topic → code. Choose the sector (as in a
+ * new visit) and the table shows, per topic, how many indicators the checklist
+ * file gives that sector, and how many are asked in each store format
+ * (street store, inside a mall, shop-in-shop, kiosk) given the facilities
+ * ticked below. Any column can be clicked to sort by it.
  */
 const IndicatorPivot: React.FC<{ indicators: Indicator[] }> = ({ indicators }) => {
-  const [shown, setShown] = useState<string[]>(RETAIL_SECTORS);
+  const [sector, setSector] = useState<string>('Fashion');
+  const [features, setFeatures] = useState<Record<string, boolean>>(() => Object.fromEntries(FEATURES.map((f) => [f.key, true])));
   const [sort, setSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
   const [open, setOpen] = useState<Set<string>>(() => new Set());
-  const store = useMemo(() => indicators.filter((i) => i.template === 'STORE' && i.status !== 'ARCHIVED'), [indicators]);
 
-  const countOf = (items: Indicator[], sector: string) =>
-    items.filter((i) => !i.applicableBusinessTypes?.length || i.applicableBusinessTypes.includes(sector)).length;
+  const store = useMemo(
+    () => indicators.filter((i) => i.template === 'STORE' && i.status !== 'ARCHIVED'),
+    [indicators],
+  );
+  // Indicators the workbook marks for the sector (all of them for "all sectors").
+  const ofSector = useMemo(
+    () => store.filter((i) => sector === 'ALL' || !i.applicableBusinessTypes?.length || i.applicableBusinessTypes.includes(sector)),
+    [store, sector],
+  );
+  // Per format: the ids the questionnaire would ask, by the same rules a new visit uses.
+  const askedIn = useMemo(() => {
+    const attributes: Record<string, boolean> = {};
+    for (const f of FEATURES) {
+      attributes[f.key] = !!features[f.key];
+      if (f.compat) attributes[f.compat] = !!features[f.key];
+    }
+    const out = new Map<string, Set<string>>();
+    if (sector === 'ALL') return out;
+    for (const format of FORMATS) {
+      const { indicators: asked } = generateDynamicChecklistWithAudit(store, {
+        assessmentType: 'STORE',
+        businessType: sector as any,
+        locationContext: format.code,
+        brand: '',
+        branch: '',
+        attributes,
+      } as any);
+      out.set(format.code, new Set(asked.map((i) => i.id)));
+    }
+    return out;
+  }, [store, sector, features]);
+
+  const countOf = (items: Indicator[], format: string) => (format === 'total' ? items.length : items.filter((i) => askedIn.get(format)?.has(i.id)).length);
 
   const rows = useMemo(() => {
-    const value = (items: Indicator[], key: string) => (key === 'total' ? items.length : key === 'name' ? 0 : countOf(items, key));
     const zones = STORE_ZONES.map((zone) => {
-      const inZone = store.filter((i) => i.group === zone).sort((a, b) => a.displayOrder - b.displayOrder);
+      const inZone = ofSector.filter((i) => i.group === zone).sort((a, b) => a.displayOrder - b.displayOrder);
       const topics = new Map<string, Indicator[]>();
       for (const i of inZone) {
         const key = i.subject || '—';
@@ -121,18 +166,20 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[] }> = ({ indicators }) =
       let list = [...topics.entries()];
       if (sort) {
         const dir = sort.dir === 'asc' ? 1 : -1;
-        list = list.sort((a, b) => (sort.key === 'name' ? a[0].localeCompare(b[0], 'fa') * dir : (value(a[1], sort.key) - value(b[1], sort.key)) * dir));
+        list = list.sort((a, b) =>
+          sort.key === 'name' ? a[0].localeCompare(b[0], 'fa') * dir : (countOf(a[1], sort.key) - countOf(b[1], sort.key)) * dir,
+        );
       }
       return { zone, items: inZone, topics: list };
     });
     if (sort && sort.key !== 'name') {
       const dir = sort.dir === 'asc' ? 1 : -1;
-      zones.sort((a, b) => (value(a.items, sort.key) - value(b.items, sort.key)) * dir);
+      zones.sort((a, b) => (countOf(a.items, sort.key) - countOf(b.items, sort.key)) * dir);
     }
     return zones;
-  }, [store, sort]);
-  const total = store.length;
-  if (!total) return null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ofSector, sort, askedIn]);
+  if (!store.length) return null;
 
   const toggleZone = (zone: string) =>
     setOpen((prev) => {
@@ -143,37 +190,54 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[] }> = ({ indicators }) =
     });
   const sortBy = (key: string) => setSort((cur) => (cur?.key === key ? (cur.dir === 'desc' ? { key, dir: 'asc' } : null) : { key, dir: 'desc' }));
   const arrow = (key: string) => (sort?.key === key ? (sort.dir === 'desc' ? ' ▼' : ' ▲') : '');
-  const head = (key: string, label: React.ReactNode, title?: string) => (
-    <th scope="col" aria-sort={sort?.key === key ? (sort.dir === 'desc' ? 'descending' : 'ascending') : 'none'} title={title}>
+  const head = (key: string, label: React.ReactNode) => (
+    <th scope="col" aria-sort={sort?.key === key ? (sort.dir === 'desc' ? 'descending' : 'ascending') : 'none'}>
       <button type="button" className="pivot-sort" onClick={() => sortBy(key)}>{label}{arrow(key)}</button>
     </th>
   );
+  const formatCols = sector === 'ALL' ? [] : FORMATS;
 
   return (
     <section className="fr-card" aria-labelledby="pivot-title">
       <header className="fr-card__header">
         <div>
-          <h3 id="pivot-title" className="fr-card__title">جدول محوری شاخص‌ها (منطقه ← موضوع ← کد) به تفکیک سکتور</h3>
+          <h3 id="pivot-title" className="fr-card__title">جدول محوری شاخص‌ها (منطقه ← موضوع ← کد)</h3>
           <p className="fr-card__subtitle">
-            هر ستون سکتور تعداد شاخص‌هایی است که در فایل چک‌لیست برای آن سکتور ضربدر دارند. روی عنوان هر ستون بزنید تا موضوع‌ها و مناطق بر اساس آن مرتب شوند؛ روی هر منطقه بزنید تا موضوع‌هایش را ببینید.
+            سکتور را انتخاب کنید. «کل» تعداد شاخص‌های فایل چک‌لیست برای آن سکتور است و هر ستون فرمت، تعداد شاخص‌هایی که در همان فرمت پرسیده می‌شود (با توجه به امکانات تیک‌خورده). روی عنوان ستون‌ها بزنید تا مرتب شوند؛ روی هر منطقه بزنید تا موضوع‌ها و کدها را ببینید.
           </p>
         </div>
+        <label className="business-brand">
+          <span>سکتور</span>
+          <select className="select-rs" value={sector} onChange={(e) => setSector(e.target.value)}>
+            <option value="ALL">همه‌ی سکتورها</option>
+            {RETAIL_SECTORS.map((s) => (
+              <option key={s} value={s}>{profileLabel(s)}</option>
+            ))}
+          </select>
+        </label>
       </header>
-      <div className="pivot-cols" role="group" aria-label="ستون‌های سکتور">
-        {RETAIL_SECTORS.map((s) => (
-          <label key={s} className="ie-check" title={profileLabel(s)}>
-            <input type="checkbox" checked={shown.includes(s)} onChange={() => setShown((cur) => (cur.includes(s) ? cur.filter((x) => x !== s) : RETAIL_SECTORS.filter((x) => cur.includes(x) || x === s)))} />
-            <span>{SECTOR_SHORT[s]}</span>
-          </label>
-        ))}
-      </div>
+
+      {sector !== 'ALL' && (
+        <fieldset className="pivot-features">
+          <legend className="ie-label">امکانات فروشگاه (مثل مرحلهٔ «امکانات فیزیکی» بازدید جدید)</legend>
+          <div className="ie-checks">
+            {FEATURES.map((f) => (
+              <label key={f.key} className="ie-check">
+                <input type="checkbox" checked={!!features[f.key]} onChange={(e) => setFeatures((cur) => ({ ...cur, [f.key]: e.target.checked }))} />
+                <span>{f.label}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
+
       <div className="fr-table-wrap">
         <table className="fr-table pivot-table">
           <thead>
             <tr>
               {head('name', 'منطقه / موضوع')}
-              {head('total', 'کل')}
-              {RETAIL_SECTORS.filter((s) => shown.includes(s)).map((s) => head(s, <span dir="ltr">{SECTOR_SHORT[s]}</span>, profileLabel(s)))}
+              {head('total', 'کل (بر اساس اکسل)')}
+              {formatCols.map((f) => head(f.code, f.label))}
               <th scope="col">کدها</th>
             </tr>
           </thead>
@@ -189,8 +253,8 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[] }> = ({ indicators }) =
                     </button>
                   </th>
                   <td className="ltr-num fr-table__rate">{faDigits(r.items.length)}</td>
-                  {RETAIL_SECTORS.filter((s) => shown.includes(s)).map((s) => (
-                    <td key={s} className="ltr-num">{faDigits(countOf(r.items, s))}</td>
+                  {formatCols.map((f) => (
+                    <td key={f.code} className="ltr-num">{faDigits(countOf(r.items, f.code))}</td>
                   ))}
                   <td className="pivot-muted">{faDigits(r.topics.length)} موضوع</td>
                 </tr>
@@ -199,8 +263,8 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[] }> = ({ indicators }) =
                     <tr key={topic} className="pivot-topic">
                       <th scope="row">{topic}</th>
                       <td className="ltr-num">{faDigits(items.length)}</td>
-                      {RETAIL_SECTORS.filter((s) => shown.includes(s)).map((s) => (
-                        <td key={s} className="ltr-num">{faDigits(countOf(items, s))}</td>
+                      {formatCols.map((f) => (
+                        <td key={f.code} className="ltr-num">{faDigits(countOf(items, f.code))}</td>
                       ))}
                       <td>
                         <span className="pivot-codes" dir="ltr">{items.map((i) => i.code).join(' · ')}</span>
@@ -213,9 +277,9 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[] }> = ({ indicators }) =
           <tfoot>
             <tr>
               <th scope="row">جمع کل</th>
-              <td className="ltr-num">{faDigits(total)}</td>
-              {RETAIL_SECTORS.filter((s) => shown.includes(s)).map((s) => (
-                <td key={s} className="ltr-num">{faDigits(countOf(store, s))}</td>
+              <td className="ltr-num">{faDigits(ofSector.length)}</td>
+              {formatCols.map((f) => (
+                <td key={f.code} className="ltr-num">{faDigits(countOf(ofSector, f.code))}</td>
               ))}
               <td />
             </tr>
