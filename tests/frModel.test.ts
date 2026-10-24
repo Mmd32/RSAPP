@@ -5,7 +5,7 @@
  */
 import assert from 'node:assert/strict';
 import type { Indicator, QuestionResponse, VisitSession } from '../src/types';
-import { computeBrandFrictionRates, computeStoreFrictionRate, topFrictionTopics } from '../src/engine/frModel';
+import { computeBrandFrictionRates, computeStoreFrictionRate, nameKey, topFrictionTopics } from '../src/engine/frModel';
 
 let n = 0;
 const indicators: Indicator[] = [];
@@ -74,5 +74,20 @@ const branches = computeBrandFrictionRates('Opal', [
 ]);
 assert.deepEqual(branches.map((b) => [b.branchName, b.visitId]), [['B', 'b1'], ['A', 'a2']]);
 close(branches[0].rate, 0.8);
+
+// Spellings of one brand or branch are the same thing; several spellings can be merged into one business.
+assert.equal(nameKey(' هوکاني '), nameKey('هوکانی'));
+assert.equal(nameKey('Opal  '), nameKey('opal'));
+const spelled = computeBrandFrictionRates('Opal', [
+  visit('s1', 'ولیعصر', '2026-01-01', 1),
+  { ...visit('s2', 'ولیعصر ', '2026-02-01', 5), brandName: 'opal ' } as VisitSession,
+  { ...visit('s3', 'جردن', '2026-01-15', 8), brandName: 'OPAL' } as VisitSession,
+]);
+assert.deepEqual(spelled.map((b) => b.visitId), ['s3', 's2'], 'one row per branch, newest visit, spellings merged');
+const mergedBrands = computeBrandFrictionRates(['Opal', 'Opal Vali'], [
+  visit('m1', 'A', '2026-01-01', 1),
+  { ...visit('m2', 'B', '2026-01-02', 2), brandName: 'Opal Vali' } as VisitSession,
+]);
+assert.equal(mergedBrands.length, 2, 'two brand names merged into one business');
 
 console.log('FR model: all checks passed');

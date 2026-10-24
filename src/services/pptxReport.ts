@@ -291,8 +291,9 @@ export async function downloadStoreDeck(visit: VisitSession) {
 }
 
 /** The deck of a whole brand: the business slides, then two slides for every branch's latest visit. */
-export async function downloadBusinessDeck(brandName: string, visits: VisitSession[]) {
-  const latest = latestVisitPerBranch(brandName, visits);
+export async function downloadBusinessDeck(brandNames: string | string[], visits: VisitSession[]) {
+  const brandName = (Array.isArray(brandNames) ? brandNames[0] : brandNames) || '';
+  const latest = latestVisitPerBranch(brandNames, visits);
   if (!latest.length) return;
   const pptx = await newDeck();
   pptx.title = `گزارش کل کسب‌وکار ${brandName}`;

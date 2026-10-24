@@ -1,5 +1,5 @@
 import { faDate, faDigits, faPercent, groupLabel, stageLabel } from '../utils/format';
-import { computeStoreFrictionRate } from '../engine/frModel';
+import { nameKey, computeStoreFrictionRate } from '../engine/frModel';
 
 const ANSWER_FA: Record<string, string> = {
   NO_FRICTION: 'مناسب',
@@ -100,9 +100,9 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
     };
 
     const sameBranch = finished
-      .filter((v) => v.brandName === visit.brandName && v.branchName === visit.branchName && v.startedAt < visit.startedAt)
+      .filter((v) => nameKey(v.brandName) === nameKey(visit.brandName) && nameKey(v.branchName) === nameKey(visit.branchName) && v.startedAt < visit.startedAt)
       .sort((a, b) => b.startedAt.localeCompare(a.startedAt));
-    const sameBrand = finished.filter((v) => v.brandName === visit.brandName);
+    const sameBrand = finished.filter((v) => nameKey(v.brandName) === nameKey(visit.brandName));
 
     const context: ComparisonVisitContext = {};
     if (sameBranch[0]) context.previousVisitScores = getVisitDimensionScores(sameBranch[0], activeProfile);
