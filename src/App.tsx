@@ -71,7 +71,7 @@ import {
   Menu,
 } from 'lucide-react';
 import { stageLabel } from './utils/format';
-import { IndicatorService, buildIndicatorList, type CustomIndicator, type CustomIndicatorInput, type IndicatorEdit, type IndicatorOverride } from './services/indicatorService';
+import { IndicatorService, buildIndicatorList, isCatalogCleared, type CustomIndicator, type CustomIndicatorInput, type IndicatorEdit, type IndicatorOverride } from './services/indicatorService';
 
 // Code Splitting for heavy secondary views (Audit Priority 3 / P2)
 const VisitReportView = React.lazy(() =>
@@ -313,6 +313,14 @@ export const App: React.FC = () => {
   const deleteCustomIndicator = async (id: string) => {
     await IndicatorService.removeCustom(id);
     changeCustom((prev) => prev.filter((c) => c.id !== id));
+  };
+  const clearAllIndicators = async () => {
+    await IndicatorService.clearAll();
+    await reloadIndicators();
+  };
+  const restoreChecklist = async () => {
+    await IndicatorService.restoreChecklist();
+    await reloadIndicators();
   };
   const resetIndicatorEdit = async (indicatorId: string) => {
     await IndicatorService.reset(indicatorId);
@@ -1845,6 +1853,9 @@ export const App: React.FC = () => {
               onUpdateCustom={updateCustomIndicator}
               onDeleteCustom={deleteCustomIndicator}
               onReload={reloadIndicators}
+              cleared={isCatalogCleared(indicatorOverrides)}
+              onClearAll={clearAllIndicators}
+              onRestoreChecklist={restoreChecklist}
             />
           )}
 
