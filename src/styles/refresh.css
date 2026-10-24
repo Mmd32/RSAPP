@@ -598,3 +598,7 @@ svg.lucide { stroke-width: 1.75px; }
 .xl-off { opacity: 0.45; }
 .xl-actions { white-space: nowrap; }
 .xl-actions .btn-secondary { min-height: 30px; padding: 0 8px; margin-inline-end: 4px; }
+
+.business-merge { margin-bottom: var(--sp-4); }
+.business-merge summary { cursor: pointer; font-weight: var(--fw-semibold); }
+.business-merge__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--sp-2); margin-top: var(--sp-3); }

@@ -124,23 +124,46 @@ export function isFinishedVisit(v: VisitSession): boolean {
   return (v.status === 'SUBMITTED' || v.status === 'APPROVED') && !!v.indicators?.length;
 }
 
-/** Each branch's most recent finished visit of a brand; `current` stands in for its own branch. */
-export function latestVisitPerBranch(brandName: string, visits: VisitSession[], current?: VisitSession): VisitSession[] {
+/**
+ * Names typed by hand differ in ways nobody means: spaces, Arabic ي/ك, half-spaces,
+ * capital letters. Two spellings of one brand or branch are the same thing.
+ */
+export function nameKey(name: string | undefined | null): string {
+  return String(name ?? '')
+    .replace(/ي/g, 'ی')
+    .replace(/ك/g, 'ک')
+    .replace(/[\u200c\u200f\u200e\s]+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+const sameBrand = (brand: string | string[], other: string) => {
+  const key = nameKey(other);
+  return (Array.isArray(brand) ? brand : [brand]).some((b) => nameKey(b) === key);
+};
+
+/**
+ * Each branch's most recent finished visit of a brand (or of several brand
+ * spellings merged into one business); `current` stands in for its own branch.
+ * Every branch counts once, however many times it was assessed.
+ */
+export function latestVisitPerBranch(brandName: string | string[], visits: VisitSession[], current?: VisitSession): VisitSession[] {
   const latest = new Map<string, VisitSession>();
-  const finished = visits.filter((v) => v.brandName === brandName && isFinishedVisit(v));
+  const finished = visits.filter((v) => sameBrand(brandName, v.brandName) && isFinishedVisit(v));
   for (const v of finished) {
     const at = v.completedAt || v.startedAt || '';
-    const prev = latest.get(v.branchName);
-    if (!prev || at > (prev.completedAt || prev.startedAt || '')) latest.set(v.branchName, v);
+    const key = nameKey(v.branchName);
+    const prev = latest.get(key);
+    if (!prev || at > (prev.completedAt || prev.startedAt || '')) latest.set(key, v);
   }
-  if (current && current.brandName === brandName && current.indicators?.length) {
-    latest.set(current.branchName, current);
+  if (current && sameBrand(brandName, current.brandName) && current.indicators?.length) {
+    latest.set(nameKey(current.branchName), current);
   }
   return [...latest.values()];
 }
 
 export function computeBrandFrictionRates(
-  brandName: string,
+  brandName: string | string[],
   visits: VisitSession[],
   current?: VisitSession,
 ): BranchFrictionRate[] {

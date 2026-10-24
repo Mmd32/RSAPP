@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { PlusCircle, PlayCircle, Building2 } from 'lucide-react';
 import { VisitSession, UserRole } from '../../types';
 import { faDate, faDigits } from '../../utils/format';
-import { computeBrandFrictionRates, isFinishedVisit } from '../../engine/frModel';
+import { computeBrandFrictionRates, isFinishedVisit, nameKey } from '../../engine/frModel';
 import { faRate } from '../FrictionRateReport';
 
 /*
@@ -72,7 +72,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   const stats = useMemo(() => {
     const finished = visits.filter(isFinishedVisit);
-    const brands = [...new Set(finished.map((v) => v.brandName))];
+    const brands = [...new Map(finished.map((v) => [nameKey(v.brandName), v.brandName])).values()];
     const branches = brands
       .flatMap((b) => computeBrandFrictionRates(b, visits).map((r) => ({ ...r, brandName: b })))
       .sort((a, b) => b.rate - a.rate)
