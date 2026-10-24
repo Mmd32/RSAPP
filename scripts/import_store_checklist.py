@@ -27,6 +27,16 @@ journeyStage and reportingDimension (they drive the legacy 8-dimension radar and
 the form). They are copied from the previous catalog row with the same code, else from the previous
 rows with the same topic, else from the zone. The report prints how many rows used each source.
 
+Fashion per store format
+------------------------
+Fashion is not read from the sheets above any more. Each Fashion store format has its own workbook
+(data/reference/FR_Checklist_Fashion_*.xlsx, visible sheet "Check List- Fashion", an X in the
+format's column marks the KPIs that format is asked). The Fashion list is the union of the four
+files in the order of the Shopping mall file (the other three are subsequences of it, checked on
+import); every row records the formats whose file has it (applicableFormats). The hidden all-sector
+sheet in those files is the same as in Nima's workbook, so the other 12 sectors are unchanged.
+Blank topic cells in the format files are merged cells: they take the topic of the row above.
+
 Run: python3 scripts/import_store_checklist.py [--dry-run]
 """
 import collections
@@ -42,6 +52,14 @@ XLSX = os.path.join(ROOT, "data/reference/FR Checklist- Fashion-Nima.xlsx")
 FILES = [os.path.join(ROOT, "data/catalog.json"), os.path.join(ROOT, "src/data/catalog.json")]
 FASHION_SHEET, MATRIX_SHEET = "Check List", "Check List-V5 (2)"
 HEADER_ROW = 8
+FORMAT_SHEET = "Check List- Fashion"
+FORMAT_FILES = {  # LocationContext code -> workbook (listed in the order the formats are shown)
+    "STREET_STORE": "data/reference/FR_Checklist_Fashion_Stand_alone.xlsx",
+    "MALL_STORE": "data/reference/FR_Checklist_Fashion_Shopping_mall.xlsx",
+    "SHOP_IN_SHOP": "data/reference/FR_Checklist_Fashion_Shop_in_Shop.xlsx",
+    "KIOSK": "data/reference/FR_Checklist_Fashion_Kiosk.xlsx",
+}
+MASTER_FORMAT = "MALL_STORE"  # the file with every Fashion KPI, in the reading order
 
 SECTORS = {"Fashion": "Fashion", "Shoe & Bag": "Shoe_Bag", "Watch & Jewelry": "Watch_Jewelry", "FMCG": "FMCG",
            "F&B": "F_B", "Hardware": "Hardware", "Homeware": "Homeware", "Beauty/Cosmetics": "Beauty_Cosmetics",
@@ -125,8 +143,8 @@ def resolve_topics(rows, other_by_code):
     return stats
 
 
-def parse_workbook():
-    """The workbook's KPI list as plain rows: order, code, zone, topic, statement, sectors.
+def parse_matrix_workbook():
+    """The Nima workbook's KPI list as plain rows: order, code, zone, topic, statement, sectors.
 
     The visible sheet is the Fashion checklist (full wording, the order people read). The hidden
     all-sector sheet also carries KPIs that only other sectors have (a column with an X marks the
@@ -204,6 +222,74 @@ def parse_workbook():
     return merged, topic_stats
 
 
+def parse_format_workbooks():
+    """Fashion KPIs from the four store-format workbooks, one row per KPI in the master order."""
+    per_format = {}
+    for fmt, rel in FORMAT_FILES.items():
+        path = os.path.join(ROOT, rel)
+        wf, wv = openpyxl.load_workbook(path), openpyxl.load_workbook(path, data_only=True)
+        _, rows = read_sheet(wf, wv, FORMAT_SHEET)
+        per_format[fmt] = rows
+    master = per_format[MASTER_FORMAT]
+    order = [r["_code"] for r in master]
+    if len(set(order)) != len(order):
+        raise SystemExit("duplicate code in the master Fashion file")
+    for fmt, rows in per_format.items():
+        codes = [r["_code"] for r in rows]
+        it = iter(order)
+        if len(set(codes)) != len(codes) or not all(c in it for c in codes):
+            raise SystemExit(f"{fmt}: codes repeat or are not in the master order")
+    by_code = {}
+    for fmt, rows in per_format.items():
+        for r in rows:
+            by_code.setdefault(r["_code"], {})[fmt] = r
+    rows, previous_topic = [], None
+    for code in order:
+        variants = by_code[code]
+        first = variants[MASTER_FORMAT]
+        for field in ("KPI", "_zone"):
+            if len({clean(v[field]) for v in variants.values()}) > 1:
+                raise SystemExit(f"{code}: {field} differs between the format files")
+        topic = next((clean(v["موضوع"]) for v in variants.values() if clean(v["موضوع"]) not in ("", "#REF!")), "")
+        topic = topic or previous_topic
+        previous_topic = topic
+        note = next((v["_note"] for v in variants.values() if v["_note"]), "")
+        rows.append({"code": code, "group": first["_zone"], "subject": topic, "statement": clean(first["KPI"]),
+                     "note": note, "sectors": ["Fashion"], "formats": [f for f in FORMAT_FILES if f in variants],
+                     "in_matrix": False, "source": "format"})
+    return rows
+
+
+def parse_workbook():
+    """Every store KPI: the Fashion list of the format workbooks first, then the other sectors' KPIs.
+
+    The Nima workbook rows keep their ids and order; Fashion is taken off them (the format workbooks
+    are the Fashion list) and a row left with no sector at all is dropped.
+    """
+    matrix_rows, topic_stats = parse_matrix_workbook()
+    n_checklist = n_matrix = 0
+    n_visible = sum(1 for r in matrix_rows if r["source"] == "checklist")
+    rest = []
+    for row in matrix_rows:
+        if row["source"] == "checklist":
+            n_checklist += 1
+            row["number"] = n_checklist
+        else:
+            n_matrix += 1
+            row["number"] = n_visible + n_matrix
+        row["sectors"] = [s for s in row["sectors"] if s != "Fashion"]
+        if row["sectors"]:
+            row["formats"] = []
+            rest.append(row)
+    fashion = parse_format_workbooks()
+    for n, row in enumerate(fashion, start=1):
+        row["number"] = n
+    merged = fashion + rest
+    for n, row in enumerate(merged, start=1):
+        row["order"] = n
+    return merged, topic_stats
+
+
 def main(dry_run):
     rows, topic_stats = parse_workbook()
 
@@ -224,17 +310,9 @@ def main(dry_run):
 
     source = collections.Counter()
     store = []
-    # Ids stay as they were for the visible-sheet KPIs (numbered in that sheet's order); the
-    # all-sector-only KPIs follow in the order they come.
-    n_checklist = n_matrix = 0
-    n_visible = sum(1 for r in rows if r["source"] == "checklist")
+    # Ids stay as they were for the Nima rows (IND_FR_, numbered in that workbook's order); the Fashion
+    # format rows are IND_FF_ in the Shopping mall file's order.
     for row in rows:
-        if row["source"] == "checklist":
-            n_checklist += 1
-            number = n_checklist
-        else:
-            n_matrix += 1
-            number = n_visible + n_matrix
         old = by_code.get(row["code"])
         if old and key(old["subject"]) == key(row["subject"]):
             origin, donor = "same code and topic", old
@@ -250,7 +328,7 @@ def main(dry_run):
             stage, dim = majority(donor, "journeyStage"), majority(donor, "reportingDimension")
             photo, comment, weight = False, False, 1.0
         store.append({
-            "id": f"IND_FR_{number:04d}",
+            "id": f"IND_FF_{row['number']:04d}" if row["source"] == "format" else f"IND_FR_{row['number']:04d}",
             "code": row["code"],
             "template": "STORE",
             "group": row["group"],
@@ -267,10 +345,11 @@ def main(dry_run):
             "displayOrder": row["order"],
             "applicableBusinessTypes": row["sectors"],
             "applicableMallTypes": [],
+            **({"applicableFormats": row["formats"]} if row["formats"] else {}),
             **({"auditorNote": row["note"]} if row["note"] else {}),
         })
 
-    fashion_only = [r["code"] for r in rows if not r["in_matrix"]]
+    fashion_only = [r["code"] for r in rows if not r["in_matrix"] and r["source"] != "format"]
     by_source = collections.Counter(r["source"] for r in rows)
     by_zone_count = collections.Counter(i["group"] for i in store)
     print(f"{len(store)} store indicators ({dict(by_source)}):", dict(by_zone_count))
