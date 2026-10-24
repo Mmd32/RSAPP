@@ -391,7 +391,7 @@ export const IndicatorForm: React.FC<FormProps> = ({ indicator, all, onCreate, o
             <>
               <label className="ie-check">
                 <input type="checkbox" checked={photo} onChange={(e) => setPhoto(e.target.checked)} />
-                <span>ثبت عکس الزامی باشد</span>
+                <span>ثبت عکس الزامی باشد <small className="ie-hint">(فعلاً عکس برای همهٔ شاخص‌ها اختیاری است)</small></span>
               </label>
               <label className="ie-check">
                 <input type="checkbox" checked={comment} onChange={(e) => setComment(e.target.checked)} />
