@@ -265,14 +265,14 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
               type="button"
               className={`sidebar-nav-item ${viewMode === 'REPORT' ? 'active' : ''}`}
               onClick={() => handleNavClick('REPORT')}
-              title="گزارش و رادار ۳۶۰"
+              title="گزارش فروشگاه ۳۶۰"
             >
               <div className="nav-icon-wrap">
                 <BarChart3 size={18} />
               </div>
               {!isCollapsed && (
                 <>
-                  <span className="nav-item-label">گزارش و رادار</span>
+                  <span className="nav-item-label">گزارش فروشگاه</span>
                 </>
               )}
             </button>

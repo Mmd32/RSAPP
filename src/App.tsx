@@ -376,6 +376,7 @@ export const App: React.FC = () => {
   // Brands and their branches. Visits keep the names as typed; reports use the brand and branch they belong to today.
   const [brands, setBrands] = useState<Brand[]>(() => BrandService.cached(currentUser.tenantId));
   const [directory, setDirectory] = useState<SavedStoreDirectoryItem[]>(() => StoreService.getLocalStores());
+  const [wizardPreset, setWizardPreset] = useState<{ brandName: string; branchName: string } | null>(null);
   const reloadBrands = React.useCallback(async () => {
     const [b, s] = await Promise.all([BrandService.load(currentUser.tenantId), StoreService.getAllStores()]);
     setBrands(b);
@@ -418,6 +419,12 @@ export const App: React.FC = () => {
     if (typeof window !== 'undefined') {
       window.location.hash = mode.toLowerCase();
     }
+  };
+
+  // Start a new visit for a branch picked in the brand manager or the business report.
+  const startVisitFor = (brandName: string, branchName: string) => {
+    setWizardPreset({ brandName, branchName });
+    setViewMode('WIZARD');
   };
 
   useEffect(() => {
@@ -1235,7 +1242,7 @@ export const App: React.FC = () => {
                   : 'فرم ارزیابی میدانی')}
               {viewMode === 'REVIEW' && 'کنترل کیفیت و مرور پاسخ‌ها'}
               {viewMode === 'SUPERVISOR' && 'کارتابل سرپرست ارزیابی'}
-              {viewMode === 'REPORT' && 'گزارش تحلیلی و رادار ۳۶۰°'}
+              {viewMode === 'REPORT' && 'گزارش اصطکاک فروشگاه'}
               {viewMode === 'BUSINESS' && 'گزارش کل کسب‌وکار'}
               {viewMode === 'REVISIT' && 'تحلیل مقایسه‌ای و پایش بهبود'}
               {viewMode === 'ACTIONS' && 'کارتابل پیگیری اقدامات اصلاحی'}
@@ -1438,6 +1445,8 @@ export const App: React.FC = () => {
             allIndicators={allIndicators}
             brands={brands}
             onBrandsChanged={reloadBrands}
+            preset={wizardPreset}
+            onPresetUsed={() => setWizardPreset(null)}
             onStartVisit={handleStartVisit}
             currentUserName={currentUserName}
           />
@@ -1845,11 +1854,11 @@ export const App: React.FC = () => {
           )}
 
           {viewMode === 'BUSINESS' && (
-            <BusinessReportView visits={reportVisits} brands={brands} isLoading={isLoadingVisits} onOpenVisit={handleOpenArchivedVisit} />
+            <BusinessReportView visits={reportVisits} brands={brands} isLoading={isLoadingVisits} onOpenVisit={handleOpenArchivedVisit} onNewVisit={can.fieldWork ? startVisitFor : undefined} />
           )}
 
           {viewMode === 'BRANDS' && (
-            <BrandManager brands={brands} stores={directory} visits={reportVisits} canManage={can.adminTools} onChanged={reloadBrands} />
+            <BrandManager brands={brands} stores={directory} visits={reportVisits} canManage={can.adminTools} onChanged={reloadBrands} onNewVisit={can.fieldWork ? startVisitFor : undefined} />
           )}
 
           {/* REVISIT HISTORICAL COMPARISON VIEW (Prompt 4) */}
@@ -1857,7 +1866,7 @@ export const App: React.FC = () => {
             <RevisitComparisonView
               visits={
                 pastVisits.length > 0
-                  ? pastVisits
+                  ? reportVisits
                   : activeSession
                   ? [activeSession]
                   : []
