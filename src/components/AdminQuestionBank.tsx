@@ -2,7 +2,9 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Indicator, LocationContextCode } from '../types';
 import { generateDynamicChecklistWithAudit } from '../engine/ruleEngine';
 import { Database, Filter, CheckCircle, AlertTriangle, Layers, Plus, FileSpreadsheet, Trash2 } from 'lucide-react';
-import { stageLabel, groupLabel, faDigits, profileLabel } from '../utils/format';
+import { groupLabel, faDigits, profileLabel } from '../utils/format';
+import { nameKey } from '../engine/frModel';
+import { PHOTOS_REQUIRED } from '../config/policy';
 import { IndicatorEditor, IndicatorForm } from './IndicatorEditor';
 import { IndicatorExcel } from './IndicatorExcel';
 import type { IndicatorEdit, CustomIndicatorInput } from '../services/indicatorService';
@@ -345,11 +347,19 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
   useEffect(() => setVisibleCount(PAGE_SIZE), [templateFilter, selectedGroup, onlyEdited, onlyWithNote, onlyAdded, searchQuery]);
 
   // Extract unique groups
+  // Zones for the store family, groups for the mall family; both in the checklist's order.
   const groups = useMemo(() => {
     const set = new Set<string>();
-    indicators.forEach((i) => set.add(i.group));
+    [...indicators]
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .filter((i) => templateFilter === 'ALL' || i.template === templateFilter)
+      .forEach((i) => set.add(i.group));
     return Array.from(set);
-  }, [indicators]);
+  }, [indicators, templateFilter]);
+  // A group that does not belong to the chosen family is cleared.
+  useEffect(() => {
+    if (selectedGroup !== 'ALL' && !groups.includes(selectedGroup)) setSelectedGroup('ALL');
+  }, [groups, selectedGroup]);
 
   const filteredIndicators = useMemo(() => {
     return indicators.filter((ind) => {
@@ -360,10 +370,11 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
       if (onlyAdded && !ind.custom) return false;
 
       if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const codeMatch = ind.code.toLowerCase().includes(q);
-        const subjMatch = ind.subject.toLowerCase().includes(q);
-        const stmtMatch = ind.statement.toLowerCase().includes(q);
+        // Arabic and Persian letters, spaces and case do not matter.
+        const q = nameKey(searchQuery);
+        const codeMatch = nameKey(ind.code).includes(q);
+        const subjMatch = nameKey(ind.subject).includes(q);
+        const stmtMatch = nameKey(ind.statement).includes(q);
         if (!codeMatch && !subjMatch && !stmtMatch) return false;
       }
       return true;
@@ -382,7 +393,7 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <Database color="var(--rs-color-brand-cyan)" size={24} />
             <div>
-              <h2 style={{ fontSize: 20, fontWeight: 700 }}>بانک مرکزی شاخص‌ها و موتور قوانین</h2>
+              <h2 style={{ fontSize: 20, fontWeight: 700 }}>بانک شاخص‌ها</h2>
               <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
                 مدیریت {faDigits(activeIndicators.length)} شاخص فعال بدون نیاز به تغییر در کد
               </p>
@@ -488,7 +499,7 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
       <div className="glass-panel" style={{ padding: 20 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-            نمایش <strong style={{ color: 'var(--theme-text-primary)' }}>{filteredIndicators.length}</strong> شاخص از مجموع {indicators.length}
+            نمایش <strong style={{ color: 'var(--theme-text-primary)' }}>{faDigits(filteredIndicators.length)}</strong> شاخص از مجموع {faDigits(indicators.length)}
           </span>
         </div>
 
@@ -499,7 +510,7 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
                 <th style={{ textAlign: 'right', padding: '10px 8px' }}>کد شاخص</th>
                 <th style={{ textAlign: 'right', padding: '10px 8px' }}>گروه و موضوع</th>
                 <th style={{ textAlign: 'right', padding: '10px 8px' }}>متن استاندارد KPI</th>
-                <th style={{ textAlign: 'center', padding: '10px 8px' }}>مرحله سفر</th>
+                <th style={{ textAlign: 'center', padding: '10px 8px' }}>سکتورها</th>
                 <th style={{ textAlign: 'center', padding: '10px 8px' }}>عکس</th>
                 <th style={{ textAlign: 'center', padding: '10px 8px' }}>{canEdit ? 'ویرایش' : 'جزئیات'}</th>
               </tr>
@@ -532,10 +543,18 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
                     )}
                   </td>
                   <td style={{ textAlign: 'center', padding: '10px 8px', fontSize: 11, color: 'var(--rs-color-brand-cyan)' }}>
-                    {stageLabel(ind.journeyStage)}
+                    {ind.template === 'STORE'
+                      ? (ind.applicableBusinessTypes?.length || 0) >= 13 || !ind.applicableBusinessTypes?.length
+                        ? 'همه (۱۳)'
+                        : (ind.applicableBusinessTypes!.length <= 2
+                            ? ind.applicableBusinessTypes!.map((c) => profileLabel(c)).join('، ')
+                            : <span title={ind.applicableBusinessTypes!.map((c) => profileLabel(c)).join('، ')}>{faDigits(ind.applicableBusinessTypes!.length)} سکتور</span>)
+                      : (ind.applicableMallTypes?.length || 0) >= 5
+                      ? 'همه (۵)'
+                      : <span title={(ind.applicableMallTypes || []).map((c) => profileLabel(c)).join('، ')}>{faDigits(ind.applicableMallTypes?.length || 0)} نوع</span>}
                   </td>
                   <td style={{ textAlign: 'center', padding: '10px 8px' }}>
-                    {ind.requiresPhoto ? (
+                    {PHOTOS_REQUIRED && ind.requiresPhoto ? (
                       <span style={{ color: 'var(--rs-color-error)', fontSize: 11, fontWeight: 700 }}>الزامی</span>
                     ) : (
                       <span style={{ color: 'var(--text-dim)', fontSize: 11 }}>اختیاری</span>
