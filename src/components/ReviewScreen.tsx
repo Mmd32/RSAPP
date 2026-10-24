@@ -15,6 +15,8 @@ interface ReviewScreenProps {
   onJumpToQuestion: (index: number) => void;
   onBackToAudit: () => void;
   onSubmitVisit: () => void;
+  /** For people who may approve (supervisor, project lead): submit and approve in one step. */
+  onSubmitAndApprove?: () => void;
   assessmentType: 'STORE' | 'MALL';
 }
 
@@ -24,9 +26,11 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
   onJumpToQuestion,
   onBackToAudit,
   onSubmitVisit,
+  onSubmitAndApprove,
   assessmentType,
 }) => {
   const [showConfirmModal, setShowConfirmModal] = React.useState(false);
+  const [confirmMode, setConfirmMode] = React.useState<'send' | 'approve'>('send');
   const [showAllProblems, setShowAllProblems] = React.useState(false);
   const summary = calculateVisitSummary(indicators, responses, assessmentType);
 
@@ -76,7 +80,8 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
 
   const handleConfirmSubmit = () => {
     setShowConfirmModal(false);
-    onSubmitVisit();
+    if (confirmMode === 'approve' && onSubmitAndApprove) onSubmitAndApprove();
+    else onSubmitVisit();
   };
 
   return (
@@ -224,7 +229,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
         )}
 
         {/* Submit Actions */}
-        <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
+        <div style={{ display: 'flex', gap: 12, marginTop: 24, flexWrap: 'wrap' }}>
           <button type="button" className="btn-secondary" style={{ flex: 1, justifyContent: 'center' }} onClick={onBackToAudit}>
             ویرایش پاسخ‌ها
           </button>
@@ -241,11 +246,23 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
               boxShadow: canSubmit ? '0 4px 16px rgba(0, 125, 170, 0.35)' : 'none',
             }}
             disabled={!canSubmit}
-            onClick={() => setShowConfirmModal(true)}
+            onClick={() => { setConfirmMode('send'); setShowConfirmModal(true); }}
           >
             <Send size={18} />
             <span>ارسال رسمی برای سرپرست</span>
           </button>
+
+          {onSubmitAndApprove && (
+            <button
+              type="button"
+              className="btn-primary"
+              style={{ flex: '1 1 100%', justifyContent: 'center', background: canSubmit ? 'var(--status-clean)' : 'var(--surface-disabled)', cursor: canSubmit ? 'pointer' : 'not-allowed' }}
+              disabled={!canSubmit}
+              onClick={() => { setConfirmMode('approve'); setShowConfirmModal(true); }}
+            >
+              <span>ثبت و تأیید نهایی (بدون ارسال به سرپرست دیگر)</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -257,10 +274,12 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
               <Send size={28} color="var(--rs-color-brand-cyan)" />
             </div>
             <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 8, color: 'var(--theme-text-primary)' }}>
-              تأیید نهایی و ارسال به سرپرست
+              {confirmMode === 'approve' ? 'ثبت و تأیید نهایی پرسشنامه' : 'تأیید نهایی و ارسال به سرپرست'}
             </h3>
             <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 20 }}>
-              آیا از ارسال رسمی چک‌لیست اطمینان دارید؟
+              {confirmMode === 'approve'
+                ? 'پرسشنامه ثبت می‌شود، همهٔ یافته‌ها تأیید می‌شوند و گزارش رسمی همین حالا صادر می‌شود.'
+                : 'آیا از ارسال رسمی چک‌لیست اطمینان دارید؟'}
               <br />
               <strong style={{ color: 'var(--rs-color-warning)' }}>
                 پس از ارسال، فرم در وضعیت فقط‌خواندنی (Read-Only) قرار می‌گیرد
@@ -283,7 +302,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
                 style={{ flex: 1.2, justifyContent: 'center', background: 'var(--rs-color-action-primary)', boxShadow: '0 4px 16px rgba(0, 125, 170, 0.35)' }}
                 onClick={handleConfirmSubmit}
               >
-                تأیید و ارسال به سرپرست
+                {confirmMode === 'approve' ? 'ثبت و تأیید نهایی' : 'تأیید و ارسال به سرپرست'}
               </button>
             </div>
           </div>
