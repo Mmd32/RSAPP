@@ -228,6 +228,10 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[] }> = ({ indicators }) =
         </label>
       </header>
 
+      <p className="pivot-muted" dir="ltr" style={{ margin: '0 0 8px' }}>
+        build {__APP_BUILD__} · formats-aware catalog: {store.filter((i) => i.applicableFormats?.length).length} rows
+      </p>
+
       {hasFormatFiles && (
         <div className="pivot-features">
           <span className="ie-label">قالب فروشگاه (شاخص‌ها دقیقاً از فایل اکسل همان قالب)</span>
