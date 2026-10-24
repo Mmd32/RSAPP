@@ -469,6 +469,34 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
               : 'ارزیاب هنوز این بازدید را برای سرپرست ارسال نکرده است. تأیید یا بازگرداندن پس از ارسال از صفحهٔ «کنترل کیفیت» ممکن است.'}
           </div>
         )}
+        {canDecide && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
+            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+              {allFrictionItems.length === 0
+                ? 'این بازدید اصطکاکی ندارد.'
+                : needsCorrectionCount > 0
+                ? `${faDigits(needsCorrectionCount)} مورد را نیازمند اصلاح علامت زده‌اید؛ تأیید همه فقط وقتی ممکن است که موردی برای اصلاح نمانده باشد.`
+                : 'اگر همهٔ یافته‌ها درست است، به‌جای بررسی تک‌تک، همه را یک‌جا تأیید کنید.'}
+            </span>
+            <button
+              type="button"
+              className="btn-primary"
+              style={{ background: 'var(--status-clean)' }}
+              disabled={needsCorrectionCount > 0}
+              onClick={() => {
+                const all = { ...findingDecisions };
+                allFrictionItems.forEach(({ ind }) => {
+                  if (!all[ind.id]?.status) all[ind.id] = { status: 'APPROVED' };
+                });
+                setFindingDecisions(all);
+                onApproveVisit(supervisorNotes, all);
+              }}
+            >
+              <Award size={18} />
+              <span>تأیید همه و صدور گزارش رسمی</span>
+            </button>
+          </div>
+        )}
         <div className="sup-final-actions" style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: 12 }}>
           <button
             type="button"
