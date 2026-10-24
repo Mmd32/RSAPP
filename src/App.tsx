@@ -661,8 +661,9 @@ export const App: React.FC = () => {
 
   // Load previously saved questionnaires so finished visits are reachable
   // again. Without this they were written to the backend but never read back.
-  const loadPastVisits = React.useCallback(() => {
-    setIsLoadingVisits(true);
+  const loadPastVisits = React.useCallback((silent = false) => {
+    // A background refresh keeps the list on screen; only a first or manual load shows "loading".
+    if (silent !== true) setIsLoadingVisits(true);
     setVisitsLoadError(null);
 
     return fetchPastVisits(currentTenantId)
@@ -671,10 +672,35 @@ export const App: React.FC = () => {
       })
       .catch((err) => {
         console.warn('Could not load saved visits from the backend.', err);
-        setVisitsLoadError(err instanceof Error ? err.message : String(err));
+        if (silent !== true) setVisitsLoadError(err instanceof Error ? err.message : String(err));
       })
       .finally(() => setIsLoadingVisits(false));
   }, [currentTenantId]);
+
+  // A change made here shows at once; the server copy confirms it a moment later.
+  const upsertPastVisit = React.useCallback((visit: VisitSession) => {
+    setPastVisits((prev) => [visit, ...prev.filter((v) => v.id !== visit.id)]);
+  }, []);
+
+  // Others send and approve questionnaires too: lists that depend on them refresh
+  // when opened, when the tab comes back, and every half minute while it is open.
+  useEffect(() => {
+    const watched = ['LANDING', 'SUPERVISOR', 'ARCHIVE', 'BUSINESS', 'REPORT', 'REVISIT'];
+    if (!watched.includes(viewMode)) return;
+    const refresh = () => {
+      if (document.visibilityState === 'visible' && !VisitSync.hasPendingWork()) loadPastVisits(true);
+    };
+    refresh();
+    const timer = setInterval(refresh, 30000);
+    document.addEventListener('visibilitychange', refresh);
+    window.addEventListener('focus', refresh);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', refresh);
+      window.removeEventListener('focus', refresh);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode, loadPastVisits]);
 
   useEffect(() => {
     loadPastVisits();
@@ -1080,7 +1106,8 @@ export const App: React.FC = () => {
     }
     setActiveSession(null);
     setSentVisit(updated);
-    loadPastVisits();
+    upsertPastVisit(updated);
+    loadPastVisits(true);
     // A confirmation first: it arrived, who sees it, what to do next.
     setViewMode('SENT');
   };
@@ -1106,7 +1133,8 @@ export const App: React.FC = () => {
     }
     setReviewVisit(null);
     setViewedVisit(updated);
-    loadPastVisits();
+    upsertPastVisit(updated);
+    loadPastVisits(true);
     setViewMode('REPORT');
   };
 
@@ -1128,7 +1156,8 @@ export const App: React.FC = () => {
       return;
     }
     setReviewVisit(null);
-    loadPastVisits();
+    upsertPastVisit(updated);
+    loadPastVisits(true);
     setViewMode('SUPERVISOR');
   };
 
