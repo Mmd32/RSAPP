@@ -182,6 +182,18 @@ export const IndicatorService = {
     return (await res.json()) as CustomIndicator;
   },
 
+  /** Deletes every indicator: hand-added ones for good, the checklist file's are switched off. */
+  async clearAll(): Promise<void> {
+    const res = await apiFetch('/indicators/clear', { method: 'POST' });
+    if (!res.ok) throw await failure(res);
+  },
+
+  /** Brings the checklist file's indicators back after clearAll. */
+  async restoreChecklist(): Promise<void> {
+    const res = await apiFetch('/indicators/restore', { method: 'POST' });
+    if (!res.ok) throw await failure(res);
+  },
+
   async removeCustom(id: string): Promise<void> {
     const res = await apiFetch(`/custom-indicators/${encodeURIComponent(id)}`, { method: 'DELETE' });
     if (!res.ok) throw await failure(res);
@@ -189,8 +201,13 @@ export const IndicatorService = {
 };
 
 /** The checklist with every edit applied. An edit whose code no longer matches its row is ignored. */
+/** Marker the server stores when every indicator of the checklist file has been removed. */
+export const CLEARED_ID = '__CATALOG_CLEARED__';
+export const isCatalogCleared = (overrides: IndicatorOverride[]) => overrides.some((o) => o.indicatorId === CLEARED_ID);
+
 export function applyOverrides(base: Indicator[], overrides: IndicatorOverride[]): Indicator[] {
   if (!overrides.length) return base;
+  if (isCatalogCleared(overrides)) return [];
   const byId = new Map(overrides.map((o) => [o.indicatorId, o]));
   return base.map((ind) => {
     const o = byId.get(ind.id);

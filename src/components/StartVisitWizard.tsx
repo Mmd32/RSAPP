@@ -995,6 +995,8 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
             <button
               type="button"
               onClick={handleStart}
+              disabled={!previewIndicators.length}
+              title={previewIndicators.length ? undefined : 'شاخصی برای این فروشگاه در برنامه نیست؛ از «بانک شاخص‌ها» شاخص اضافه کنید.'}
               className="btn-primary"
               style={{
                 background: 'var(--rs-color-action-primary)',

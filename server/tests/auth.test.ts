@@ -369,6 +369,26 @@ try {
     assert.equal(on.json.override, null, 'back on, and nothing else edited: nothing is stored');
   });
 
+  await test('removing every indicator, and bringing the checklist back', async () => {
+    await admin.req('POST', '/custom-indicators', base);
+    assert.equal((await evaluator.req('POST', '/indicators/clear')).status, 403);
+    assert.equal((await anon.req('POST', '/indicators/clear')).status, 401);
+    const cleared = await admin.req('POST', '/indicators/clear');
+    assert.equal(cleared.status, 200);
+    assert.ok(cleared.json.removedCustom >= 1);
+    assert.deepEqual((await admin.req('GET', '/custom-indicators')).json, [], 'hand-added indicators are gone');
+    const marks = (await admin.req('GET', '/indicator-overrides')).json;
+    assert.equal(marks.length, 1, 'only the "all removed" marker is left');
+    // The codes of the removed checklist are free again.
+    const reuse = await admin.req('POST', '/custom-indicators', { ...base, code: 'FS01' });
+    assert.equal(reuse.status, 201);
+    await admin.req('DELETE', `/custom-indicators/${reuse.json.id}`);
+    assert.equal((await evaluator.req('POST', '/indicators/restore')).status, 403);
+    assert.equal((await admin.req('POST', '/indicators/restore')).status, 200);
+    assert.deepEqual((await admin.req('GET', '/indicator-overrides')).json, [], 'checklist is back');
+    assert.equal((await admin.req('POST', '/custom-indicators', { ...base, code: 'FS01' })).status, 409, 'its codes are taken again');
+  });
+
   console.log('visits');
 
   await test('evaluator creates and edits their own visit; server stamps authorship', async () => {

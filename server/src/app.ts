@@ -303,6 +303,14 @@ app.get('/api/indicators', (req: Request, res: Response) => {
 const MAX_STATEMENT = 600;
 const MAX_NOTE = 1200;
 
+/** Marker row: the checklist file's indicators are all removed for this account (Restore deletes it). */
+const CLEARED_ID = '__CATALOG_CLEARED__';
+const catalogCleared = async (tenantId: string) =>
+  (await store.listIndicatorOverrides(tenantId)).some((o) => o.indicatorId === CLEARED_ID);
+/** Codes of the checklist file that still exist for this account. */
+const liveCatalogCodes = async (tenantId: string): Promise<string[]> =>
+  (await catalogCleared(tenantId)) ? [] : (catalog?.indicators || []).map((i: any) => i.code);
+
 const catalogIndicator = (id: string): any | undefined =>
   catalog?.indicators?.find((i: any) => i.id === id);
 
@@ -501,7 +509,7 @@ app.post(
     const f = cleaned.fields!;
     const customs = await store.listCustomIndicators(tenantOf(req));
 
-    const taken = new Set([...(catalog?.indicators || []).map((i: any) => i.code), ...customs.map((c) => c.code)].map((c: string) => c.toLowerCase()));
+    const taken = new Set([...(await liveCatalogCodes(tenantOf(req))), ...customs.map((c) => c.code)].map((c: string) => c.toLowerCase()));
     let code = collapse(body.code);
     if (code) {
       if (!CODE_PATTERN.test(code)) return res.status(400).json({ error: 'کد فقط حروف انگلیسی، عدد، خط تیره یا زیرخط و بین ۲ تا ۲۰ نویسه است.' });
@@ -558,7 +566,7 @@ app.put(
     if (body.code !== undefined) {
       const next = collapse(body.code) || '';
       if (!CODE_PATTERN.test(next)) return res.status(400).json({ error: 'کد فقط حروف انگلیسی، عدد، خط تیره یا زیرخط و بین ۲ تا ۲۰ نویسه است.' });
-      const others = [...(catalog?.indicators || []).map((i: any) => i.code), ...customs.filter((c) => c.id !== current.id).map((c) => c.code)];
+      const others = [...(await liveCatalogCodes(tenantOf(req))), ...customs.filter((c) => c.id !== current.id).map((c) => c.code)];
       if (others.some((c: string) => c.toLowerCase() === next.toLowerCase())) return res.status(409).json({ error: 'این کد برای شاخص دیگری استفاده شده است.' });
       code = next;
     }
@@ -572,6 +580,39 @@ app.put(
     await store.saveCustomIndicator(tenantOf(req), updated);
     logger.security('Indicator changed', { by: req.user!.id, indicatorId: current.id, code });
     res.json(updated);
+  })
+);
+
+// Remove every indicator of the app: the ones added by hand are deleted, the checklist file's are switched off for good.
+app.post(
+  '/api/indicators/clear',
+  requirePermission('catalog.manage'),
+  route(async (req, res) => {
+    const tenantId = tenantOf(req);
+    const customs = await store.listCustomIndicators(tenantId);
+    for (const c of customs) await store.deleteCustomIndicator(tenantId, c.id);
+    for (const o of await store.listIndicatorOverrides(tenantId)) await store.deleteIndicatorOverride(tenantId, o.indicatorId);
+    await store.saveIndicatorOverride(tenantId, {
+      indicatorId: CLEARED_ID,
+      code: CLEARED_ID,
+      disabled: true,
+      updatedAt: new Date().toISOString(),
+      updatedBy: req.user!.id,
+      updatedByName: req.user!.name,
+    });
+    logger.security('All indicators removed', { by: req.user!.id, custom: customs.length });
+    res.json({ ok: true, removedCustom: customs.length });
+  })
+);
+
+// Bring the checklist file's indicators back (the wording edits and hand-added indicators removed by "clear" stay gone).
+app.post(
+  '/api/indicators/restore',
+  requirePermission('catalog.manage'),
+  route(async (req, res) => {
+    await store.deleteIndicatorOverride(tenantOf(req), CLEARED_ID);
+    logger.security('Checklist restored', { by: req.user!.id });
+    res.json({ ok: true });
   })
 );
 

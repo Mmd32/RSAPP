@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Indicator } from '../types';
-import { Database, Filter, CheckCircle, AlertTriangle, Layers, Plus, FileSpreadsheet } from 'lucide-react';
+import { Database, Filter, CheckCircle, AlertTriangle, Layers, Plus, FileSpreadsheet, Trash2 } from 'lucide-react';
 import { stageLabel, groupLabel, faDigits, profileLabel } from '../utils/format';
 import { IndicatorEditor, IndicatorForm } from './IndicatorEditor';
 import { IndicatorExcel } from './IndicatorExcel';
@@ -78,6 +78,10 @@ interface AdminQuestionBankProps {
   onUpdateCustom?: (id: string, input: CustomIndicatorInput) => Promise<void>;
   onDeleteCustom?: (id: string) => Promise<void>;
   onReload?: () => Promise<void>;
+  /** True once every indicator of the checklist file has been removed. */
+  cleared?: boolean;
+  onClearAll?: () => Promise<void>;
+  onRestoreChecklist?: () => Promise<void>;
 }
 
 const PAGE_SIZE = 100;
@@ -201,6 +205,9 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
   onUpdateCustom,
   onDeleteCustom,
   onReload,
+  cleared = false,
+  onClearAll,
+  onRestoreChecklist,
 }) => {
   // Archived indicators are kept for old visits only; rows switched off by hand stay listed so they can be switched on again.
   const indicators = useMemo(() => allIndicators.filter((i) => i.status !== 'ARCHIVED' || i.disabled), [allIndicators]);
@@ -211,6 +218,24 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
   const disabledCount = indicators.filter((i) => i.disabled).length;
   const [creating, setCreating] = useState(false);
   const [excelOpen, setExcelOpen] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
+  const [clearBusy, setClearBusy] = useState(false);
+  const [clearError, setClearError] = useState<string | null>(null);
+  const runClear = async (job?: () => Promise<void>) => {
+    if (!job) return;
+    setClearBusy(true);
+    setClearError(null);
+    try {
+      await job();
+      setClearing(false);
+      setConfirmText('');
+    } catch (e: any) {
+      setClearError(e?.message || 'انجام نشد.');
+    } finally {
+      setClearBusy(false);
+    }
+  };
   const [onlyAdded, setOnlyAdded] = useState(false);
   const editedCount = indicators.filter((i) => i.edited).length;
   const noteCount = indicators.filter((i) => i.auditorNote).length;
@@ -274,6 +299,12 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
               <button type="button" className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 38, padding: '0 14px' }} onClick={() => setExcelOpen(true)}>
                 <FileSpreadsheet size={16} />
                 <span>اکسل</span>
+              </button>
+            )}
+            {canEdit && onClearAll && !(cleared && !indicators.length) && (
+              <button type="button" className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 38, padding: '0 14px', color: 'var(--fr-mark)' }} onClick={() => setClearing(true)}>
+                <Trash2 size={16} />
+                <span>حذف همهٔ شاخص‌ها</span>
               </button>
             )}
             {canEdit && onCreateIndicator && (
@@ -446,6 +477,43 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
       <SectorZoneMatrix indicators={indicators} />
       <IndicatorPivot indicators={indicators} />
 
+      {cleared && (
+        <div className="glass-panel" style={{ padding: 16, marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 13 }}>
+            چک‌لیست اصلی حذف شده است{indicators.length ? '؛ فقط شاخص‌هایی که خودتان اضافه کرده‌اید در برنامه هستند.' : ' و هیچ شاخصی در برنامه نیست. با «افزودن شاخص جدید» یا «اکسل» شاخص بسازید.'}
+          </span>
+          {canEdit && onRestoreChecklist && (
+            <button type="button" className="btn-secondary" disabled={clearBusy} onClick={() => runClear(onRestoreChecklist)}>
+              بازگرداندن چک‌لیست اصلی
+            </button>
+          )}
+        </div>
+      )}
+      {clearing && onClearAll && (
+        <div className="ie-backdrop" role="dialog" aria-modal="true" aria-labelledby="clr-title" onMouseDown={(e) => e.target === e.currentTarget && setClearing(false)}>
+          <div className="ie-dialog">
+            <h3 id="clr-title" className="ie-title">حذف همهٔ شاخص‌ها</h3>
+            <p className="ie-info">
+              همهٔ {faDigits(activeIndicators.length)} شاخص فعال از برنامه حذف می‌شود: شاخص‌های افزوده‌شده برای همیشه پاک می‌شوند و چک‌لیست اصلی (فروشگاه و مرکز خرید) کنار گذاشته می‌شود.
+              پرسشنامه‌هایی که قبلاً شروع یا ارسال شده‌اند و گزارش‌هایشان دست‌نخورده می‌مانند. بعداً می‌توانید چک‌لیست اصلی را برگردانید یا شاخص تازه اضافه کنید.
+            </p>
+            <label className="ie-field">
+              <span className="ie-label">برای تأیید، عبارت «حذف همه» را بنویسید</span>
+              <input className="ie-input" value={confirmText} onChange={(e) => setConfirmText(e.target.value)} />
+            </label>
+            {clearError && <div className="auth-error" role="alert">{clearError}</div>}
+            <footer className="ie-foot">
+              <span />
+              <div className="ie-actions">
+                <button type="button" className="btn-secondary" onClick={() => setClearing(false)}>انصراف</button>
+                <button type="button" className="btn-primary" style={{ background: 'var(--fr-mark)' }} disabled={clearBusy || confirmText.trim() !== 'حذف همه'} onClick={() => runClear(onClearAll)}>
+                  حذف همهٔ شاخص‌ها
+                </button>
+              </div>
+            </footer>
+          </div>
+        </div>
+      )}
       {excelOpen && onReload && (
         <IndicatorExcel indicators={indicators} canEdit={canEdit} onChanged={onReload} onClose={() => setExcelOpen(false)} />
       )}
