@@ -116,7 +116,7 @@ const FEATURES: { key: string; compat?: string; label: string }[] = [
  * (street store, inside a mall, shop-in-shop, kiosk) given the facilities
  * ticked below. Any column can be clicked to sort by it.
  */
-const IndicatorPivot: React.FC<{ indicators: Indicator[] }> = ({ indicators }) => {
+const IndicatorPivot: React.FC<{ indicators: Indicator[]; cleared?: boolean; onRestore?: () => void }> = ({ indicators, cleared = false, onRestore }) => {
   const [sector, setSector] = useState<string>('Fashion');
   const [features, setFeatures] = useState<Record<string, boolean>>(() => Object.fromEntries(FEATURES.map((f) => [f.key, true])));
   const [sort, setSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
@@ -229,8 +229,19 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[] }> = ({ indicators }) =
       </header>
 
       <p className="pivot-muted" dir="ltr" style={{ margin: '0 0 8px' }}>
-        build {__APP_BUILD__} · formats-aware catalog: {store.filter((i) => i.applicableFormats?.length).length} rows
+        build {__APP_BUILD__} · formats-aware catalog: {store.filter((i) => i.applicableFormats?.length).length} rows · custom rows: {store.filter((i) => i.custom).length} · catalog cleared: {cleared ? 'yes' : 'no'}
       </p>
+
+      {sector !== 'ALL' && !hasFormatFiles && sector === 'Fashion' && (
+        <div className="glass-panel" style={{ padding: 12, marginBottom: 12, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 13 }}>
+            شاخص‌های پوشاک در این حساب از فایل‌های قالب (کیوسک، شاپ این شاپ، مرکز خرید، خیابان) نیستند؛ چک‌لیست اصلی{cleared ? ' حذف شده است' : ' در این لیست نیست'}. برای دیدن فهرست هر قالب، چک‌لیست اصلی را برگردانید.
+          </span>
+          {onRestore && (
+            <button type="button" className="btn-secondary" onClick={onRestore}>بازگرداندن چک‌لیست اصلی</button>
+          )}
+        </div>
+      )}
 
       {hasFormatFiles && (
         <div className="pivot-features">
@@ -616,7 +627,7 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
       </div>
 
       <SectorZoneMatrix indicators={indicators} />
-      <IndicatorPivot indicators={indicators} />
+      <IndicatorPivot indicators={indicators} cleared={cleared} onRestore={canEdit && onRestoreChecklist ? () => runClear(onRestoreChecklist) : undefined} />
 
       {cleared && (
         <div className="glass-panel" style={{ padding: 16, marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
