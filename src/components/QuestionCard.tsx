@@ -15,7 +15,7 @@ import {
   AlertCircle,
   Zap,
 } from 'lucide-react';
-import { stageLabel } from '../utils/format';
+import { groupLabel } from '../utils/format';
 import { PHOTOS_REQUIRED } from '../config/policy';
 
 interface QuestionCardProps {
@@ -29,6 +29,8 @@ interface QuestionCardProps {
   onToggleFlag: () => void;
   onPrev: () => void;
   onNext: () => void;
+  /** The next question stays closed until this one is answered. */
+  nextLocked?: boolean;
   quickMode: boolean;
   onToggleQuickMode: () => void;
   supervisorNote?: string;
@@ -45,6 +47,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   onToggleFlag,
   onPrev,
   onNext,
+  nextLocked = false,
   quickMode,
   onToggleQuickMode,
   supervisorNote,
@@ -73,7 +76,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
     if (Math.abs(deltaX) > 75 && Math.abs(deltaY) < 55) {
       if (deltaX < 0) {
         // Swiped Left in RTL -> Next Question
-        if (currentIndex < totalCount - 1) onNext();
+        if (currentIndex < totalCount - 1 && !nextLocked) onNext();
       } else {
         // Swiped Right in RTL -> Previous Question
         if (currentIndex > 0) onPrev();
@@ -105,7 +108,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--rs-color-brand-cyan)', background: 'rgba(0, 176, 240, 0.12)', padding: '3px 8px', borderRadius: 'var(--rs-radius-control)' }}>
-            {stageLabel(sectionName || indicator.journeyStage)}
+            {groupLabel(indicator.group)} · {indicator.subject}
           </span>
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
             پرسش <span className="ltr-num" style={{ fontWeight: 800, color: 'var(--theme-text-primary)' }}>{currentIndex + 1}</span> از <span className="ltr-num">{totalCount}</span>
@@ -368,7 +371,8 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
         <button
           type="button"
           onClick={onNext}
-          disabled={currentIndex === totalCount - 1}
+          disabled={currentIndex === totalCount - 1 || nextLocked}
+          title={nextLocked ? 'ابتدا به این پرسش پاسخ دهید' : undefined}
           className="btn-secondary"
           style={{ minHeight: 46 }}
           aria-label="پرسش بعدی"
@@ -377,6 +381,11 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           <ChevronLeft size={18} />
         </button>
       </div>
+      {nextLocked && (
+        <p role="status" style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-muted)', marginTop: 10 }}>
+          برای رفتن به پرسش بعدی، یکی از سه گزینهٔ بالا را انتخاب کنید.
+        </p>
+      )}
     </div>
   );
 };

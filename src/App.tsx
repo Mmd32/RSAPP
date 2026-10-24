@@ -72,7 +72,7 @@ import {
   ChevronDown,
   Menu,
 } from 'lucide-react';
-import { stageLabel } from './utils/format';
+import { groupLabel } from './utils/format';
 import { IndicatorService, buildIndicatorList, isCatalogCleared, type CustomIndicator, type CustomIndicatorInput, type IndicatorEdit, type IndicatorOverride } from './services/indicatorService';
 
 // Code Splitting for heavy secondary views (Audit Priority 3 / P2)
@@ -789,10 +789,19 @@ export const App: React.FC = () => {
     setActiveSession(newSession);
     setCurrentQuestionIndex(0);
     if (newSession.indicators.length > 0) {
-      setCurrentStage(newSession.indicators[0].journeyStage);
+      setCurrentStage(newSession.indicators[0].group);
     }
     saveVisitState(newSession);
     setViewMode('AUDIT');
+  };
+
+  // Where a resumed questionnaire carries on: the first question without an answer.
+  const firstOpenIndex = (session: VisitSession) => {
+    const n = session.indicators.findIndex((i) => {
+      const r = session.responses[i.id];
+      return !r || r.answerState === 'UNANSWERED';
+    });
+    return n < 0 ? 0 : n;
   };
 
   const handleAcceptResume = () => {
@@ -811,9 +820,12 @@ export const App: React.FC = () => {
       },
     };
     setActiveSession(resumedSession);
+    setAuditFilter('ALL');
+    setSearchQuery('');
+    setCurrentQuestionIndex(firstOpenIndex(resumedSession));
     setResumeCandidate(null);
     if (resumedSession.indicators.length > 0) {
-      setCurrentStage(resumedSession.indicators[0].journeyStage);
+      setCurrentStage(resumedSession.indicators[0].group);
     }
     setViewMode('AUDIT');
   };
@@ -875,6 +887,22 @@ export const App: React.FC = () => {
   const reportVisit: VisitSession | null =
     (viewedVisit && (finishedVisits.find((v) => v.id === viewedVisit.id) || viewedVisit)) || finishedVisits[0] || null;
 
+  // Questions open one after another, in the checklist's order: a question can only be
+  // reached once every question before it has an answer (yes, friction or not applicable).
+  const openPosition = useMemo(() => {
+    if (!activeSession) return -1;
+    return activeSession.indicators.findIndex((i) => {
+      const r = activeSession.responses[i.id];
+      return !r || r.answerState === 'UNANSWERED';
+    });
+  }, [activeSession]);
+  const positionOf = useMemo(() => new Map((activeSession?.indicators || []).map((i, n) => [i.id, n])), [activeSession?.indicators]);
+  const canGoTo = (displayIndex: number) => {
+    const ind = displayedIndicators[displayIndex];
+    if (!ind) return false;
+    return openPosition < 0 || (positionOf.get(ind.id) ?? 0) <= openPosition;
+  };
+
   // A filter can shorten the list under the current position.
   useEffect(() => {
     if (displayedIndicators.length && currentQuestionIndex > displayedIndicators.length - 1) {
@@ -882,12 +910,28 @@ export const App: React.FC = () => {
     }
   }, [displayedIndicators.length, currentQuestionIndex]);
 
+  // Landing on a question that is not open yet (search, filter, resumed index) goes to the first open one.
+  useEffect(() => {
+    if (!activeSession || !displayedIndicators.length || openPosition < 0) return;
+    const current = displayedIndicators[currentQuestionIndex];
+    if (current && (positionOf.get(current.id) ?? 0) > openPosition) {
+      let target = displayedIndicators.findIndex((i) => positionOf.get(i.id) === openPosition);
+      if (target < 0) {
+        // The open question is filtered out: stay on the last one that is open to the auditor.
+        for (let k = displayedIndicators.length - 1; k >= 0; k--) {
+          if ((positionOf.get(displayedIndicators[k].id) ?? 0) <= openPosition) { target = k; break; }
+        }
+      }
+      setCurrentQuestionIndex(Math.max(0, target));
+    }
+  }, [openPosition, currentQuestionIndex, displayedIndicators, positionOf, activeSession]);
+
   const currentIndicator = displayedIndicators[currentQuestionIndex] || displayedIndicators[0] || activeSession?.indicators[0];
 
   // Update current stage chip when moving through questions
   useEffect(() => {
     if (currentIndicator) {
-      setCurrentStage(currentIndicator.journeyStage);
+      setCurrentStage(currentIndicator.group);
     }
   }, [currentIndicator]);
 
@@ -940,7 +984,7 @@ export const App: React.FC = () => {
         // Move on only if the auditor is still on the question just answered:
         // a double tap or a manual jump must not skip a question.
         setCurrentQuestionIndex((prev) => (prev === answeredIndex && prev < lastIndex ? prev + 1 : prev));
-      }, 350);
+      }, 250);
 
       // Auto dismiss undo after 4 seconds
       undoTimeoutRef.current = setTimeout(() => {
@@ -1034,8 +1078,8 @@ export const App: React.FC = () => {
   const handleSelectStage = (stageKey: string) => {
     if (!activeSession) return;
     setCurrentStage(stageKey);
-    const firstIdx = displayedIndicators.findIndex((i) => i.journeyStage === stageKey);
-    if (firstIdx !== -1) {
+    const firstIdx = displayedIndicators.findIndex((i) => i.group === stageKey);
+    if (firstIdx !== -1 && canGoTo(firstIdx)) {
       setCurrentQuestionIndex(firstIdx);
     }
   };
@@ -1059,8 +1103,10 @@ export const App: React.FC = () => {
     const recorded = pastVisits.find((v) => v.id === visit.id) || visit;
     if ((visit.status === 'IN_PROGRESS' || visit.status === 'REVISION_REQUESTED') && can.fieldWork) {
       setActiveSession(recorded);
-      setCurrentQuestionIndex(0);
-      if (recorded.indicators?.length > 0) setCurrentStage(recorded.indicators[0].journeyStage);
+      setAuditFilter('ALL');
+      setSearchQuery('');
+      setCurrentQuestionIndex(firstOpenIndex(recorded));
+      if (recorded.indicators?.length > 0) setCurrentStage(recorded.indicators[0].group);
       try {
         localStorage.setItem(activeVisitKey, JSON.stringify(recorded));
       } catch (e) {
@@ -1663,11 +1709,11 @@ export const App: React.FC = () => {
                   </h4>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {Array.from(new Set(activeSession.indicators.map((i) => i.journeyStage))).map((st) => {
+                    {Array.from(new Set(activeSession.indicators.map((i) => i.group))).map((st) => {
                       const isCurrent = currentStage === st;
-                      const countTotal = activeSession.indicators.filter((i) => i.journeyStage === st).length;
+                      const countTotal = activeSession.indicators.filter((i) => i.group === st).length;
                       const countAns = activeSession.indicators.filter(
-                        (i) => i.journeyStage === st && activeSession.responses[i.id]?.answerState !== 'UNANSWERED'
+                        (i) => i.group === st && !!activeSession.responses[i.id]?.answerState && activeSession.responses[i.id]?.answerState !== 'UNANSWERED'
                       ).length;
 
                       return (
@@ -1687,7 +1733,7 @@ export const App: React.FC = () => {
                           }}
                         >
                           <span style={{ fontSize: 12, fontWeight: isCurrent ? 700 : 500, color: isCurrent ? 'var(--rs-color-brand-cyan)' : 'var(--text-main)' }}>
-                            {stageLabel(st)}
+                            {groupLabel(st)}
                           </span>
                           <span className="ltr-num" style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                             {countAns}/{countTotal}
@@ -1733,13 +1779,15 @@ export const App: React.FC = () => {
                       return (
                         <div
                           key={ind.id}
-                          onClick={() => setCurrentQuestionIndex(idx)}
+                          onClick={() => canGoTo(idx) && setCurrentQuestionIndex(idx)}
+                          title={canGoTo(idx) ? undefined : 'ابتدا پرسش‌های قبلی را پاسخ دهید'}
                           style={{
                             padding: '8px 10px',
                             borderRadius: 'var(--rs-radius-control)',
                             border: `1px solid ${isSel ? 'var(--rs-color-brand-cyan)' : 'var(--border-subtle)'}`,
                             background: isSel ? 'rgba(0, 176, 240, 0.14)' : 'var(--bg-input)',
-                            cursor: 'pointer',
+                            cursor: canGoTo(idx) ? 'pointer' : 'not-allowed',
+                            opacity: canGoTo(idx) ? 1 : 0.45,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
@@ -1786,11 +1834,8 @@ export const App: React.FC = () => {
                       onOpenFrictionSheet={() => setIsFrictionSheetOpen(true)}
                       onToggleFlag={handleToggleFlag}
                       onPrev={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}
-                      onNext={() =>
-                        setCurrentQuestionIndex((prev) =>
-                          Math.min(displayedIndicators.length - 1, prev + 1)
-                        )
-                      }
+                      onNext={() => canGoTo(currentQuestionIndex + 1) && setCurrentQuestionIndex((prev) => Math.min(displayedIndicators.length - 1, prev + 1))}
+                      nextLocked={currentQuestionIndex < displayedIndicators.length - 1 && !canGoTo(currentQuestionIndex + 1)}
                       quickMode={quickMode}
                       onToggleQuickMode={() => setQuickMode(!quickMode)}
                       supervisorNote={activeSession.findingDecisions?.[currentIndicator.id]?.comment}
@@ -1823,11 +1868,8 @@ export const App: React.FC = () => {
                     onOpenFrictionSheet={() => setIsFrictionSheetOpen(true)}
                     onToggleFlag={handleToggleFlag}
                     onPrev={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}
-                    onNext={() =>
-                      setCurrentQuestionIndex((prev) =>
-                        Math.min(displayedIndicators.length - 1, prev + 1)
-                      )
-                    }
+                    onNext={() => canGoTo(currentQuestionIndex + 1) && setCurrentQuestionIndex((prev) => Math.min(displayedIndicators.length - 1, prev + 1))}
+                    nextLocked={currentQuestionIndex < displayedIndicators.length - 1 && !canGoTo(currentQuestionIndex + 1)}
                     quickMode={quickMode}
                     onToggleQuickMode={() => setQuickMode(!quickMode)}
                     supervisorNote={activeSession.findingDecisions?.[currentIndicator.id]?.comment}

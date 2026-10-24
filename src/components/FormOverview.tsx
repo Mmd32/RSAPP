@@ -1,3 +1,4 @@
+import { groupLabel } from '../utils/format';
 import React from 'react';
 import { Indicator, QuestionResponse } from '../types';
 import { STORE_JOURNEY_ORDER, MALL_JOURNEY_ORDER } from '../engine/ruleEngine';
@@ -74,12 +75,13 @@ export const FormOverview: React.FC<FormOverviewProps> = ({
     > = {};
 
     indicators.forEach((ind) => {
-      const s = ind.journeyStage;
+      // Sections are the zones of the checklist, in the order the workbook lists them.
+      const s = ind.group;
       if (!stats[s]) {
         stats[s] = {
           key: s,
-          label: orderMap[s]?.labelFa || ind.group,
-          order: orderMap[s]?.order || 99,
+          label: groupLabel(s),
+          order: Object.keys(stats).length,
           total: 0,
           answered: 0,
           frictions: 0,
@@ -100,7 +102,7 @@ export const FormOverview: React.FC<FormOverviewProps> = ({
     });
 
     return Object.values(stats).sort((a, b) => a.order - b.order);
-  }, [indicators, responses, orderMap]);
+  }, [indicators, responses]);
 
   return (
     <div style={{ maxWidth: 540, margin: '0 auto', padding: '10px 8px 16px' }}>

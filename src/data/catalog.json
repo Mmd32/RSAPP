@@ -783,6 +783,92 @@
       "applicableMallTypes": []
     },
     {
+      "id": "IND_FR_0183",
+      "code": "FAW01",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "پنجره شیشه‌ای",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "برای کنترل نورِ مزاحم اقدامی صورت نگرفته ‌است.",
+      "statement": "برای کنترل نورِ مزاحم اقدامی صورت نگرفته ‌است.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 7,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": [],
+      "auditorNote": "استفاده از اقلامی مانند سایه‌بان، مش، استیکر، شید و..."
+    },
+    {
+      "id": "IND_FR_0184",
+      "code": "FAW02",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "پنجره شیشه‌ای",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "محافظ نور (شید) کثیف است و درست کار نمی‌کند.",
+      "statement": "محافظ نور (شید) کثیف است و درست کار نمی‌کند.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 8,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0185",
+      "code": "FAW03",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "پنجره شیشه‌ای",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "مش و استیکر به‌گونه‌ای استفاده شده که نور فروشگاه را کم نموده است.",
+      "statement": "مش و استیکر به‌گونه‌ای استفاده شده که نور فروشگاه را کم نموده است.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 9,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0186",
+      "code": "FAW04",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "پنجره شیشه‌ای",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "ابزار نمایشی مربوط به محصولی است که در فروشگاه موجود نیست.",
+      "statement": "ابزار نمایشی مربوط به محصولی است که در فروشگاه موجود نیست.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 10,
+      "applicableBusinessTypes": [
+        "FMCG",
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
       "id": "IND_FR_0007",
       "code": "FAFE01",
       "template": "STORE",
@@ -797,7 +883,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 7,
+      "displayOrder": 11,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -830,7 +916,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 8,
+      "displayOrder": 12,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -863,7 +949,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 9,
+      "displayOrder": 13,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -896,7 +982,7 @@
       "weight": 1.0,
       "requiresPhoto": true,
       "requiresComment": true,
-      "displayOrder": 10,
+      "displayOrder": 14,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -926,7 +1012,7 @@
       "weight": 1.0,
       "requiresPhoto": true,
       "requiresComment": true,
-      "displayOrder": 11,
+      "displayOrder": 15,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -957,7 +1043,7 @@
       "weight": 1.0,
       "requiresPhoto": true,
       "requiresComment": true,
-      "displayOrder": 12,
+      "displayOrder": 16,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -987,7 +1073,7 @@
       "weight": 1.0,
       "requiresPhoto": true,
       "requiresComment": true,
-      "displayOrder": 13,
+      "displayOrder": 17,
       "applicableBusinessTypes": [
         "Fashion"
       ],
@@ -1008,7 +1094,7 @@
       "weight": 1.0,
       "requiresPhoto": true,
       "requiresComment": true,
-      "displayOrder": 14,
+      "displayOrder": 18,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1038,7 +1124,7 @@
       "weight": 1.0,
       "requiresPhoto": true,
       "requiresComment": true,
-      "displayOrder": 15,
+      "displayOrder": 19,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1069,7 +1155,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 16,
+      "displayOrder": 20,
       "applicableBusinessTypes": [
         "Fashion"
       ],
@@ -1090,7 +1176,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 17,
+      "displayOrder": 21,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1123,7 +1209,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 18,
+      "displayOrder": 22,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1156,7 +1242,7 @@
       "weight": 1.5,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 19,
+      "displayOrder": 23,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1187,7 +1273,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 20,
+      "displayOrder": 24,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1218,9 +1304,30 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 21,
+      "displayOrder": 25,
       "applicableBusinessTypes": [
         "Fashion"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0187",
+      "code": "FE06",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "ورودی و خروجی فروشگاه",
+      "journeyStage": "ENTRY",
+      "reportingDimension": "ACCESS",
+      "originalText": "مسئول مربوطه در بخش امانات حضور ندارد.",
+      "statement": "مسئول مربوطه در بخش امانات حضور ندارد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 26,
+      "applicableBusinessTypes": [
+        "FMCG"
       ],
       "applicableMallTypes": []
     },
@@ -1239,7 +1346,7 @@
       "weight": 1.5,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 22,
+      "displayOrder": 27,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1270,7 +1377,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 23,
+      "displayOrder": 28,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1301,7 +1408,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 24,
+      "displayOrder": 29,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1331,7 +1438,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 25,
+      "displayOrder": 30,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1362,7 +1469,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 26,
+      "displayOrder": 31,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1393,7 +1500,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 27,
+      "displayOrder": 32,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1424,7 +1531,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 28,
+      "displayOrder": 33,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1455,7 +1562,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 29,
+      "displayOrder": 34,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1486,7 +1593,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 30,
+      "displayOrder": 35,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1517,7 +1624,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 31,
+      "displayOrder": 36,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1548,7 +1655,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 32,
+      "displayOrder": 37,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1561,6 +1668,27 @@
         "Entertainment",
         "Sports",
         "Specialty"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0188",
+      "code": "FR12",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "قفسه‌ها",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "یخچالی و نگهدارنده مواد غذایی دارای دمای مناسب نیست.",
+      "statement": "یخچالی و نگهدارنده مواد غذایی دارای دمای مناسب نیست.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 38,
+      "applicableBusinessTypes": [
+        "FMCG"
       ],
       "applicableMallTypes": []
     },
@@ -1579,7 +1707,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 33,
+      "displayOrder": 39,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1612,7 +1740,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 34,
+      "displayOrder": 40,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1644,7 +1772,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 35,
+      "displayOrder": 41,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1676,7 +1804,7 @@
       "weight": 1.5,
       "requiresPhoto": true,
       "requiresComment": true,
-      "displayOrder": 36,
+      "displayOrder": 42,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1709,7 +1837,7 @@
       "weight": 1.0,
       "requiresPhoto": true,
       "requiresComment": true,
-      "displayOrder": 37,
+      "displayOrder": 43,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1742,7 +1870,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 38,
+      "displayOrder": 44,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1775,7 +1903,7 @@
       "weight": 1.0,
       "requiresPhoto": true,
       "requiresComment": true,
-      "displayOrder": 39,
+      "displayOrder": 45,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1808,7 +1936,7 @@
       "weight": 1.0,
       "requiresPhoto": true,
       "requiresComment": true,
-      "displayOrder": 40,
+      "displayOrder": 46,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1841,7 +1969,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 41,
+      "displayOrder": 47,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1872,7 +2000,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 42,
+      "displayOrder": 48,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1905,7 +2033,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 43,
+      "displayOrder": 49,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1938,7 +2066,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 44,
+      "displayOrder": 50,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -1971,7 +2099,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 45,
+      "displayOrder": 51,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -2004,7 +2132,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 46,
+      "displayOrder": 52,
       "applicableBusinessTypes": [
         "Fashion",
         "Specialty"
@@ -2026,7 +2154,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 47,
+      "displayOrder": 53,
       "applicableBusinessTypes": [
         "Fashion",
         "Specialty"
@@ -2049,7 +2177,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 48,
+      "displayOrder": 54,
       "applicableBusinessTypes": [
         "Fashion",
         "Specialty"
@@ -2071,7 +2199,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 49,
+      "displayOrder": 55,
       "applicableBusinessTypes": [
         "Fashion",
         "Specialty"
@@ -2093,10 +2221,31 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 50,
+      "displayOrder": 56,
       "applicableBusinessTypes": [
         "Fashion",
         "Specialty"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0189",
+      "code": "FEQ01",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "تجهیزات مورد نیاز فروشگاه",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "موجود نیست.",
+      "statement": "موجود نیست.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 57,
+      "applicableBusinessTypes": [
+        "Entertainment"
       ],
       "applicableMallTypes": []
     },
@@ -2115,7 +2264,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 51,
+      "displayOrder": 58,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -2148,7 +2297,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 52,
+      "displayOrder": 59,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -2180,7 +2329,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 53,
+      "displayOrder": 60,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -2213,7 +2362,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 54,
+      "displayOrder": 61,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -2228,6 +2377,48 @@
         "Sports",
         "Specialty",
         "Services"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0190",
+      "code": "FEQ06",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "تجهیزات مورد نیاز فروشگاه",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "به‌روز نیست.",
+      "statement": "به‌روز نیست.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 62,
+      "applicableBusinessTypes": [
+        "Entertainment"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0191",
+      "code": "FEQ07",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "تجهیزات مورد نیاز فروشگاه",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "دوربین مداربسته وجود ندارد.",
+      "statement": "دوربین مداربسته وجود ندارد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 63,
+      "applicableBusinessTypes": [
+        "Watch_Jewelry"
       ],
       "applicableMallTypes": []
     },
@@ -2246,7 +2437,7 @@
       "weight": 1.5,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 55,
+      "displayOrder": 64,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -2265,6 +2456,27 @@
       "applicableMallTypes": []
     },
     {
+      "id": "IND_FR_0192",
+      "code": "FEQ09",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "تجهیزات مورد نیاز فروشگاه",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "درب ضد سرقت و ضدگلوله وجود ندارد.",
+      "statement": "درب ضد سرقت و ضدگلوله وجود ندارد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 65,
+      "applicableBusinessTypes": [
+        "Watch_Jewelry"
+      ],
+      "applicableMallTypes": []
+    },
+    {
       "id": "IND_FR_0056",
       "code": "FEQ10",
       "template": "STORE",
@@ -2279,7 +2491,7 @@
       "weight": 1.5,
       "requiresPhoto": false,
       "requiresComment": true,
-      "displayOrder": 56,
+      "displayOrder": 66,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -2312,7 +2524,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 57,
+      "displayOrder": 67,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -2337,7 +2549,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 58,
+      "displayOrder": 68,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -2362,7 +2574,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 59,
+      "displayOrder": 69,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -2387,7 +2599,7 @@
       "weight": 1.0,
       "requiresPhoto": true,
       "requiresComment": true,
-      "displayOrder": 60,
+      "displayOrder": 70,
       "applicableBusinessTypes": [
         "Fashion",
         "Sports"
@@ -2409,7 +2621,7 @@
       "weight": 1.0,
       "requiresPhoto": true,
       "requiresComment": true,
-      "displayOrder": 61,
+      "displayOrder": 71,
       "applicableBusinessTypes": [
         "Fashion",
         "Sports"
@@ -2431,7 +2643,7 @@
       "weight": 1.0,
       "requiresPhoto": true,
       "requiresComment": true,
-      "displayOrder": 62,
+      "displayOrder": 72,
       "applicableBusinessTypes": [
         "Fashion",
         "Sports"
@@ -2453,7 +2665,7 @@
       "weight": 1.0,
       "requiresPhoto": true,
       "requiresComment": true,
-      "displayOrder": 63,
+      "displayOrder": 73,
       "applicableBusinessTypes": [
         "Fashion",
         "Sports"
@@ -2476,7 +2688,7 @@
       "weight": 1.0,
       "requiresPhoto": true,
       "requiresComment": true,
-      "displayOrder": 64,
+      "displayOrder": 74,
       "applicableBusinessTypes": [
         "Fashion",
         "Sports"
@@ -2498,7 +2710,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 65,
+      "displayOrder": 75,
       "applicableBusinessTypes": [
         "Fashion",
         "Sports"
@@ -2520,7 +2732,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 66,
+      "displayOrder": 76,
       "applicableBusinessTypes": [
         "Fashion",
         "Sports"
@@ -2542,7 +2754,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 67,
+      "displayOrder": 77,
       "applicableBusinessTypes": [
         "Fashion",
         "Sports"
@@ -2564,7 +2776,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 68,
+      "displayOrder": 78,
       "applicableBusinessTypes": [
         "Fashion",
         "Sports"
@@ -2586,7 +2798,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 69,
+      "displayOrder": 79,
       "applicableBusinessTypes": [
         "Fashion",
         "Sports"
@@ -2608,7 +2820,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 70,
+      "displayOrder": 80,
       "applicableBusinessTypes": [
         "Fashion",
         "Sports"
@@ -2630,7 +2842,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 71,
+      "displayOrder": 81,
       "applicableBusinessTypes": [
         "Fashion",
         "Sports"
@@ -2652,7 +2864,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 72,
+      "displayOrder": 82,
       "applicableBusinessTypes": [
         "Fashion",
         "Sports"
@@ -2674,7 +2886,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 73,
+      "displayOrder": 83,
       "applicableBusinessTypes": [
         "Fashion",
         "Sports"
@@ -2696,7 +2908,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 74,
+      "displayOrder": 84,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -2721,7 +2933,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 75,
+      "displayOrder": 85,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -2746,7 +2958,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 76,
+      "displayOrder": 86,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -2771,7 +2983,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 77,
+      "displayOrder": 87,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -2802,7 +3014,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 78,
+      "displayOrder": 88,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -2833,7 +3045,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 79,
+      "displayOrder": 89,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -2864,7 +3076,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 80,
+      "displayOrder": 90,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -2895,7 +3107,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 81,
+      "displayOrder": 91,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -2926,7 +3138,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 82,
+      "displayOrder": 92,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -2957,7 +3169,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 83,
+      "displayOrder": 93,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -2988,7 +3200,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 84,
+      "displayOrder": 94,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3001,6 +3213,27 @@
         "Entertainment",
         "Sports",
         "Specialty"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0193",
+      "code": "FN09",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "چیدمان کالا",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "فروشگاه شلوغ و سازمان‌دهی آن نامفهوم است.",
+      "statement": "فروشگاه شلوغ و سازمان‌دهی آن نامفهوم است.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 95,
+      "applicableBusinessTypes": [
+        "Homeware"
       ],
       "applicableMallTypes": []
     },
@@ -3019,7 +3252,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 85,
+      "displayOrder": 96,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3050,7 +3283,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 86,
+      "displayOrder": 97,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3060,6 +3293,94 @@
         "Beauty_Cosmetics",
         "Sports",
         "Specialty"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0194",
+      "code": "FN12",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "چیدمان کالا",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "نمونه‌های نمایشی/تستی در دسترس مشتریان نمی‌باشد.",
+      "statement": "نمونه‌های نمایشی/تستی در دسترس مشتریان نمی‌باشد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 98,
+      "applicableBusinessTypes": [
+        "Hardware",
+        "Homeware",
+        "Beauty_Cosmetics",
+        "Electronics",
+        "Sports"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0195",
+      "code": "FN13",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "چیدمان کالا",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "لوازم نظافتی برای تمیز کردن نواحی یا ابزارهای تست وجود ندارد.",
+      "statement": "لوازم نظافتی برای تمیز کردن نواحی یا ابزارهای تست وجود ندارد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 99,
+      "applicableBusinessTypes": [
+        "Beauty_Cosmetics"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0196",
+      "code": "FN14",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "چیدمان کالا",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "دستمال، پد خنثی‌کننده بو و یا قهوه وجود ندارد.",
+      "statement": "دستمال، پد خنثی‌کننده بو و یا قهوه وجود ندارد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 100,
+      "applicableBusinessTypes": [
+        "Beauty_Cosmetics"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0197",
+      "code": "FN15",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "چیدمان کالا",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "کارت تست بوی عطر وجود ندارد.",
+      "statement": "کارت تست بوی عطر وجود ندارد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 101,
+      "applicableBusinessTypes": [
+        "Beauty_Cosmetics"
       ],
       "applicableMallTypes": []
     },
@@ -3078,7 +3399,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 87,
+      "displayOrder": 102,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3110,11 +3431,32 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 88,
+      "displayOrder": 103,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
         "Sports"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0198",
+      "code": "FN18",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "چیدمان کالا",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "روی زمین وجود دارد.",
+      "statement": "روی زمین وجود دارد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 104,
+      "applicableBusinessTypes": [
+        "Homeware"
       ],
       "applicableMallTypes": []
     },
@@ -3133,7 +3475,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 89,
+      "displayOrder": 105,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3163,7 +3505,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 90,
+      "displayOrder": 106,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3193,7 +3535,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 91,
+      "displayOrder": 107,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3220,7 +3562,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 92,
+      "displayOrder": 108,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3229,6 +3571,76 @@
         "Electronics",
         "Sports",
         "Specialty"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0199",
+      "code": "FB01",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "امکانات رفاهی",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "صندلی موجود نیست / در جایگاه مناسب قرار نگرفته است.",
+      "statement": "صندلی موجود نیست / در جایگاه مناسب قرار نگرفته است.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 109,
+      "applicableBusinessTypes": [
+        "Shoe_Bag",
+        "Watch_Jewelry",
+        "F_B",
+        "Services"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0200",
+      "code": "FB02",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "امکانات رفاهی",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "صندلی راحت نیست / کیفیت ظاهری مناسب ندارد.",
+      "statement": "صندلی راحت نیست / کیفیت ظاهری مناسب ندارد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 110,
+      "applicableBusinessTypes": [
+        "Shoe_Bag",
+        "Watch_Jewelry",
+        "F_B",
+        "Services"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0201",
+      "code": "FB03",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "امکانات رفاهی",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "تعداد میز و صندلی کافی نیست.",
+      "statement": "تعداد میز و صندلی کافی نیست.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 111,
+      "applicableBusinessTypes": [
+        "Shoe_Bag",
+        "F_B"
       ],
       "applicableMallTypes": []
     },
@@ -3247,7 +3659,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 93,
+      "displayOrder": 112,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3279,7 +3691,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 94,
+      "displayOrder": 113,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3298,6 +3710,111 @@
       "applicableMallTypes": []
     },
     {
+      "id": "IND_FR_0202",
+      "code": "FB06",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "امکانات رفاهی",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "بوی بد در دپارتمان مواد غذایی تازه وجود دارد.",
+      "statement": "بوی بد در دپارتمان مواد غذایی تازه وجود دارد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 114,
+      "applicableBusinessTypes": [
+        "FMCG"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0203",
+      "code": "FB07",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "امکانات رفاهی",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "سرویس بهداشتی (یا روشویی) ندارد.",
+      "statement": "سرویس بهداشتی (یا روشویی) ندارد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 115,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0204",
+      "code": "FB08",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "امکانات رفاهی",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "سرویس بهداشتی تمیز نیست / سرویس بهداشتی خشک و مرتب نشده.",
+      "statement": "سرویس بهداشتی تمیز نیست / سرویس بهداشتی خشک و مرتب نشده.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 116,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0205",
+      "code": "FB09",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "امکانات رفاهی",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "سرویس بهداشتی بوی نامطبوع دارد.",
+      "statement": "سرویس بهداشتی بوی نامطبوع دارد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 117,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0206",
+      "code": "FB10",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "امکانات رفاهی",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "در سرویس بهداشتی دستمال کاغذی و مایع دستشویی به مقدار کافی وجود ندارد.",
+      "statement": "در سرویس بهداشتی دستمال کاغذی و مایع دستشویی به مقدار کافی وجود ندارد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 118,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
       "id": "IND_FR_0095",
       "code": "FB11",
       "template": "STORE",
@@ -3312,7 +3829,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 95,
+      "displayOrder": 119,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3345,12 +3862,56 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 96,
+      "displayOrder": 120,
       "applicableBusinessTypes": [
         "Fashion",
         "FMCG",
         "Hardware",
         "Sports"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0207",
+      "code": "FB13",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "امکانات رفاهی",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "سبد خرید تمیز و سالم نیست.",
+      "statement": "سبد خرید تمیز و سالم نیست.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 121,
+      "applicableBusinessTypes": [
+        "FMCG"
+      ],
+      "applicableMallTypes": [],
+      "auditorNote": "شامل کلیه انواع سبد خرید از دستی تا ترولی. جزئیات می‌تواند در توضیحات نوشته شود."
+    },
+    {
+      "id": "IND_FR_0208",
+      "code": "FB13",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "امکانات رفاهی",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "سبد خرید به تعداد مناسب نیست و با حجم و اندازه کالای ارائه شده تناسب ندارد.",
+      "statement": "سبد خرید به تعداد مناسب نیست و با حجم و اندازه کالای ارائه شده تناسب ندارد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 122,
+      "applicableBusinessTypes": [
+        "FMCG",
+        "Hardware"
       ],
       "applicableMallTypes": []
     },
@@ -3369,7 +3930,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 97,
+      "displayOrder": 123,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3402,12 +3963,76 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 98,
+      "displayOrder": 124,
       "applicableBusinessTypes": [
         "Fashion",
         "Watch_Jewelry",
         "FMCG",
         "Services"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0209",
+      "code": "FB16",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "امکانات رفاهی",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "کاتلری مورد نیاز و متناسب با غذا در اختیار مشتری نیست.",
+      "statement": "کاتلری مورد نیاز و متناسب با غذا در اختیار مشتری نیست.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 125,
+      "applicableBusinessTypes": [
+        "FMCG"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0210",
+      "code": "FB17",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "امکانات رفاهی",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "دستمال کاغذی روی میزهای پذیرایی وجود ندارد.",
+      "statement": "دستمال کاغذی روی میزهای پذیرایی وجود ندارد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 126,
+      "applicableBusinessTypes": [
+        "FMCG"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0211",
+      "code": "FB18",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "امکانات رفاهی",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "سطل آشغال پر است / سطل آشغال بو می‌دهد.",
+      "statement": "سطل آشغال پر است / سطل آشغال بو می‌دهد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 127,
+      "applicableBusinessTypes": [
+        "Watch_Jewelry",
+        "FMCG"
       ],
       "applicableMallTypes": []
     },
@@ -3426,7 +4051,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 99,
+      "displayOrder": 128,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3459,9 +4084,21 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 100,
+      "displayOrder": 129,
       "applicableBusinessTypes": [
-        "Fashion"
+        "Fashion",
+        "Shoe_Bag",
+        "Watch_Jewelry",
+        "FMCG",
+        "F_B",
+        "Hardware",
+        "Homeware",
+        "Beauty_Cosmetics",
+        "Electronics",
+        "Entertainment",
+        "Sports",
+        "Specialty",
+        "Services"
       ],
       "applicableMallTypes": [],
       "auditorNote": "در نتیجه مشتری نمی‌تواند کالا یا سرویس مورد نظر خود را پیدا کند."
@@ -3481,7 +4118,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 101,
+      "displayOrder": 130,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3514,7 +4151,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 102,
+      "displayOrder": 131,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3547,7 +4184,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 103,
+      "displayOrder": 132,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3566,6 +4203,156 @@
       "applicableMallTypes": []
     },
     {
+      "id": "IND_FR_0212",
+      "code": "FG02",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "نظافت کلی فروشگاه",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "حشرات موذی در محیط فروشگاه وجود دارد.",
+      "statement": "حشرات موذی در محیط فروشگاه وجود دارد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 133,
+      "applicableBusinessTypes": [
+        "FMCG",
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0213",
+      "code": "FG03",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "نظافت کلی فروشگاه",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "میز و صندلی‌ها تمیز نیست و لکه و گرد و غبار دارد.",
+      "statement": "میز و صندلی‌ها تمیز نیست و لکه و گرد و غبار دارد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 134,
+      "applicableBusinessTypes": [
+        "F_B",
+        "Services"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0214",
+      "code": "FG04",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "نظافت کلی فروشگاه",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "میز و صندلی‌ها پس از بلند شدن مشتری قبلی تمیز نمی‌شود / با تأخیر تمیز می‌شود.",
+      "statement": "میز و صندلی‌ها پس از بلند شدن مشتری قبلی تمیز نمی‌شود / با تأخیر تمیز می‌شود.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 135,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0215",
+      "code": "FG05",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "نظافت کلی فروشگاه",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "ظروف پذیرایی تمیز نیست.",
+      "statement": "ظروف پذیرایی تمیز نیست.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 136,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0216",
+      "code": "FG06",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "نظافت کلی فروشگاه",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "تجهیزات دکوری تمیز نیست. (گلدان، شمعدان،...)",
+      "statement": "تجهیزات دکوری تمیز نیست. (گلدان، شمعدان،...)",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 137,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0217",
+      "code": "FG07",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "نظافت کلی فروشگاه",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "ظروف دارای لک، لب‌پریده یا با آثار شست‌وشوی ناقص هستند.",
+      "statement": "ظروف دارای لک، لب‌پریده یا با آثار شست‌وشوی ناقص هستند.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 138,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0218",
+      "code": "FG08",
+      "template": "STORE",
+      "group": "FLOOR",
+      "subject": "نظافت کلی فروشگاه",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "فضای آماده ‌سازی و سرو غذا تمیز و بهداشتی نیست.",
+      "statement": "فضای آماده ‌سازی و سرو غذا تمیز و بهداشتی نیست.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 139,
+      "applicableBusinessTypes": [
+        "FMCG",
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
       "id": "IND_FR_0104",
       "code": "SS01",
       "template": "STORE",
@@ -3580,7 +4367,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 104,
+      "displayOrder": 140,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3613,7 +4400,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 105,
+      "displayOrder": 141,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3646,7 +4433,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 106,
+      "displayOrder": 142,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3679,7 +4466,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 107,
+      "displayOrder": 143,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3711,11 +4498,224 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 108,
+      "displayOrder": 144,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
         "Sports"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0219",
+      "code": "SF03",
+      "template": "STORE",
+      "group": "SERVICES",
+      "subject": "خدمات",
+      "journeyStage": "AFTER_SALES",
+      "reportingDimension": "AFTER_SALES",
+      "originalText": "روش‌نامه‌ای برای زمان‌بندی ارائه خدمات وجود ندارد.",
+      "statement": "روش‌نامه‌ای برای زمان‌بندی ارائه خدمات وجود ندارد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 145,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0220",
+      "code": "SF04",
+      "template": "STORE",
+      "group": "SERVICES",
+      "subject": "خدمات",
+      "journeyStage": "AFTER_SALES",
+      "reportingDimension": "AFTER_SALES",
+      "originalText": "سرعت خدمات به‌گونه‌ای نیست که مانع از انتظار طولانی مشتری برای نشستن شود.",
+      "statement": "سرعت خدمات به‌گونه‌ای نیست که مانع از انتظار طولانی مشتری برای نشستن شود.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 146,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0221",
+      "code": "SF05",
+      "template": "STORE",
+      "group": "SERVICES",
+      "subject": "خدمات",
+      "journeyStage": "AFTER_SALES",
+      "reportingDimension": "AFTER_SALES",
+      "originalText": "سرعت خدمات به‌گونه‌ای نیست که مانع از انتظار طولانی مشتری برای دریافت غذا شود.",
+      "statement": "سرعت خدمات به‌گونه‌ای نیست که مانع از انتظار طولانی مشتری برای دریافت غذا شود.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 147,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0222",
+      "code": "SF06",
+      "template": "STORE",
+      "group": "SERVICES",
+      "subject": "خدمات",
+      "journeyStage": "AFTER_SALES",
+      "reportingDimension": "AFTER_SALES",
+      "originalText": "ارائهشده دارای زمان‌بندی مناسب نیست.",
+      "statement": "ارائهشده دارای زمان‌بندی مناسب نیست.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 148,
+      "applicableBusinessTypes": [
+        "Shoe_Bag",
+        "F_B",
+        "Entertainment",
+        "Services"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0223",
+      "code": "SF07",
+      "template": "STORE",
+      "group": "SERVICES",
+      "subject": "خدمات",
+      "journeyStage": "AFTER_SALES",
+      "reportingDimension": "AFTER_SALES",
+      "originalText": "رزرواسیون موارد ثبت‌نشده دارد.",
+      "statement": "رزرواسیون موارد ثبت‌نشده دارد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 149,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0224",
+      "code": "SF08",
+      "template": "STORE",
+      "group": "SERVICES",
+      "subject": "خدمات",
+      "journeyStage": "AFTER_SALES",
+      "reportingDimension": "AFTER_SALES",
+      "originalText": "رزرواسیون با سفارش انطباق ندارد.",
+      "statement": "رزرواسیون با سفارش انطباق ندارد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 150,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0225",
+      "code": "SF09",
+      "template": "STORE",
+      "group": "SERVICES",
+      "subject": "خدمات",
+      "journeyStage": "AFTER_SALES",
+      "reportingDimension": "AFTER_SALES",
+      "originalText": "لوکس به مشتری ارائه نمی‌شود.(پذیرایی، اتاق VIP)",
+      "statement": "لوکس به مشتری ارائه نمی‌شود.(پذیرایی، اتاق VIP)",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 151,
+      "applicableBusinessTypes": [
+        "Watch_Jewelry"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0226",
+      "code": "SF10",
+      "template": "STORE",
+      "group": "SERVICES",
+      "subject": "خدمات",
+      "journeyStage": "AFTER_SALES",
+      "reportingDimension": "AFTER_SALES",
+      "originalText": "شخصی‌سازی شده ارائه نمی‌شود.",
+      "statement": "شخصی‌سازی شده ارائه نمی‌شود.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 152,
+      "applicableBusinessTypes": [
+        "Watch_Jewelry"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0227",
+      "code": "SF11",
+      "template": "STORE",
+      "group": "SERVICES",
+      "subject": "خدمات",
+      "journeyStage": "AFTER_SALES",
+      "reportingDimension": "AFTER_SALES",
+      "originalText": "سفارش غذا به‌درستی ثبت نشده است.",
+      "statement": "سفارش غذا به‌درستی ثبت نشده است.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 153,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0228",
+      "code": "SF12",
+      "template": "STORE",
+      "group": "SERVICES",
+      "subject": "خدمات",
+      "journeyStage": "AFTER_SALES",
+      "reportingDimension": "AFTER_SALES",
+      "originalText": "سرو نوشیدنی انجام نمی‌شود یا بدون اجازه صورت می‌گیرد.( باز کردن یا نکردن در بطری)",
+      "statement": "سرو نوشیدنی انجام نمی‌شود یا بدون اجازه صورت می‌گیرد.( باز کردن یا نکردن در بطری)",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 154,
+      "applicableBusinessTypes": [
+        "F_B"
       ],
       "applicableMallTypes": []
     },
@@ -3734,7 +4734,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 109,
+      "displayOrder": 155,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3768,7 +4768,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 110,
+      "displayOrder": 156,
       "applicableBusinessTypes": [
         "Fashion",
         "FMCG",
@@ -3793,13 +4793,139 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 111,
+      "displayOrder": 157,
       "applicableBusinessTypes": [
         "Fashion",
         "FMCG",
         "Hardware",
         "Homeware",
         "Sports"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0229",
+      "code": "SM01",
+      "template": "STORE",
+      "group": "SERVICES",
+      "subject": "منو",
+      "journeyStage": "AFTER_SALES",
+      "reportingDimension": "AFTER_SALES",
+      "originalText": "به راحتی در دسترس نیست. (نسخه چاپی، دیجیتال، QR Code)",
+      "statement": "به راحتی در دسترس نیست. (نسخه چاپی، دیجیتال، QR Code)",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 158,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0230",
+      "code": "SM02",
+      "template": "STORE",
+      "group": "SERVICES",
+      "subject": "منو",
+      "journeyStage": "AFTER_SALES",
+      "reportingDimension": "AFTER_SALES",
+      "originalText": "طولانی، گیج‌کننده و خسته‌کننده است.",
+      "statement": "طولانی، گیج‌کننده و خسته‌کننده است.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 159,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0231",
+      "code": "SM03",
+      "template": "STORE",
+      "group": "SERVICES",
+      "subject": "منو",
+      "journeyStage": "AFTER_SALES",
+      "reportingDimension": "AFTER_SALES",
+      "originalText": "دارای فونت و سایز واضح (خوانا) نمی‌باشد.",
+      "statement": "دارای فونت و سایز واضح (خوانا) نمی‌باشد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 160,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0232",
+      "code": "SM04",
+      "template": "STORE",
+      "group": "SERVICES",
+      "subject": "منو",
+      "journeyStage": "AFTER_SALES",
+      "reportingDimension": "AFTER_SALES",
+      "originalText": "طراحی آن مناسب با سلیقه مشتری (یا تصویر برند) نیست.",
+      "statement": "طراحی آن مناسب با سلیقه مشتری (یا تصویر برند) نیست.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 161,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0233",
+      "code": "SM05",
+      "template": "STORE",
+      "group": "SERVICES",
+      "subject": "منو",
+      "journeyStage": "AFTER_SALES",
+      "reportingDimension": "AFTER_SALES",
+      "originalText": "دارای دسته‌بندی‌های واضح همراه با توضیحات شفاف نیست.",
+      "statement": "دارای دسته‌بندی‌های واضح همراه با توضیحات شفاف نیست.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 162,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0234",
+      "code": "SM06",
+      "template": "STORE",
+      "group": "SERVICES",
+      "subject": "منو",
+      "journeyStage": "AFTER_SALES",
+      "reportingDimension": "AFTER_SALES",
+      "originalText": "آپدیت و به‌روز رسانی نشده است.",
+      "statement": "آپدیت و به‌روز رسانی نشده است.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 163,
+      "applicableBusinessTypes": [
+        "F_B"
       ],
       "applicableMallTypes": []
     },
@@ -3818,7 +4944,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 112,
+      "displayOrder": 164,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3850,7 +4976,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 113,
+      "displayOrder": 165,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3882,7 +5008,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 114,
+      "displayOrder": 166,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3914,7 +5040,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 115,
+      "displayOrder": 167,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3946,7 +5072,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 116,
+      "displayOrder": 168,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -3977,7 +5103,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 117,
+      "displayOrder": 169,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4009,7 +5135,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 118,
+      "displayOrder": 170,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4041,7 +5167,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 119,
+      "displayOrder": 171,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4073,7 +5199,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 120,
+      "displayOrder": 172,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4106,7 +5232,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 121,
+      "displayOrder": 173,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4125,6 +5251,78 @@
       "applicableMallTypes": []
     },
     {
+      "id": "IND_FR_0235",
+      "code": "SAF01",
+      "template": "STORE",
+      "group": "SERVICES",
+      "subject": "خدمات پس از فروش",
+      "journeyStage": "AFTER_SALES",
+      "reportingDimension": "AFTER_SALES",
+      "originalText": "کالا به مقصد مورد نیاز مشتری حمل نمی‌شود.",
+      "statement": "کالا به مقصد مورد نیاز مشتری حمل نمی‌شود.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 174,
+      "applicableBusinessTypes": [
+        "FMCG",
+        "Hardware",
+        "Sports"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0236",
+      "code": "SAF02",
+      "template": "STORE",
+      "group": "SERVICES",
+      "subject": "خدمات پس از فروش",
+      "journeyStage": "AFTER_SALES",
+      "reportingDimension": "AFTER_SALES",
+      "originalText": "خدمات راه‌اندازی و نصب کالا ارائه نمی‌شود.",
+      "statement": "خدمات راه‌اندازی و نصب کالا ارائه نمی‌شود.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 175,
+      "applicableBusinessTypes": [
+        "FMCG",
+        "Hardware",
+        "Electronics",
+        "Sports"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0237",
+      "code": "SAF03",
+      "template": "STORE",
+      "group": "SERVICES",
+      "subject": "خدمات پس از فروش",
+      "journeyStage": "AFTER_SALES",
+      "reportingDimension": "AFTER_SALES",
+      "originalText": "گارانتی، تعمیرات، تعمیر قطعات و سرویس دوره‌ای ارائه نمی‌شود.",
+      "statement": "گارانتی، تعمیرات، تعمیر قطعات و سرویس دوره‌ای ارائه نمی‌شود.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 176,
+      "applicableBusinessTypes": [
+        "Shoe_Bag",
+        "Watch_Jewelry",
+        "Hardware",
+        "Electronics",
+        "Sports"
+      ],
+      "applicableMallTypes": []
+    },
+    {
       "id": "IND_FR_0122",
       "code": "TA01",
       "template": "STORE",
@@ -4139,7 +5337,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 122,
+      "displayOrder": 177,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4172,7 +5370,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 123,
+      "displayOrder": 178,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4205,11 +5403,33 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 124,
+      "displayOrder": 179,
       "applicableBusinessTypes": [
         "Fashion",
         "FMCG",
         "Services"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0238",
+      "code": "TA04",
+      "template": "STORE",
+      "group": "TEAM",
+      "subject": "آراستگی ظاهری پرسنل",
+      "journeyStage": "STAFF_INTERACTION",
+      "reportingDimension": "PEOPLE",
+      "originalText": "در حال سرو غذا رعایت نشده است. (پیشبند، دستکش، کلاه)",
+      "statement": "در حال سرو غذا رعایت نشده است. (پیشبند، دستکش، کلاه)",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 180,
+      "applicableBusinessTypes": [
+        "FMCG",
+        "F_B"
       ],
       "applicableMallTypes": []
     },
@@ -4228,7 +5448,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 125,
+      "displayOrder": 181,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4261,7 +5481,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 126,
+      "displayOrder": 182,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4294,7 +5514,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 127,
+      "displayOrder": 183,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4327,7 +5547,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 128,
+      "displayOrder": 184,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4360,7 +5580,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 129,
+      "displayOrder": 185,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag"
@@ -4382,7 +5602,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 130,
+      "displayOrder": 186,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4415,7 +5635,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 131,
+      "displayOrder": 187,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4448,7 +5668,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 132,
+      "displayOrder": 188,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4481,7 +5701,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 133,
+      "displayOrder": 189,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4514,7 +5734,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 134,
+      "displayOrder": 190,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4546,7 +5766,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 135,
+      "displayOrder": 191,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4579,7 +5799,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 136,
+      "displayOrder": 192,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4612,7 +5832,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 137,
+      "displayOrder": 193,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4645,7 +5865,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 138,
+      "displayOrder": 194,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4678,7 +5898,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 139,
+      "displayOrder": 195,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4711,7 +5931,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 140,
+      "displayOrder": 196,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4743,7 +5963,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 141,
+      "displayOrder": 197,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4776,7 +5996,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 142,
+      "displayOrder": 198,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4795,6 +6015,27 @@
       "applicableMallTypes": []
     },
     {
+      "id": "IND_FR_0239",
+      "code": "TF02",
+      "template": "STORE",
+      "group": "TEAM",
+      "subject": "سرعت عمل پرسنل در عملیات فروشگاهی",
+      "journeyStage": "STAFF_INTERACTION",
+      "reportingDimension": "PEOPLE",
+      "originalText": "در تحویل سفارش غذای مشتری اشتباه وجود دارد. / ناقص تحویل داده می‌شود.",
+      "statement": "در تحویل سفارش غذای مشتری اشتباه وجود دارد. / ناقص تحویل داده می‌شود.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 199,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
       "id": "IND_FR_0143",
       "code": "TF04",
       "template": "STORE",
@@ -4809,7 +6050,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 143,
+      "displayOrder": 200,
       "applicableBusinessTypes": [
         "Fashion",
         "F_B"
@@ -4831,7 +6072,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 144,
+      "displayOrder": 201,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4864,7 +6105,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 145,
+      "displayOrder": 202,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4876,6 +6117,33 @@
         "Beauty_Cosmetics",
         "Electronics",
         "Entertainment",
+        "Sports",
+        "Specialty",
+        "Services"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0240",
+      "code": "TK02",
+      "template": "STORE",
+      "group": "TEAM",
+      "subject": "میزان دانش محصول (شامل نگهداری اولیه)",
+      "journeyStage": "STAFF_INTERACTION",
+      "reportingDimension": "PEOPLE",
+      "originalText": "توانایی مشاوره‌دادن به مشتری را ندارد.",
+      "statement": "توانایی مشاوره‌دادن به مشتری را ندارد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 203,
+      "applicableBusinessTypes": [
+        "Watch_Jewelry",
+        "Hardware",
+        "Beauty_Cosmetics",
+        "Electronics",
         "Sports",
         "Specialty",
         "Services"
@@ -4897,7 +6165,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 146,
+      "displayOrder": 204,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4930,7 +6198,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 147,
+      "displayOrder": 205,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4963,7 +6231,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 148,
+      "displayOrder": 206,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -4996,7 +6264,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 149,
+      "displayOrder": 207,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5029,7 +6297,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 150,
+      "displayOrder": 208,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5062,7 +6330,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 151,
+      "displayOrder": 209,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5095,7 +6363,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 152,
+      "displayOrder": 210,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5128,7 +6396,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 153,
+      "displayOrder": 211,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5158,7 +6426,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 154,
+      "displayOrder": 212,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5171,6 +6439,141 @@
         "Entertainment",
         "Sports",
         "Specialty"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0241",
+      "code": "PD03",
+      "template": "STORE",
+      "group": "PRODUCT",
+      "subject": "محصول",
+      "journeyStage": "EVALUATION",
+      "reportingDimension": "PRODUCT",
+      "originalText": "امکان بررسی اصالت (اوریجینال بودن) محصول وجود ندارد.",
+      "statement": "امکان بررسی اصالت (اوریجینال بودن) محصول وجود ندارد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 213,
+      "applicableBusinessTypes": [
+        "Watch_Jewelry",
+        "Hardware",
+        "Homeware",
+        "Beauty_Cosmetics",
+        "Electronics",
+        "Entertainment",
+        "Specialty"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0242",
+      "code": "PD04",
+      "template": "STORE",
+      "group": "PRODUCT",
+      "subject": "محصول",
+      "journeyStage": "EVALUATION",
+      "reportingDimension": "PRODUCT",
+      "originalText": "محصولات تاریخ گذشته - یا در آستانه انقضا - و آسیب‌دیده در سطح فروشگاه وجود دارد.",
+      "statement": "محصولات تاریخ گذشته - یا در آستانه انقضا - و آسیب‌دیده در سطح فروشگاه وجود دارد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 214,
+      "applicableBusinessTypes": [
+        "FMCG",
+        "Beauty_Cosmetics"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0243",
+      "code": "PD05",
+      "template": "STORE",
+      "group": "PRODUCT",
+      "subject": "محصول",
+      "journeyStage": "EVALUATION",
+      "reportingDimension": "PRODUCT",
+      "originalText": "آلوده به اجسام خارجی یا مو می‌باشد.",
+      "statement": "آلوده به اجسام خارجی یا مو می‌باشد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 215,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0244",
+      "code": "PD06",
+      "template": "STORE",
+      "group": "PRODUCT",
+      "subject": "محصول",
+      "journeyStage": "EVALUATION",
+      "reportingDimension": "PRODUCT",
+      "originalText": "ظاهر غذا مناسب نیست.",
+      "statement": "ظاهر غذا مناسب نیست.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 216,
+      "applicableBusinessTypes": [
+        "FMCG",
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0245",
+      "code": "PD07",
+      "template": "STORE",
+      "group": "PRODUCT",
+      "subject": "محصول",
+      "journeyStage": "EVALUATION",
+      "reportingDimension": "PRODUCT",
+      "originalText": "غذا سرد است.",
+      "statement": "غذا سرد است.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 217,
+      "applicableBusinessTypes": [
+        "FMCG",
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0246",
+      "code": "PD08",
+      "template": "STORE",
+      "group": "PRODUCT",
+      "subject": "محصول",
+      "journeyStage": "EVALUATION",
+      "reportingDimension": "PRODUCT",
+      "originalText": "غذا یا نوشیدنی در ظرف مناسب نیست.",
+      "statement": "غذا یا نوشیدنی در ظرف مناسب نیست.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 218,
+      "applicableBusinessTypes": [
+        "F_B"
       ],
       "applicableMallTypes": []
     },
@@ -5189,7 +6592,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 155,
+      "displayOrder": 219,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5200,6 +6603,27 @@
         "Beauty_Cosmetics",
         "Electronics",
         "Sports"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0247",
+      "code": "PS02",
+      "template": "STORE",
+      "group": "PRODUCT",
+      "subject": "سایزبندی",
+      "journeyStage": "EVALUATION",
+      "reportingDimension": "PRODUCT",
+      "originalText": "متناسب با نوع فروشگاه نیست.",
+      "statement": "متناسب با نوع فروشگاه نیست.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 220,
+      "applicableBusinessTypes": [
+        "FMCG"
       ],
       "applicableMallTypes": []
     },
@@ -5218,7 +6642,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 156,
+      "displayOrder": 221,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5241,7 +6665,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 157,
+      "displayOrder": 222,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5274,7 +6698,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 158,
+      "displayOrder": 223,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5288,6 +6712,90 @@
         "Entertainment",
         "Sports",
         "Specialty"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0248",
+      "code": "PQ03",
+      "template": "STORE",
+      "group": "PRODUCT",
+      "subject": "کیفیت و قیمت",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "غذا دارای طعم و اندازه مناسب نیست.",
+      "statement": "غذا دارای طعم و اندازه مناسب نیست.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 224,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0249",
+      "code": "PQ04",
+      "template": "STORE",
+      "group": "PRODUCT",
+      "subject": "کیفیت و قیمت",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "غذا دارای دمای مطلوب نمی‌باشد.",
+      "statement": "غذا دارای دمای مطلوب نمی‌باشد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 225,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0250",
+      "code": "PQ05",
+      "template": "STORE",
+      "group": "PRODUCT",
+      "subject": "کیفیت و قیمت",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "غذا دارای پخت مطلوب نمی‌باشد.",
+      "statement": "غذا دارای پخت مطلوب نمی‌باشد.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 226,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0251",
+      "code": "PQ06",
+      "template": "STORE",
+      "group": "PRODUCT",
+      "subject": "کیفیت و قیمت",
+      "journeyStage": "NAVIGATION",
+      "reportingDimension": "ENVIRONMENT",
+      "originalText": "حق عضویت شفاف و عاری از مبالغ پنهان نیست.",
+      "statement": "حق عضویت شفاف و عاری از مبالغ پنهان نیست.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 227,
+      "applicableBusinessTypes": [
+        "Entertainment"
       ],
       "applicableMallTypes": []
     },
@@ -5306,7 +6814,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 159,
+      "displayOrder": 228,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5329,7 +6837,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 160,
+      "displayOrder": 229,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5353,7 +6861,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 161,
+      "displayOrder": 230,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5386,7 +6894,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 162,
+      "displayOrder": 231,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5418,7 +6926,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 163,
+      "displayOrder": 232,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5437,6 +6945,52 @@
       "applicableMallTypes": []
     },
     {
+      "id": "IND_FR_0252",
+      "code": "PG02",
+      "template": "STORE",
+      "group": "PRODUCT",
+      "subject": "تنوع در محصولات (Must Stock List)",
+      "journeyStage": "EVALUATION",
+      "reportingDimension": "PRODUCT",
+      "originalText": "برندهای پرتقاضا در فروشگاه موجود نیست.",
+      "statement": "برندهای پرتقاضا در فروشگاه موجود نیست.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 233,
+      "applicableBusinessTypes": [
+        "Watch_Jewelry",
+        "FMCG",
+        "Beauty_Cosmetics",
+        "Electronics"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0253",
+      "code": "PG03",
+      "template": "STORE",
+      "group": "PRODUCT",
+      "subject": "تنوع در محصولات (Must Stock List)",
+      "journeyStage": "EVALUATION",
+      "reportingDimension": "PRODUCT",
+      "originalText": "تنوع کالاهای ارائه شده از برندهای محبوب کافی نیست.",
+      "statement": "تنوع کالاهای ارائه شده از برندهای محبوب کافی نیست.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 234,
+      "applicableBusinessTypes": [
+        "FMCG",
+        "Electronics"
+      ],
+      "applicableMallTypes": []
+    },
+    {
       "id": "IND_FR_0164",
       "code": "PIN01",
       "template": "STORE",
@@ -5451,7 +7005,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 164,
+      "displayOrder": 235,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5481,7 +7035,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 165,
+      "displayOrder": 236,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5513,7 +7067,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 166,
+      "displayOrder": 237,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5545,7 +7099,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 167,
+      "displayOrder": 238,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5577,7 +7131,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 168,
+      "displayOrder": 239,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5609,7 +7163,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 169,
+      "displayOrder": 240,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5641,7 +7195,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 170,
+      "displayOrder": 241,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5672,7 +7226,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 171,
+      "displayOrder": 242,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5703,7 +7257,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 172,
+      "displayOrder": 243,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5736,7 +7290,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 173,
+      "displayOrder": 244,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5769,7 +7323,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 174,
+      "displayOrder": 245,
       "applicableBusinessTypes": [
         "Fashion",
         "FMCG",
@@ -5795,7 +7349,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 175,
+      "displayOrder": 246,
       "applicableBusinessTypes": [
         "Fashion",
         "FMCG",
@@ -5821,7 +7375,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 176,
+      "displayOrder": 247,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5854,7 +7408,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 177,
+      "displayOrder": 248,
       "applicableBusinessTypes": [
         "Fashion",
         "FMCG"
@@ -5876,7 +7430,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 178,
+      "displayOrder": 249,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5908,7 +7462,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 179,
+      "displayOrder": 250,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5941,7 +7495,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 180,
+      "displayOrder": 251,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -5974,7 +7528,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 181,
+      "displayOrder": 252,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -6007,7 +7561,7 @@
       "weight": 1.0,
       "requiresPhoto": false,
       "requiresComment": false,
-      "displayOrder": 182,
+      "displayOrder": 253,
       "applicableBusinessTypes": [
         "Fashion",
         "Shoe_Bag",
@@ -6022,6 +7576,69 @@
         "Sports",
         "Specialty",
         "Services"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0254",
+      "code": "CSI03",
+      "template": "STORE",
+      "group": "CASH",
+      "subject": "فاکتور",
+      "journeyStage": "PURCHASE",
+      "reportingDimension": "CHECKOUT",
+      "originalText": "در زمان پرداخت فاکتور، پرسنل در کنار میز منتظر و تا پایان فرآیند پرداخت، در محل حضور دارند.",
+      "statement": "در زمان پرداخت فاکتور، پرسنل در کنار میز منتظر و تا پایان فرآیند پرداخت، در محل حضور دارند.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 254,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0255",
+      "code": "CB01",
+      "template": "STORE",
+      "group": "CASH",
+      "subject": "پیجر",
+      "journeyStage": "PURCHASE",
+      "reportingDimension": "CHECKOUT",
+      "originalText": "تمیز نیست.",
+      "statement": "تمیز نیست.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 255,
+      "applicableBusinessTypes": [
+        "F_B"
+      ],
+      "applicableMallTypes": []
+    },
+    {
+      "id": "IND_FR_0256",
+      "code": "CB02",
+      "template": "STORE",
+      "group": "CASH",
+      "subject": "پیجر",
+      "journeyStage": "PURCHASE",
+      "reportingDimension": "CHECKOUT",
+      "originalText": "سالم نیست.",
+      "statement": "سالم نیست.",
+      "status": "ACTIVE",
+      "version": 1,
+      "weight": 1.0,
+      "requiresPhoto": false,
+      "requiresComment": false,
+      "displayOrder": 256,
+      "applicableBusinessTypes": [
+        "F_B"
       ],
       "applicableMallTypes": []
     },
