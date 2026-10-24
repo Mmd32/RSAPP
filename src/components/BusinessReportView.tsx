@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Building2, Download } from 'lucide-react';
 import type { VisitSession } from '../types';
-import { computeBrandFrictionRates, computeFrictionRate, isFinishedVisit, latestVisitPerBranch, nameKey } from '../engine/frModel';
-import { BranchSection, TopTopicsSection, ZoneSection } from './FrictionRateReport';
-import { faDigits } from '../utils/format';
+import type { Brand } from '../services/brandService';
+import { computeBrandFrictionRates, computeFrictionRate, computeStoreFrictionRate, isFinishedVisit, latestVisitPerBranch, nameKey } from '../engine/frModel';
+import { BranchSection, TopTopicsSection, ZoneSection, ZONE_ORDER, faRate } from './FrictionRateReport';
+import { faDigits, groupLabel } from '../utils/format';
 
 /*
  * Total Business: one brand, all its branches. Each branch contributes its
@@ -13,11 +14,14 @@ import { faDigits } from '../utils/format';
  */
 
 interface BusinessReportViewProps {
+  /** Visits with brand and branch names as they are today (renames and merges applied). */
   visits: VisitSession[];
+  brands?: Brand[];
   isLoading?: boolean;
+  onOpenVisit?: (visit: VisitSession) => void;
 }
 
-export const BusinessReportView: React.FC<BusinessReportViewProps> = ({ visits, isLoading }) => {
+export const BusinessReportView: React.FC<BusinessReportViewProps> = ({ visits, brands: registry = [], isLoading, onOpenVisit }) => {
   // One entry per brand, however it was spelled: "هوکانی" and "هوکانی " are the same brand.
   const brands = useMemo(() => {
     const groups = new Map<string, { spellings: Map<string, number>; branches: Set<string> }>();
@@ -51,9 +55,23 @@ export const BusinessReportView: React.FC<BusinessReportViewProps> = ({ visits, 
   const included = useMemo(() => brands.filter((b) => b.key === brandKey || merged.includes(b.key)), [brands, brandKey, merged]);
   const names = useMemo(() => included.map((b) => b.name), [included]);
 
-  const latest = useMemo(() => (names.length ? latestVisitPerBranch(names, visits) : []), [names, visits]);
+  const allLatest = useMemo(() => (names.length ? latestVisitPerBranch(names, visits) : []), [names, visits]);
+  // Which branches are in the report: all of them unless some are unticked.
+  const [skipped, setSkipped] = useState<string[]>([]);
+  useEffect(() => setSkipped([]), [brandKey, merged.join('|')]);
+  const picked = useMemo(() => new Set(allLatest.map((v) => nameKey(v.branchName)).filter((k) => !skipped.includes(k))), [allLatest, skipped]);
+  const latest = useMemo(() => allLatest.filter((v) => picked.has(nameKey(v.branchName))), [allLatest, picked]);
+  const pickedVisits = useMemo(() => visits.filter((v) => picked.has(nameKey(v.branchName))), [visits, picked]);
   const business = useMemo(() => computeFrictionRate(latest), [latest]);
-  const branches = useMemo(() => (names.length ? computeBrandFrictionRates(names, visits) : []), [names, visits]);
+  const branches = useMemo(() => (names.length ? computeBrandFrictionRates(names, pickedVisits) : []), [names, pickedVisits]);
+  const detail = useMemo(
+    () =>
+      latest
+        .map((v) => ({ visit: v, rate: computeStoreFrictionRate(v.indicators, v.responses) }))
+        .sort((a, b) => b.rate.total.rate - a.rate.total.rate),
+    [latest],
+  );
+  const withoutVisits = registry.filter((b) => b.isActive && !brands.some((x) => x.key === nameKey(b.name)));
   const others = brands.filter((b) => b.key !== brandKey);
 
   return (
@@ -72,12 +90,12 @@ export const BusinessReportView: React.FC<BusinessReportViewProps> = ({ visits, 
           <button
             type="button"
             className="btn-primary"
-            disabled={exporting || !names.length}
+            disabled={exporting || !latest.length}
             onClick={async () => {
               setExporting(true);
               try {
                 const { downloadBusinessDeck } = await import('../services/pptxReport');
-                await downloadBusinessDeck(names, visits);
+                await downloadBusinessDeck(names, pickedVisits);
               } catch (err) {
                 console.error('PowerPoint export failed:', err);
                 alert('ساخت پاورپوینت انجام نشد. دوباره تلاش کنید.');
@@ -129,6 +147,35 @@ export const BusinessReportView: React.FC<BusinessReportViewProps> = ({ visits, 
         </details>
       )}
 
+      {allLatest.length > 1 && (
+        <section className="fr-card" aria-labelledby="biz-branches-pick">
+          <header className="fr-card__header">
+            <div>
+              <h3 id="biz-branches-pick" className="fr-card__title">شعب این گزارش</h3>
+              <p className="fr-card__subtitle">همهٔ شعب {brand} در گزارش هستند. برای گزارش چند شعبهٔ مشخص، بقیه را از حالت انتخاب دربیاورید.</p>
+            </div>
+            <div className="ie-actions">
+              <button type="button" className="btn-secondary" onClick={() => setSkipped([])} disabled={!skipped.length}>انتخاب همه</button>
+            </div>
+          </header>
+          <div className="business-merge__list">
+            {allLatest.map((v) => {
+              const key = nameKey(v.branchName);
+              return (
+                <label key={v.id} className="ie-check">
+                  <input
+                    type="checkbox"
+                    checked={picked.has(key)}
+                    onChange={(e) => setSkipped((s) => (e.target.checked ? s.filter((k) => k !== key) : [...s, key]))}
+                  />
+                  <span>{v.branchName} <small className="ie-hint">· {new Date(v.completedAt || v.startedAt).toLocaleDateString('fa-IR')}</small></span>
+                </label>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {!brands.length ? (
         <div className="fr-card">
           <p className="fr-card__empty">
@@ -146,8 +193,56 @@ export const BusinessReportView: React.FC<BusinessReportViewProps> = ({ visits, 
           />
           <BranchSection brandName={brand} branches={branches} id="biz-branches-title" />
           <TopTopicsSection rate={business} id="biz-topics-title" title={`۱۰ اصطکاک اصلی — کل ${brand}`} />
+
+          <section className="fr-card" aria-labelledby="biz-detail-title">
+            <header className="fr-card__header">
+              <div>
+                <h3 id="biz-detail-title" className="fr-card__title">جزئیات هر شعبه</h3>
+                <p className="fr-card__subtitle">نرخ اصطکاک هر منطقه برای هر شعبه، از آخرین ارزیابی نهایی‌شدهٔ آن؛ مرتب از بیشترین اصطکاک. با «گزارش کامل» به گزارش همان ارزیابی می‌روید.</p>
+              </div>
+            </header>
+            <div className="fr-table-wrap">
+              <table className="fr-table">
+                <thead>
+                  <tr>
+                    <th scope="col">شعبه</th>
+                    <th scope="col">تاریخ</th>
+                    <th scope="col">ارزیاب</th>
+                    {ZONE_ORDER.map((z) => <th key={z} scope="col">{groupLabel(z)}</th>)}
+                    <th scope="col">کل</th>
+                    <th scope="col">اصطکاک / شاخص</th>
+                    {onOpenVisit && <th scope="col" />}
+                  </tr>
+                </thead>
+                <tbody>
+                  {detail.map(({ visit, rate }) => {
+                    const byZone = new Map(rate.zones.map((z) => [z.group, z]));
+                    return (
+                      <tr key={visit.id}>
+                        <th scope="row">{visit.branchName}</th>
+                        <td>{new Date(visit.completedAt || visit.startedAt).toLocaleDateString('fa-IR')}</td>
+                        <td>{visit.auditorName || '—'}</td>
+                        {ZONE_ORDER.map((z) => <td key={z} className="ltr-num">{byZone.get(z) ? faRate(byZone.get(z)!.rate) : '—'}</td>)}
+                        <td className="ltr-num fr-table__rate">{faRate(rate.total.rate)}</td>
+                        <td className="ltr-num">{faDigits(rate.total.frictions)} / {faDigits(rate.total.indicators - rate.total.notApplicable)}</td>
+                        {onOpenVisit && (
+                          <td><button type="button" className="btn-secondary" style={{ minHeight: 30, padding: '0 10px' }} onClick={() => onOpenVisit(visit)}>گزارش کامل</button></td>
+                        )}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
         </>
       ) : null}
+
+      {withoutVisits.length > 0 && (
+        <p className="ie-hint">
+          برندهای تعریف‌شده‌ای که هنوز ارزیابی نهایی‌شده ندارند: {withoutVisits.map((b) => b.name).join('، ')}
+        </p>
+      )}
     </div>
   );
 };

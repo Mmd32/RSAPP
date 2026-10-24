@@ -7,11 +7,13 @@ import {
   AnswerState,
   SeverityLevel,
   EvidencePhoto,
+  SavedStoreDirectoryItem,
 } from './types';
 import { StartVisitWizard } from './components/StartVisitWizard';
 import { LandingPage } from './components/landing/LandingPage';
 import { ReviewQueue } from './components/ReviewQueue';
 import { StoreService } from './services/storeService';
+import { BrandService, canonicalizeVisits, type Brand } from './services/brandService';
 import { apiFetch } from './services/apiClient';
 import { VisitSync, fetchPastVisits } from './services/visitService';
 import { flushPendingPhotos } from './services/photoService';
@@ -92,6 +94,7 @@ const RevisitComparisonView = React.lazy(() =>
 const SupervisorReview = React.lazy(() =>
   import('./components/SupervisorReview').then((m) => ({ default: m.SupervisorReview }))
 );
+const BrandManager = React.lazy(() => import('./components/BrandManager').then((m) => ({ default: m.BrandManager })));
 const AdminQuestionBank = React.lazy(() =>
   import('./components/AdminQuestionBank').then((m) => ({ default: m.AdminQuestionBank }))
 );
@@ -140,6 +143,7 @@ type ViewMode =
   | 'REVISIT'
   | 'ARCHIVE'
   | 'USERS'
+  | 'BRANDS'
   | 'PASSWORD';
 
 const LOCAL_STORAGE_KEY = 'rsapp_active_visit_v1';
@@ -351,6 +355,7 @@ export const App: React.FC = () => {
         'REVISIT',
         'ARCHIVE',
         'USERS',
+        'BRANDS',
         'PASSWORD',
       ];
       if (validModes.includes(hash as ViewMode)) {
@@ -368,6 +373,19 @@ export const App: React.FC = () => {
     StoreService.getAllStores().then((stores) => setSavedStoresCount(stores.length)).catch(() => {});
   }, []);
 
+  // Brands and their branches. Visits keep the names as typed; reports use the brand and branch they belong to today.
+  const [brands, setBrands] = useState<Brand[]>(() => BrandService.cached(currentUser.tenantId));
+  const [directory, setDirectory] = useState<SavedStoreDirectoryItem[]>(() => StoreService.getLocalStores());
+  const reloadBrands = React.useCallback(async () => {
+    const [b, s] = await Promise.all([BrandService.load(currentUser.tenantId), StoreService.getAllStores()]);
+    setBrands(b);
+    setDirectory(s);
+    setSavedStoresCount(s.length);
+  }, [currentUser.tenantId]);
+  useEffect(() => {
+    reloadBrands().catch(() => {});
+  }, [reloadBrands]);
+
   const [viewMode, setViewModeState] = useState<ViewMode>(getInitialViewMode);
 
   // Keep people out of screens their role cannot use (the server refuses the
@@ -375,7 +393,7 @@ export const App: React.FC = () => {
   const viewAllowed = (mode: ViewMode): boolean => {
     if (mode === 'WIZARD' || mode === 'AUDIT' || mode === 'REVIEW') return can.fieldWork;
     if (mode === 'SUPERVISOR') return can.review;
-    if (mode === 'CATALOG') return can.adminTools;
+    if (mode === 'CATALOG' || mode === 'BRANDS') return can.adminTools;
     // Engineering tool: not in the menu, reachable by administrators at #scenarios.
     if (mode === 'SCENARIOS') return can.manageUsers;
     if (mode === 'USERS') return can.manageUsers;
@@ -418,6 +436,7 @@ export const App: React.FC = () => {
         'REVISIT',
         'ARCHIVE',
         'USERS',
+        'BRANDS',
       ];
       if (validModes.includes(hash as ViewMode)) {
         setViewModeState(hash as ViewMode);
@@ -453,6 +472,8 @@ export const App: React.FC = () => {
 
   // Past Visits for Comparison & Historical tracking
   const [pastVisits, setPastVisits] = useState<VisitSession[]>([]);
+  // The same visits with brand and branch names as they are today (after renames and merges).
+  const reportVisits = useMemo(() => canonicalizeVisits(pastVisits, brands, directory), [pastVisits, brands, directory]);
   const [isLoadingVisits, setIsLoadingVisits] = useState(false);
   const [visitsLoadError, setVisitsLoadError] = useState<string | null>(null);
 
@@ -1219,6 +1240,7 @@ export const App: React.FC = () => {
               {viewMode === 'REVISIT' && 'تحلیل مقایسه‌ای و پایش بهبود'}
               {viewMode === 'ACTIONS' && 'کارتابل پیگیری اقدامات اصلاحی'}
               {viewMode === 'CATALOG' && 'بانک جامع شاخص‌های استاندارد'}
+              {viewMode === 'BRANDS' && 'مدیریت برندها و شعب'}
               {viewMode === 'SCENARIOS' && 'محیط تست و اجرای سناریوها'}
               {viewMode === 'USERS' && 'کاربران و دسترسی‌ها'}
               {viewMode === 'PASSWORD' && 'تغییر رمز عبور'}
@@ -1397,7 +1419,7 @@ export const App: React.FC = () => {
             savedStoresCount={savedStoresCount}
             actionsCount={actions.length}
             openActionsCount={actions.filter((a) => !['RESOLVED', 'VERIFIED', 'CANCELLED'].includes(a.status)).length}
-            visits={pastVisits}
+            visits={reportVisits}
             canReview={can.review}
             onOpenVisit={handleOpenArchivedVisit}
             onOpenArchive={() => setViewMode('ARCHIVE')}
@@ -1414,6 +1436,8 @@ export const App: React.FC = () => {
         {viewMode === 'WIZARD' && (
           <StartVisitWizard
             allIndicators={allIndicators}
+            brands={brands}
+            onBrandsChanged={reloadBrands}
             onStartVisit={handleStartVisit}
             currentUserName={currentUserName}
           />
@@ -1761,7 +1785,7 @@ export const App: React.FC = () => {
           {viewMode === 'REPORT' && reportVisit && (
             <VisitReportView
               visit={reportVisit}
-              historyVisits={pastVisits}
+              historyVisits={reportVisits}
               onBackToDashboard={() => setViewMode(activeSession ? 'AUDIT' : 'WIZARD')}
               onCreateCorrectiveAction={handleCreateCorrectiveAction}
             />
@@ -1820,7 +1844,13 @@ export const App: React.FC = () => {
             />
           )}
 
-          {viewMode === 'BUSINESS' && <BusinessReportView visits={pastVisits} isLoading={isLoadingVisits} />}
+          {viewMode === 'BUSINESS' && (
+            <BusinessReportView visits={reportVisits} brands={brands} isLoading={isLoadingVisits} onOpenVisit={handleOpenArchivedVisit} />
+          )}
+
+          {viewMode === 'BRANDS' && (
+            <BrandManager brands={brands} stores={directory} visits={reportVisits} canManage={can.adminTools} onChanged={reloadBrands} />
+          )}
 
           {/* REVISIT HISTORICAL COMPARISON VIEW (Prompt 4) */}
           {viewMode === 'REVISIT' && (

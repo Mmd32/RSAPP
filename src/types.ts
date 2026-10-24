@@ -94,6 +94,11 @@ export interface SavedStoreDirectoryItem {
   address?: string;
   city?: string;
   lastVisitedAt?: string;
+  /** False once the branch is closed or paused: it stays in reports but is not offered for new visits. */
+  isActive?: boolean;
+  /** Earlier names of this branch / brand, so visits recorded under them still belong to it. */
+  aliases?: string[];
+  previousBrands?: string[];
   createdAt: string;
 }
 

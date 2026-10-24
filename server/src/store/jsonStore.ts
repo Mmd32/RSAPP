@@ -3,7 +3,7 @@ import path from 'path';
 import { logger } from '../logger.js';
 import { dataPath, ensureDir, writeJsonAtomic } from '../config.js';
 import { CorrectiveAction, ActionAuditLog } from '../types/actions.js';
-import { DataStore, VisitFilter, StoredPhoto, PhotoMetadata, StoredUser, IndicatorOverride, CustomIndicator } from './types.js';
+import { DataStore, VisitFilter, StoredPhoto, PhotoMetadata, StoredUser, IndicatorOverride, CustomIndicator, Brand } from './types.js';
 
 const DEFAULT_TENANT = 'org_retail_holding';
 
@@ -44,6 +44,7 @@ export class JsonDataStore implements DataStore {
   private readonly settingsPath = dataPath('settings.json');
   private readonly overridesPath = dataPath('indicator_overrides.json');
   private readonly customPath = dataPath('custom_indicators.json');
+  private readonly brandsPath = dataPath('brands.json');
 
   private users: Record<string, StoredUser> = {};
   private settings: Record<string, string> = {};
@@ -51,6 +52,8 @@ export class JsonDataStore implements DataStore {
   private overrides: Record<string, IndicatorOverride> = {};
   /** `${tenantId}|${indicatorId}` -> indicator added by hand. */
   private custom: Record<string, CustomIndicator> = {};
+  /** `${tenantId}|${brandId}` -> brand. */
+  private brands: Record<string, Brand> = {};
 
   /** Photo bytes live as files; this index holds their metadata. */
   private photoIndex: Record<string, PhotoMetadata> = {};
@@ -66,6 +69,7 @@ export class JsonDataStore implements DataStore {
     this.settings = this.read(this.settingsPath, this.settings);
     this.overrides = this.read(this.overridesPath, this.overrides);
     this.custom = this.read(this.customPath, this.custom);
+    this.brands = this.read(this.brandsPath, this.brands);
   }
 
   async close(): Promise<void> {
@@ -211,6 +215,25 @@ export class JsonDataStore implements DataStore {
       this.write(this.settingsPath, this.settings);
     }
     return this.settings[key];
+  }
+
+  async listBrands(tenantId: string): Promise<Brand[]> {
+    return Object.entries(this.brands)
+      .filter(([key]) => key.startsWith(`${tenantId}|`))
+      .map(([, value]) => value);
+  }
+
+  async saveBrand(tenantId: string, brand: Brand): Promise<void> {
+    this.brands[`${tenantId}|${brand.id}`] = brand;
+    this.write(this.brandsPath, this.brands);
+  }
+
+  async deleteBrand(tenantId: string, brandId: string): Promise<boolean> {
+    const key = `${tenantId}|${brandId}`;
+    if (!this.brands[key]) return false;
+    delete this.brands[key];
+    this.write(this.brandsPath, this.brands);
+    return true;
   }
 
   async listCustomIndicators(tenantId: string): Promise<CustomIndicator[]> {

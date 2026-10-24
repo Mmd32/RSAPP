@@ -1,7 +1,7 @@
 import pg from 'pg';
 import { logger } from '../logger.js';
 import { CorrectiveAction, ActionAuditLog } from '../types/actions.js';
-import { DataStore, VisitFilter, StoredPhoto, PhotoMetadata, StoredUser, IndicatorOverride, CustomIndicator } from './types.js';
+import { DataStore, VisitFilter, StoredPhoto, PhotoMetadata, StoredUser, IndicatorOverride, CustomIndicator, Brand } from './types.js';
 import { DOCUMENT_STORE_SCHEMA } from './schema.js';
 
 const { Pool } = pg;
@@ -292,6 +292,25 @@ export class PostgresDataStore implements DataStore {
   }
 
   // --- custom indicators ----------------------------------------------------
+
+  async listBrands(tenantId: string): Promise<Brand[]> {
+    const { rows } = await this.pool.query('SELECT doc FROM brands WHERE tenant_id = $1', [tenantId]);
+    return rows.map((r) => r.doc as Brand);
+  }
+
+  async saveBrand(tenantId: string, brand: Brand): Promise<void> {
+    await this.pool.query(
+      `INSERT INTO brands (tenant_id, brand_id, doc)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (tenant_id, brand_id) DO UPDATE SET doc = EXCLUDED.doc, updated_at = now()`,
+      [tenantId, brand.id, brand]
+    );
+  }
+
+  async deleteBrand(tenantId: string, brandId: string): Promise<boolean> {
+    const res = await this.pool.query('DELETE FROM brands WHERE tenant_id = $1 AND brand_id = $2', [tenantId, brandId]);
+    return (res.rowCount ?? 0) > 0;
+  }
 
   async listCustomIndicators(tenantId: string): Promise<CustomIndicator[]> {
     const { rows } = await this.pool.query('SELECT doc FROM custom_indicators WHERE tenant_id = $1', [tenantId]);

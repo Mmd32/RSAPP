@@ -389,6 +389,74 @@ try {
     assert.equal((await admin.req('POST', '/custom-indicators', { ...base, code: 'FS01' })).status, 409, 'its codes are taken again');
   });
 
+  console.log('brands and branches');
+
+  let hok: any;
+  await test('anyone filling questionnaires can define a brand; duplicates are refused', async () => {
+    const made = await evaluator.req('POST', '/brands', { name: ' هوکاني ' });
+    assert.equal(made.status, 201);
+    hok = made.json;
+    assert.equal(hok.name, 'هوکاني');
+    assert.equal((await admin.req('POST', '/brands', { name: 'هوکانی' })).status, 409, 'same name, different spelling');
+    assert.equal((await admin.req('POST', '/brands', { name: 'ه' })).status, 400);
+    assert.equal((await anon.req('POST', '/brands', { name: 'x y' })).status, 401);
+  });
+
+  await test('a branch saved in the directory is attached to its brand, and unknown brands are registered', async () => {
+    const b1 = await evaluator.req('POST', '/stores', { brandName: 'هوکانی', branchName: 'ولیعصر', assessmentType: 'STORE', locationContext: 'STREET_STORE', attributes: {}, createdAt: new Date().toISOString() });
+    assert.equal(b1.status, 201);
+    assert.equal(b1.json.brandName, 'هوکاني', 'saved under the registered spelling');
+    await evaluator.req('POST', '/stores', { brandName: 'اپال', branchName: 'جردن', assessmentType: 'STORE', locationContext: 'STREET_STORE', attributes: {}, createdAt: new Date().toISOString() });
+    const names = (await admin.req('GET', '/brands')).json.map((b: any) => b.name);
+    assert.ok(names.includes('اپال'), 'registered automatically');
+  });
+
+  await test('only people with catalog access manage brands and branches', async () => {
+    assert.equal((await evaluator.req('PUT', `/brands/${hok.id}`, { name: 'x y' })).status, 403);
+    assert.equal((await evaluator.req('DELETE', `/brands/${hok.id}`)).status, 403);
+    assert.equal((await manager.req('POST', `/brands/${hok.id}/merge`, { intoId: hok.id })).status, 403);
+    const store0 = (await admin.req('GET', '/stores')).json[0];
+    assert.equal((await evaluator.req('PUT', `/stores/${store0.id}`, { city: 'تهران' })).status, 403);
+  });
+
+  await test('renaming a brand keeps the old name as an alias and moves its branches', async () => {
+    const r = await admin.req('PUT', `/brands/${hok.id}`, { name: 'هوکانی گروپ' });
+    assert.equal(r.status, 200);
+    assert.deepEqual(r.json.aliases, ['هوکاني']);
+    const branches = (await admin.req('GET', '/stores')).json.filter((s: any) => s.brandName === 'هوکانی گروپ');
+    assert.equal(branches.length, 1);
+    assert.equal((await admin.req('PUT', `/brands/${hok.id}`, { name: 'اپال' })).status, 409, 'name of another brand');
+    hok = r.json;
+  });
+
+  await test('a branch can be renamed, edited and moved to another brand', async () => {
+    const opal = (await admin.req('GET', '/brands')).json.find((b: any) => b.name === 'اپال');
+    const br = (await admin.req('GET', '/stores')).json.find((s: any) => s.branchName === 'ولیعصر');
+    const ed = await admin.req('PUT', `/stores/${br.id}`, { branchName: 'ولیعصر بالا', city: 'تهران', isActive: false });
+    assert.equal(ed.status, 200);
+    assert.deepEqual(ed.json.aliases, ['ولیعصر']);
+    assert.equal(ed.json.city, 'تهران');
+    const mv = await admin.req('PUT', `/stores/${br.id}`, { brandId: opal.id });
+    assert.equal(mv.json.brandName, 'اپال');
+    assert.deepEqual(mv.json.previousBrands, ['هوکانی گروپ']);
+    const dup = await admin.req('POST', '/stores', { brandName: 'اپال', branchName: 'جردن 2', assessmentType: 'STORE', locationContext: 'STREET_STORE', attributes: {}, createdAt: new Date().toISOString() });
+    assert.equal((await admin.req('PUT', `/stores/${dup.json.id}`, { branchName: 'ولیعصر بالا' })).status, 409, 'same name in the same brand');
+  });
+
+  await test('merging brands moves branches and keeps names as aliases; deleting a brand removes its branches', async () => {
+    const all = (await admin.req('GET', '/brands')).json;
+    const opal = all.find((b: any) => b.name === 'اپال');
+    const merged = await admin.req('POST', `/brands/${hok.id}/merge`, { intoId: opal.id });
+    assert.equal(merged.status, 200);
+    assert.ok(merged.json.aliases.includes('هوکانی گروپ') && merged.json.aliases.includes('هوکاني'));
+    assert.equal((await admin.req('POST', `/brands/${opal.id}/merge`, { intoId: opal.id })).status, 400);
+    assert.ok(!(await admin.req('GET', '/brands')).json.some((b: any) => b.id === hok.id), 'source brand is gone');
+    const del = await admin.req('DELETE', `/brands/${opal.id}`);
+    assert.equal(del.status, 200);
+    assert.ok(del.json.removedBranches >= 1);
+    assert.equal((await admin.req('GET', '/stores')).json.filter((s: any) => s.brandName === 'اپال').length, 0);
+  });
+
   console.log('visits');
 
   await test('evaluator creates and edits their own visit; server stamps authorship', async () => {
