@@ -2,8 +2,8 @@ import React, { useMemo, useRef, useState } from 'react';
 import { Download, FileSpreadsheet, Pencil, Trash2, Upload, X } from 'lucide-react';
 import type { Indicator } from '../types';
 import { IndicatorService, type CustomIndicatorInput } from '../services/indicatorService';
-import { downloadWorkbook, evaluateDrafts, parseWorkbook, type Draft, type PlanAction, type PlanRow } from '../services/indicatorExcel';
-import { faDigits, groupLabel } from '../utils/format';
+import { downloadWorkbook, evaluateDrafts, inspectWorkbook, parseWorkbook, type Draft, type ImportOptions, type PlanAction, type PlanRow, type WorkbookInfo } from '../services/indicatorExcel';
+import { faDigits, groupLabel, profileLabel } from '../utils/format';
 import { IndicatorForm } from './IndicatorEditor';
 
 const LABEL: Record<PlanAction, string> = {
@@ -23,6 +23,12 @@ interface Props {
 }
 
 const noop = async () => {};
+
+const SECTORS = [
+  'Fashion', 'Shoe_Bag', 'Watch_Jewelry', 'FMCG', 'F_B', 'Hardware', 'Homeware',
+  'Beauty_Cosmetics', 'Electronics', 'Entertainment', 'Sports', 'Specialty', 'Services',
+];
+const MALL_TYPES = ['SM', 'Neighborhood', 'Community', 'Regional', 'Super_Regional'];
 
 /** The row as an indicator, so the same form that adds an indicator by hand can edit it. */
 function draftAsIndicator(d: Draft): Indicator {
@@ -51,6 +57,11 @@ export const IndicatorExcel: React.FC<Props> = ({ indicators, canEdit, onChanged
   const [result, setResult] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [showSame, setShowSame] = useState(false);
+  // The file waits here until the person says which sector it is for.
+  const [pending, setPending] = useState<{ file: File; info: WorkbookInfo } | null>(null);
+  const [mode, setMode] = useState<'chosen' | 'columns'>('chosen');
+  const [sectors, setSectors] = useState<string[]>([]);
+  const [mallTypes, setMallTypes] = useState<string[]>([]);
 
   const guard = async (job: () => Promise<void>) => {
     setBusy(true);
@@ -78,12 +89,30 @@ export const IndicatorExcel: React.FC<Props> = ({ indicators, canEdit, onChanged
     setDrafts(null);
     setNotes([]);
     setFileName(file.name);
+    setPending(null);
     guard(async () => {
-      const parsed = await parseWorkbook(file, indicators);
-      setDrafts(parsed.drafts);
-      setNotes(parsed.notes);
+      const info = await inspectWorkbook(file);
+      // One sector column in the file is the sector it is for; several columns are decided by their X marks.
+      setMode(info.sectors.length > 1 || info.mallTypes.length > 1 ? 'columns' : 'chosen');
+      setSectors(info.sectors.length === 1 ? info.sectors : []);
+      setMallTypes(info.mallTypes.length === 1 ? info.mallTypes : []);
+      setPending({ file, info });
     });
   };
+
+  const readFile = () =>
+    guard(async () => {
+      if (!pending) return;
+      const options: ImportOptions = { mode, sectors, mallTypes };
+      const parsed = await parseWorkbook(pending.file, indicators, options);
+      setDrafts(parsed.drafts);
+      setNotes(parsed.notes);
+      setPending(null);
+    });
+
+  const toggleIn = (list: string[], set: (v: string[]) => void, v: string) => set(list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
+  const canRead =
+    !!pending && (mode === 'columns' || ((!pending.info.hasStore || sectors.length > 0) && (!pending.info.hasMall || mallTypes.length > 0)));
 
   const apply = () =>
     guard(async () => {
@@ -148,6 +177,44 @@ export const IndicatorExcel: React.FC<Props> = ({ indicators, canEdit, onChanged
               {fileName && <span className="ie-hint">{fileName}</span>}
             </div>
             <p className="ie-hint">پیش از ذخیره، فهرست ردیف‌ها را می‌بینید؛ چیزی تا تأیید شما ذخیره نمی‌شود.</p>
+          </div>
+        )}
+
+        {pending && (
+          <div className="xl-drop" role="group" aria-label="سکتور فایل">
+            <strong>۳. این فایل برای کدام سکتور است؟</strong>
+            <p className="ie-hint">
+              شاخص‌های این فایل فقط برای سکتور انتخاب‌شده پرسیده می‌شوند. {pending.info.notes > 0 && `${faDigits(pending.info.notes)} شاخص نکته (Note) اکسل دارند و نکته‌شان به‌عنوان «نکته برای ارزیاب» وارد می‌شود.`}
+            </p>
+            {pending.info.sectors.length > 0 && (
+              <>
+                <label className="ie-check"><input type="radio" name="xl-mode" checked={mode === 'chosen'} onChange={() => setMode('chosen')} /><span>همهٔ ردیف‌ها برای سکتورهای انتخاب‌شده</span></label>
+                <label className="ie-check"><input type="radio" name="xl-mode" checked={mode === 'columns'} onChange={() => setMode('columns')} /><span>طبق علامت X در ستون‌های سکتور فایل ({pending.info.sectors.map(profileLabel).join('، ')})</span></label>
+              </>
+            )}
+            {mode === 'chosen' && pending.info.hasStore && (
+              <fieldset className="ie-set">
+                <legend className="ie-label">سکتور فروشگاه</legend>
+                <div className="ie-checks">
+                  {SECTORS.map((v) => (
+                    <label key={v} className="ie-check"><input type="checkbox" checked={sectors.includes(v)} onChange={() => toggleIn(sectors, setSectors, v)} /><span>{profileLabel(v)}</span></label>
+                  ))}
+                </div>
+              </fieldset>
+            )}
+            {mode === 'chosen' && pending.info.hasMall && (
+              <fieldset className="ie-set">
+                <legend className="ie-label">نوع مرکز خرید</legend>
+                <div className="ie-checks">
+                  {MALL_TYPES.map((v) => (
+                    <label key={v} className="ie-check"><input type="checkbox" checked={mallTypes.includes(v)} onChange={() => toggleIn(mallTypes, setMallTypes, v)} /><span>{profileLabel(v)}</span></label>
+                  ))}
+                </div>
+              </fieldset>
+            )}
+            <div className="ie-actions">
+              <button type="button" className="btn-primary" disabled={busy || !canRead} onClick={readFile}>ادامه و نمایش ردیف‌ها</button>
+            </div>
           </div>
         )}
 
