@@ -8,7 +8,9 @@ export const ReviewQueue: React.FC<{
   visits: VisitSession[];
   isLoading?: boolean;
   onOpen: (visit: VisitSession) => void;
-}> = ({ visits, isLoading, onOpen }) => {
+  /** Opens the report of a questionnaire without reviewing it. */
+  onReport?: (visit: VisitSession) => void;
+}> = ({ visits, isLoading, onOpen, onReport }) => {
   const queue = visits
     .filter((v) => v.status === 'SUBMITTED')
     .sort((a, b) => (a.completedAt || a.startedAt || '').localeCompare(b.completedAt || b.startedAt || ''));
@@ -30,7 +32,7 @@ export const ReviewQueue: React.FC<{
               const frictions = Object.values(v.responses || {}).filter((r) => r.answerState === 'FRICTION').length;
               return (
                 <li key={v.id}>
-                  <button type="button" className="recent__row" onClick={() => onOpen(v)}>
+                  <div className="recent__row" style={{ cursor: 'default' }}>
                     <span className="recent__main">
                       <span className="recent__name">
                         {v.brandName} — {v.branchName}
@@ -41,8 +43,11 @@ export const ReviewQueue: React.FC<{
                         {v.evaluatorCode ? ` (${v.evaluatorCode})` : ''} · {faDigits(frictions)} اصطکاک ثبت‌شده
                       </span>
                     </span>
-                    <span className="status-chip is-submitted">بررسی</span>
-                  </button>
+                    <span className="ie-actions">
+                      {onReport && <button type="button" className="btn-secondary" style={{ minHeight: 32 }} onClick={() => onReport(v)}>گزارش</button>}
+                      <button type="button" className="btn-primary" style={{ minHeight: 32 }} onClick={() => onOpen(v)}>بررسی و تأیید</button>
+                    </span>
+                  </div>
                 </li>
               );
             })}

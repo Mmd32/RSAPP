@@ -94,6 +94,7 @@ const RevisitComparisonView = React.lazy(() =>
 const SupervisorReview = React.lazy(() =>
   import('./components/SupervisorReview').then((m) => ({ default: m.SupervisorReview }))
 );
+const SubmitDone = React.lazy(() => import('./components/SubmitDone').then((m) => ({ default: m.SubmitDone })));
 const BrandManager = React.lazy(() => import('./components/BrandManager').then((m) => ({ default: m.BrandManager })));
 const AdminQuestionBank = React.lazy(() =>
   import('./components/AdminQuestionBank').then((m) => ({ default: m.AdminQuestionBank }))
@@ -144,6 +145,7 @@ type ViewMode =
   | 'ARCHIVE'
   | 'USERS'
   | 'BRANDS'
+  | 'SENT'
   | 'PASSWORD';
 
 const LOCAL_STORAGE_KEY = 'rsapp_active_visit_v1';
@@ -340,6 +342,8 @@ export const App: React.FC = () => {
   // the one a reviewer is checking, and the one whose report is on screen.
   const [reviewVisit, setReviewVisit] = useState<VisitSession | null>(null);
   const [viewedVisit, setViewedVisit] = useState<VisitSession | null>(null);
+  // The questionnaire just sent, shown on the confirmation screen.
+  const [sentVisit, setSentVisit] = useState<VisitSession | null>(null);
 
   // Deep Linking & URL Routing via window.location.hash (Audit Priority 9 / N2)
   const getInitialViewMode = (): ViewMode => {
@@ -399,6 +403,7 @@ export const App: React.FC = () => {
     if (mode === 'WIZARD' || mode === 'AUDIT' || mode === 'REVIEW') return can.fieldWork;
     if (mode === 'SUPERVISOR') return can.review;
     if (mode === 'CATALOG' || mode === 'BRANDS') return can.adminTools;
+    if (mode === 'SENT') return can.fieldWork || can.review;
     // Engineering tool: not in the menu, reachable by administrators at #scenarios.
     if (mode === 'SCENARIOS') return can.manageUsers;
     if (mode === 'USERS') return can.manageUsers;
@@ -1074,9 +1079,10 @@ export const App: React.FC = () => {
       /* storage unavailable */
     }
     setActiveSession(null);
+    setSentVisit(updated);
     loadPastVisits();
-    // Evaluators only record: after sending, they go back to their list.
-    setViewMode(can.review ? 'SUPERVISOR' : 'ARCHIVE');
+    // A confirmation first: it arrived, who sees it, what to do next.
+    setViewMode('SENT');
   };
 
   const handleApproveVisit = async (
@@ -1332,6 +1338,7 @@ export const App: React.FC = () => {
               {viewMode === 'ACTIONS' && 'کارتابل پیگیری اقدامات اصلاحی'}
               {viewMode === 'CATALOG' && 'بانک جامع شاخص‌های استاندارد'}
               {viewMode === 'BRANDS' && 'مدیریت برندها و شعب'}
+              {viewMode === 'SENT' && 'ارسال پرسشنامه'}
               {viewMode === 'SCENARIOS' && 'محیط تست و اجرای سناریوها'}
               {viewMode === 'USERS' && 'کاربران و دسترسی‌ها'}
               {viewMode === 'PASSWORD' && 'تغییر رمز عبور'}
@@ -1845,6 +1852,25 @@ export const App: React.FC = () => {
           </>
         )}
 
+        {viewMode === 'SENT' && sentVisit && (
+          <SubmitDone
+            visit={sentVisit}
+            canReport={can.reports}
+            canReview={can.review}
+            canStart={can.fieldWork}
+            onReport={() => { setViewedVisit(sentVisit); setViewMode('REPORT'); }}
+            onReview={() => handleOpenArchivedVisit(sentVisit)}
+            onNewVisit={() => setViewMode('WIZARD')}
+            onArchive={() => setViewMode('ARCHIVE')}
+          />
+        )}
+        {viewMode === 'SENT' && !sentVisit && (
+          <div className="page" style={{ maxWidth: 560, margin: '40px auto' }}>
+            <div className="fr-card" style={{ textAlign: 'center' }}>
+              <button type="button" className="btn-primary" onClick={() => setViewMode('ARCHIVE')}>بایگانی بازدیدها</button>
+            </div>
+          </div>
+        )}
         {(viewMode === 'AUDIT' || viewMode === 'REVIEW') && !activeSession && (
           <div className="page" style={{ maxWidth: 560, margin: '40px auto' }}>
             <div className="fr-card" style={{ textAlign: 'center' }}>
@@ -1873,7 +1899,7 @@ export const App: React.FC = () => {
         <React.Suspense fallback={<ViewLoadingFallback />}>
           {/* SUPERVISOR CARPET (Section 26, 27, 28) */}
           {viewMode === 'SUPERVISOR' && !(reviewVisit && reviewVisit.status === 'SUBMITTED') && (
-            <ReviewQueue visits={pastVisits} isLoading={isLoadingVisits} onOpen={handleOpenArchivedVisit} />
+            <ReviewQueue visits={pastVisits} isLoading={isLoadingVisits} onOpen={handleOpenArchivedVisit} onReport={can.reports ? (v) => { setViewedVisit(reportVisits.find((x) => x.id === v.id) || v); setViewMode('REPORT'); } : undefined} />
           )}
 
           {viewMode === 'SUPERVISOR' && reviewVisit && reviewVisit.status === 'SUBMITTED' && (
@@ -1902,6 +1928,14 @@ export const App: React.FC = () => {
                   ))}
                 </select>
               </label>
+            </div>
+          )}
+          {viewMode === 'REPORT' && reportVisit && reportVisit.status === 'SUBMITTED' && (
+            <div className="page" style={{ paddingBottom: 0 }}>
+              <div className="fr-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <span>این بازدید ارسال شده و منتظر بررسی و تأیید سرپرست است.</span>
+                {can.review && <button type="button" className="btn-primary" onClick={() => handleOpenArchivedVisit(reportVisit)}>بررسی و تأیید</button>}
+              </div>
             </div>
           )}
           {viewMode === 'REPORT' && reportVisit && (
