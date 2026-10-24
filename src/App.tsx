@@ -1158,6 +1158,56 @@ export const App: React.FC = () => {
     setViewMode('SENT');
   };
 
+  // For someone who both fills the form and may approve it: submit and approve in one step,
+  // instead of sending a questionnaire to themselves.
+  const handleSubmitAndApprove = async () => {
+    if (!activeSession) return;
+    const before = activeSession;
+    const submitted: VisitSession = {
+      ...activeSession,
+      status: 'SUBMITTED',
+      completedAt: new Date().toISOString(),
+      overallScore: getVisitScore(activeSession),
+    };
+    saveVisitState(submitted);
+    if (!(await VisitSync.flush(currentTenantId))) {
+      saveVisitState({ ...before, completedAt: undefined });
+      alert(`ثبت پرسشنامه انجام نشد؛ پاسخ‌های شما روی همین دستگاه محفوظ است.\n${VisitSync.lastError || ''}\nدوباره تلاش کنید.`);
+      return;
+    }
+    const decisions: Record<string, { status: 'APPROVED' }> = {};
+    submitted.indicators.forEach((i) => {
+      if (submitted.responses[i.id]?.answerState === 'FRICTION') decisions[i.id] = { status: 'APPROVED' };
+    });
+    const approved: VisitSession = {
+      ...submitted,
+      status: 'APPROVED',
+      supervisorName: currentUserName,
+      supervisorNotes: '',
+      findingDecisions: decisions,
+    };
+    VisitSync.queue(approved, currentTenantId);
+    const approvedOk = await VisitSync.flush(currentTenantId);
+    try {
+      localStorage.removeItem(activeVisitKey);
+    } catch {
+      /* storage unavailable */
+    }
+    setActiveSession(null);
+    if (!approvedOk) {
+      // Recorded and sent; only the approval did not go through: finish it from the inbox.
+      alert(`پرسشنامه ثبت شد ولی تأیید نهایی انجام نشد.\n${VisitSync.lastError || ''}\nاز کارتابل سرپرست تأیید کنید.`);
+      upsertPastVisit(submitted);
+      loadPastVisits(true);
+      setViewMode('SUPERVISOR');
+      return;
+    }
+    upsertPastVisit(approved);
+    setViewedVisit(approved);
+    loadPastVisits(true);
+    setViewMode('REPORT');
+  };
+
   const handleApproveVisit = async (
     notes: string,
     decisions: Record<string, { status: 'APPROVED' | 'REJECTED' | 'REQUEST_CHANGE'; comment?: string }>
@@ -1962,6 +2012,7 @@ export const App: React.FC = () => {
             onJumpToQuestion={handleJumpToQuestion}
             onBackToAudit={() => setViewMode('AUDIT')}
             onSubmitVisit={handleSubmitVisit}
+            onSubmitAndApprove={can.review ? handleSubmitAndApprove : undefined}
             assessmentType={activeSession.assessmentType}
           />
         )}
