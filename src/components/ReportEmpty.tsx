@@ -6,7 +6,7 @@ export const ReportEmpty: React.FC<{ canStart: boolean; onStart: () => void }> =
   <div className="home">
     <header className="home-head">
       <div>
-        <p className="home-eyebrow">گزارش و رادار</p>
+        <p className="home-eyebrow">گزارش فروشگاه</p>
         <h1 className="home-title">هنوز گزارشی وجود ندارد</h1>
       </div>
     </header>
