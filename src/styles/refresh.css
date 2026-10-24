@@ -611,3 +611,9 @@ svg.lucide { stroke-width: 1.75px; }
 .brand-card__meta { color: var(--rd-muted); font-size: var(--fs-caption); }
 .brand-card__actions { margin-inline-start: auto; display: flex; gap: var(--sp-1); }
 .brand-card__actions .btn-secondary { min-height: 32px; padding: 0 9px; }
+
+/* Business detail */
+.bd-zone { border-top: 1px solid var(--rd-line); padding: var(--sp-3) 0; }
+.bd-zone > summary { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; cursor: pointer; list-style: none; }
+.bd-zone > summary::-webkit-details-marker { display: none; }
+.bd-chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-3) 0; }

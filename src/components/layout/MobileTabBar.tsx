@@ -129,12 +129,12 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({
         type="button"
         className={`mobile-tab-btn ${viewMode === 'REPORT' ? 'active' : ''}`}
         onClick={() => onSelectViewMode('REPORT')}
-        aria-label="گزارش و رادار"
+        aria-label="گزارش فروشگاه"
       >
         <div className="mobile-tab-icon-wrap">
           <BarChart3 size={19} />
         </div>
-        <span className="mobile-tab-label">رادار ۳۶۰</span>
+        <span className="mobile-tab-label">گزارش</span>
       </button>
         </>
       )}

@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { VisitSession, VisitStatus } from '../types';
 import { visitProgress, visitFrictionCount } from '../services/visitService';
-import { getVisitScore } from '../engine/scoringEngine';
+import { computeStoreFrictionRate } from '../engine/frModel';
 import { faDigits } from '../utils/format';
 import {
   Archive,
@@ -202,7 +202,7 @@ export const VisitArchive: React.FC<VisitArchiveProps> = ({
                   {visit.status !== 'IN_PROGRESS' && canViewReports && (
                     <span className="archive-stat">
                       <CheckCircle2 size={14} />
-                      امتیاز {faDigits(Math.round(getVisitScore(visit)))}
+                      نرخ اصطکاک ٪{faDigits(Math.round(computeStoreFrictionRate(visit.indicators, visit.responses).total.rate * 100))}
                     </span>
                   )}
                 </div>

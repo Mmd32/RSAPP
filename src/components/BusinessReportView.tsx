@@ -3,6 +3,7 @@ import { Building2, Download } from 'lucide-react';
 import type { VisitSession } from '../types';
 import type { Brand } from '../services/brandService';
 import { computeBrandFrictionRates, computeFrictionRate, computeStoreFrictionRate, isFinishedVisit, latestVisitPerBranch, nameKey } from '../engine/frModel';
+import { BusinessDetail } from './BusinessDetail';
 import { BranchSection, TopTopicsSection, ZoneSection, ZONE_ORDER, faRate } from './FrictionRateReport';
 import { faDigits, groupLabel } from '../utils/format';
 
@@ -19,9 +20,10 @@ interface BusinessReportViewProps {
   brands?: Brand[];
   isLoading?: boolean;
   onOpenVisit?: (visit: VisitSession) => void;
+  onNewVisit?: (brandName: string, branchName: string) => void;
 }
 
-export const BusinessReportView: React.FC<BusinessReportViewProps> = ({ visits, brands: registry = [], isLoading, onOpenVisit }) => {
+export const BusinessReportView: React.FC<BusinessReportViewProps> = ({ visits, brands: registry = [], isLoading, onOpenVisit, onNewVisit }) => {
   // One entry per brand, however it was spelled: "هوکانی" and "هوکانی " are the same brand.
   const brands = useMemo(() => {
     const groups = new Map<string, { spellings: Map<string, number>; branches: Set<string> }>();
@@ -194,6 +196,8 @@ export const BusinessReportView: React.FC<BusinessReportViewProps> = ({ visits, 
           <BranchSection brandName={brand} branches={branches} id="biz-branches-title" />
           <TopTopicsSection rate={business} id="biz-topics-title" title={`۱۰ اصطکاک اصلی — کل ${brand}`} />
 
+          <BusinessDetail brand={brand} visits={latest} />
+
           <section className="fr-card" aria-labelledby="biz-detail-title">
             <header className="fr-card__header">
               <div>
@@ -211,7 +215,7 @@ export const BusinessReportView: React.FC<BusinessReportViewProps> = ({ visits, 
                     {ZONE_ORDER.map((z) => <th key={z} scope="col">{groupLabel(z)}</th>)}
                     <th scope="col">کل</th>
                     <th scope="col">اصطکاک / شاخص</th>
-                    {onOpenVisit && <th scope="col" />}
+                    {(onOpenVisit || onNewVisit) && <th scope="col" />}
                   </tr>
                 </thead>
                 <tbody>
@@ -225,8 +229,11 @@ export const BusinessReportView: React.FC<BusinessReportViewProps> = ({ visits, 
                         {ZONE_ORDER.map((z) => <td key={z} className="ltr-num">{byZone.get(z) ? faRate(byZone.get(z)!.rate) : '—'}</td>)}
                         <td className="ltr-num fr-table__rate">{faRate(rate.total.rate)}</td>
                         <td className="ltr-num">{faDigits(rate.total.frictions)} / {faDigits(rate.total.indicators - rate.total.notApplicable)}</td>
-                        {onOpenVisit && (
-                          <td><button type="button" className="btn-secondary" style={{ minHeight: 30, padding: '0 10px' }} onClick={() => onOpenVisit(visit)}>گزارش کامل</button></td>
+                        {(onOpenVisit || onNewVisit) && (
+                          <td className="xl-actions">
+                            {onOpenVisit && <button type="button" className="btn-secondary" style={{ minHeight: 30, padding: '0 10px' }} onClick={() => onOpenVisit(visit)}>گزارش کامل</button>}
+                            {onNewVisit && <button type="button" className="btn-secondary" style={{ minHeight: 30, padding: '0 10px' }} onClick={() => onNewVisit(visit.brandName, visit.branchName)}>بازدید جدید</button>}
+                          </td>
                         )}
                       </tr>
                     );

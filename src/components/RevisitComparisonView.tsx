@@ -7,8 +7,11 @@ import {
   CorrectiveAction,
 } from '../types';
 import { ComparisonEngine } from '../engine/comparisonEngine';
-import { getVisitScore } from '../engine/scoringEngine';
+import { computeStoreFrictionRate } from '../engine/frModel';
 import { faDateShort, faPercent } from '../utils/format';
+
+/** Friction rate of a visit, 0–1: friction ÷ (indicators − N/A). */
+const frOf = (v: VisitSession) => computeStoreFrictionRate(v.indicators, v.responses).total.rate;
 
 const ANSWER_LABEL: Record<string, string> = {
   UNANSWERED: 'پاسخ داده نشده',
@@ -119,6 +122,14 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
     );
   }, [selectedBranchData, branchVisits, actions]);
 
+  // Friction-rate trend of the branch: first visit to latest.
+  const frTrend = useMemo(() => {
+    if (!branchVisits.length) return null;
+    const initial = frOf(branchVisits[0]);
+    const current = frOf(branchVisits[branchVisits.length - 1]);
+    return { initial, current, delta: current - initial };
+  }, [branchVisits]);
+
   // Filter Table
   const [classFilter, setClassFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -164,7 +175,7 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
           مقایسه تاریخی و بهبود مستمر شعب
         </h1>
         <p style={{ fontSize: 13, color: 'var(--theme-text-secondary)', marginTop: 4 }}>
-          راستی‌آزمایی حل اصطکاک‌ها در بازدیدهای مجدد، کشف مشکلات پرتکرار و سیر تحول امتیاز شعبه
+          راستی‌آزمایی حل اصطکاک‌ها در بازدیدهای مجدد، کشف مشکلات پرتکرار و سیر تحول نرخ اصطکاک شعبه
         </p>
       </div>
 
@@ -209,7 +220,7 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
           >
             {branchVisits.map((v) => (
               <option key={v.id} value={v.id}>
-                {v.visitCode || v.id.slice(0, 8)} ({faDateShort(v.startedAt)}) — امتیاز: {faPercent(getVisitScore(v))}
+                {v.visitCode || v.id.slice(0, 8)} ({faDateShort(v.startedAt)}) — نرخ اصطکاک: {faPercent(frOf(v) * 100)}
               </option>
             ))}
           </select>
@@ -226,7 +237,7 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
           >
             {branchVisits.map((v) => (
               <option key={v.id} value={v.id}>
-                {v.visitCode || v.id.slice(0, 8)} ({faDateShort(v.startedAt)}) — امتیاز: {faPercent(getVisitScore(v))}
+                {v.visitCode || v.id.slice(0, 8)} ({faDateShort(v.startedAt)}) — نرخ اصطکاک: {faPercent(frOf(v) * 100)}
               </option>
             ))}
           </select>
@@ -234,7 +245,7 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
       </div>
 
       {/* Branch Improvement KPI Strip (Requirement 17) */}
-      {branchSummary && (
+      {branchSummary && frTrend && (
         <div
           className="compare-stats"
           style={{
@@ -246,10 +257,10 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
         >
           <div className="card-rs" style={{ padding: '14px 16px' }}>
             <span style={{ fontSize: 12, color: 'var(--theme-text-secondary)', fontWeight: 600 }}>
-              امتیاز اولیه
+              نرخ اصطکاک اولیه
             </span>
             <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--theme-text-primary)', marginTop: 4 }}>
-              {faPercent(branchSummary.initialScore)}
+              {faPercent(frTrend.initial * 100)}
             </div>
             <div style={{ fontSize: 11, color: 'var(--theme-text-muted)', marginTop: 2 }}>
               در اولین ارزیابی شعبه
@@ -258,10 +269,10 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
 
           <div className="card-rs" style={{ padding: '14px 16px' }}>
             <span style={{ fontSize: 12, color: 'var(--theme-text-secondary)', fontWeight: 600 }}>
-              امتیاز جاری
+              نرخ اصطکاک جاری
             </span>
             <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--rs-color-brand-cyan)', marginTop: 4 }}>
-              {faPercent(branchSummary.currentScore)}
+              {faPercent(frTrend.current * 100)}
             </div>
             <div style={{ fontSize: 11, color: 'var(--theme-text-muted)', marginTop: 2 }}>
               آخرین ارزیابی میدانی
@@ -273,29 +284,29 @@ export const RevisitComparisonView: React.FC<RevisitComparisonViewProps> = ({
             style={{
               padding: '14px 16px',
               background:
-                branchSummary.scoreDelta >= 0 ? 'var(--friction-clean-bg)' : 'var(--friction-high-bg)',
+                frTrend.delta <= 0 ? 'var(--friction-clean-bg)' : 'var(--friction-high-bg)',
             }}
           >
             <span style={{ fontSize: 12, color: 'var(--theme-text-secondary)', fontWeight: 600 }}>
-              تغییر امتیاز
+              تغییر نرخ اصطکاک
             </span>
             <div
               style={{
                 fontSize: 28,
                 fontWeight: 800,
-                color: branchSummary.scoreDelta >= 0 ? 'var(--rs-color-success)' : 'var(--rs-color-error)',
+                color: frTrend.delta <= 0 ? 'var(--rs-color-success)' : 'var(--rs-color-error)',
                 marginTop: 4,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 4,
               }}
             >
-              {branchSummary.scoreDelta >= 0 ? '+' : '−'}
-              {faPercent(Math.abs(branchSummary.scoreDelta))}
-              {branchSummary.scoreDelta >= 0 ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
+              {frTrend.delta > 0 ? '+' : frTrend.delta < 0 ? '−' : ''}
+              {faPercent(Math.abs(frTrend.delta) * 100)}
+              {frTrend.delta > 0 ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
             </div>
             <div style={{ fontSize: 11, color: 'var(--theme-text-secondary)', marginTop: 2 }}>
-              روند رشد شاخص‌های کیفی
+              کاهش نرخ اصطکاک یعنی بهبود
             </div>
           </div>
 

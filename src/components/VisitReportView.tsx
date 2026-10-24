@@ -26,7 +26,6 @@ import {
   getVisitDimensionScores,
   type ComparisonVisitContext,
 } from '../engine/scoringEngine';
-import { RadarChart } from './RadarChart';
 import { FrictionRateReport } from './FrictionRateReport';
 import { RetailSolutionsLogo } from './brand/RetailSolutionsLogo';
 import {
@@ -69,7 +68,6 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
   historyVisits = [],
 }) => {
   const [selectedFrictionIds, setSelectedFrictionIds] = useState<Set<string>>(new Set());
-  const [activeProfileId, setActiveProfileId] = useState<string>(DEFAULT_CONSULTING_PROFILE.id);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [showScoringExplainModal, setShowScoringExplainModal] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<{ url: string; caption?: string } | null>(null);
@@ -77,7 +75,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
 
   const isLightMode = typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'light';
 
-  const activeProfile = SCORING_PROFILES_REGISTRY[activeProfileId] || DEFAULT_CONSULTING_PROFILE;
+  const activeProfile = DEFAULT_CONSULTING_PROFILE;
 
   // Comparison context (Requirement 14, 15). Built only from real, finished
   // visits; a series is omitted when there is nothing to compare against.
@@ -224,22 +222,24 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
   };
 
   // CSV Export with UTF-8 BOM for Persian Excel compatibility (Requirement 23)
+  // Frictions in the order of the form, not by a weighted priority.
+  const orderedFindings = useMemo(() => {
+    const order = new Map(visit.indicators.map((i, n) => [i.id, n]));
+    return [...(summary.prioritizedFindings || [])].sort((a, b) => (order.get(a.indicator.id) ?? 0) - (order.get(b.indicator.id) ?? 0));
+  }, [summary.prioritizedFindings, visit.indicators]);
+
   const handleExportCsv = () => {
     let csv =
-      '\uFEFFکد شاخص,منطقه,موضوع شاخص,بُعد ارزیابی,مرحله سفر,وضعیت پاسخ,امتیاز اولویت,شرح گزاره,پیشنهاد اصلاحی,توضیح ارزیاب\n';
+      '\uFEFFکد شاخص,منطقه,موضوع شاخص,وضعیت پاسخ,شرح گزاره,پیشنهاد اصلاحی,توضیح ارزیاب\n';
 
     visit.indicators.forEach((ind) => {
       const resp = visit.responses[ind.id];
       if (!resp) return;
-      const finding = summary.prioritizedFindings?.find((f) => f.indicator.id === ind.id);
       const row = [
         `"${ind.code}"`,
         `"${groupLabel(ind.group).replace(/"/g, '""')}"`,
         `"${(ind.subject || '').replace(/"/g, '""')}"`,
-        `"${(CANONICAL_DIMENSIONS.find((d) => d.key === ind.reportingDimension)?.nameFa || ind.reportingDimension || '').replace(/"/g, '""')}"`,
-        `"${stageLabel(ind.journeyStage).replace(/"/g, '""')}"`,
         `"${ANSWER_FA[resp.answerState] || resp.answerState}"`,
-        `"${finding ? finding.priorityIndex : '-'}"`,
         `"${(ind.statement || '').replace(/"/g, '""')}"`,
         `"${(resp.recommendation || '').replace(/"/g, '""')}"`,
         `"${(resp.comment || '').replace(/"/g, '""')}"`,
@@ -291,29 +291,6 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
         </button>
 
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-          {/* Profile Selector (Requirement 1) */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Sliders size={15} color="var(--rs-color-brand-cyan)" />
-            <span style={{ fontSize: 12, color: 'var(--theme-text-muted)' }}>پروفایل امتیازدهی:</span>
-            <select
-              value={activeProfileId}
-              onChange={(e) => setActiveProfileId(e.target.value)}
-              className="rs-input"
-              style={{
-                fontSize: 12,
-                padding: '4px 10px',
-                background: 'var(--theme-input-bg)',
-                color: 'var(--theme-text-primary)',
-                border: '1px solid var(--theme-input-border)',
-                borderRadius: 'var(--rs-radius-control)',
-              }}
-            >
-              <option value={DEFAULT_CONSULTING_PROFILE.id}>استاندارد مشاوره‌ای (وزن‌دار)</option>
-              <option value={UNWEIGHTED_SCORING_PROFILE.id}>میانگین ساده (هم‌وزن)</option>
-              <option value={STRICT_CRITICAL_PROFILE.id}>سخت‌گیرانه (جریمه تصاعدی)</option>
-            </select>
-          </div>
-
           {/* CSV Export */}
           <button
             type="button"
@@ -401,18 +378,6 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
                 <span style={{ fontSize: 12, color: 'var(--theme-text-muted)' }}>
                   تاریخ ممیزی: {faDate(visit.startedAt)}
                 </span>
-                <span
-                  style={{
-                    fontSize: 12,
-                    color: 'var(--rs-color-brand-cyan)',
-                    background: 'rgba(0, 176, 240, 0.1)',
-                    padding: '2px 8px',
-                    borderRadius: 4,
-                    fontWeight: 600,
-                  }}
-                >
-                  روش امتیازدهی: <span>{activeProfile.name}</span>
-                </span>
               </div>
 
               <h1 style={{ fontSize: 26, fontWeight: 800, marginTop: 10, color: 'var(--theme-text-primary)' }}>
@@ -425,111 +390,6 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
               </p>
             </div>
 
-            {/* Overall Score Display (Executive Telemetry Gauge) */}
-            <div
-              style={{
-                background: 'var(--theme-card-inner)',
-                border: '1px solid var(--theme-card-border)',
-                borderRadius: '12px',
-                padding: '18px 28px',
-                textAlign: 'center',
-                position: 'relative',
-                overflow: 'hidden',
-                minWidth: 200,
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 12,
-                  color: 'var(--theme-text-muted)',
-                  fontWeight: 600,
-                  display: 'block',
-                  marginBottom: 4,
-                }}
-              >
-                امتیاز کل تجربه مشتری
-              </span>
-              <div
-                style={{
-                  fontSize: 48,
-                  fontWeight: 900,
-                  fontFamily: 'var(--rs-font-latin)',
-                  color:
-                    summary.overallScore >= 80
-                      ? '#10B981'
-                      : summary.overallScore >= 60
-                      ? '#F59E0B'
-                      : '#F43F5E',
-                  lineHeight: 1.1,
-                  display: 'flex',
-                  alignItems: 'baseline',
-                  justifyContent: 'center',
-                  gap: 4,
-                }}
-              >
-                <span>{summary.overallScore}</span>
-                <span style={{ fontSize: 18, color: 'var(--theme-text-muted)', fontWeight: 600 }}>/۱۰۰</span>
-              </div>
-
-              {/* Qualitative Executive Tier Badge */}
-              <div
-                style={{
-                  marginTop: 8,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '3px 12px',
-                  borderRadius: 12,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  background:
-                    summary.overallScore >= 80
-                      ? 'rgba(16, 185, 129, 0.15)'
-                      : summary.overallScore >= 60
-                      ? 'rgba(245, 158, 11, 0.15)'
-                      : 'rgba(244, 63, 94, 0.15)',
-                  color:
-                    summary.overallScore >= 80
-                      ? '#10B981'
-                      : summary.overallScore >= 60
-                      ? '#F59E0B'
-                      : '#F43F5E',
-                  border: `1px solid ${
-                    summary.overallScore >= 80
-                      ? 'rgba(16, 185, 129, 0.3)'
-                      : summary.overallScore >= 60
-                      ? 'rgba(245, 158, 11, 0.3)'
-                      : 'rgba(244, 63, 94, 0.3)'
-                  }`,
-                }}
-              >
-                <span>
-                  {summary.overallScore >= 85
-                    ? 'استاندارد ممتاز (سطح تعالی)'
-                    : summary.overallScore >= 75
-                    ? 'استاندارد مطلوب زنجیره‌ای'
-                    : summary.overallScore >= 60
-                    ? 'نیاز به بهبود در ابعاد کلیدی'
-                    : 'اصطکاک شدید (وضعیت بحرانی)'}
-                </span>
-              </div>
-
-              <div
-                style={{
-                  marginTop: 6,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 5,
-                  fontSize: 12,
-                  color: 'var(--theme-text-muted)',
-                  fontWeight: 600,
-                }}
-              >
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--rs-color-brand-cyan)', display: 'inline-block' }} />
-                <span>{activeProfile.overallFormula === 'WEIGHTED_DIMENSIONS' ? 'میانگین وزنی ابعاد ۸گانه' : 'میانگین ساده'}</span>
-              </div>
-            </div>
           </div>
 
           {/* Key Metrics Strip (Requirement 10) */}
@@ -558,58 +418,6 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
         {/* Friction Rate (FR) model: zones, top topics, branches of the brand */}
         <FrictionRateReport visit={visit} historyVisits={historyVisits} />
 
-        {/* Radar Chart Section (Requirements 6, 7, 8, 9) */}
-        <div style={{ marginBottom: 20 }}>
-          <RadarChart
-            categories={summary.categoryScores.filter((c) => c.totalQuestions > 0)}
-            indicators={visit.indicators}
-            responses={visit.responses}
-            radarSeries={summary.radarSeries}
-            dimensionDetails={summary.dimensionDetails}
-          />
-        </div>
-
-        {/* Strengths & Performing Areas Section (Requirement 13) */}
-        {summary.strengths && summary.strengths.length > 0 && (
-          <div className="glass-panel" style={{ padding: 24, marginBottom: 20, borderLeft: '4px solid var(--rs-color-success)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-              <TrendingUp color="var(--rs-color-success)" size={22} />
-              <h3 style={{ fontSize: 17, fontWeight: 700, color: 'var(--theme-text-primary)', margin: 0 }}>
-                نقاط قوت و حوزه‌های عملکرد برجسته
-              </h3>
-            </div>
-            <p style={{ fontSize: 13, color: 'var(--theme-text-muted)', marginBottom: 16, maxWidth: 680, lineHeight: 1.7 }}>
-              ابعادی که در این دوره ممیزی به نمره استاندارد بالای ۸۰٪ دست یافته‌اند و فاقد اصطکاک‌های کلیدی بوده‌اند:
-            </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
-              {summary.strengths.map((str) => (
-                <div
-                  key={str.dimensionKey}
-                  style={{
-                    background: 'rgba(45, 157, 120, 0.1)',
-                    border: '1px solid rgba(45, 157, 120, 0.35)',
-                    borderRadius: 'var(--rs-radius-card)',
-                    padding: '12px 16px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
-                >
-                  <div>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--theme-text-primary)' }}>{str.nameFa}</span>
-                    <span style={{ fontSize: 12, color: 'var(--theme-text-muted)', display: 'block', marginTop: 2 }}>
-                      {str.cleanCount} شاخص منطبق و بدون نقص
-                    </span>
-                  </div>
-                  <span className="ltr-num" style={{ fontSize: 20, fontWeight: 900, color: 'var(--rs-color-success)' }}>
-                    {faPercent(str.score)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Prioritized Key Findings Section (Requirements 11, 12) */}
         <div className="glass-panel" style={{ padding: 24, marginBottom: 20 }}>
           <div
@@ -625,7 +433,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <AlertTriangle color="var(--rs-color-error)" size={22} />
               <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
-                مهم‌ترین یافته‌ها بر اساس ضریب اولویت مشاوره‌ای
+                اصطکاک‌های شناسایی‌شده
               </h3>
             </div>
 
@@ -641,15 +449,15 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
           </div>
 
           <p style={{ fontSize: 13, color: 'var(--theme-text-muted)', marginBottom: 16, maxWidth: 680, lineHeight: 1.7 }}>
-            یافته‌ها بر اساس فرمول شفاف <strong style={{ color: 'var(--rs-color-brand-cyan)' }}>ضریب اهمیت شاخص × وزن بُعد ارزیابی</strong> مرتب شده‌اند؛ اصطکاک‌های تکرارشونده در بازدید مجدد اولویت بالاتری می‌گیرند.
+            هر اصطکاک با کد، موضوع و توضیح ارزیاب، به ترتیب فرم ارزیابی.
           </p>
 
           {(!summary.prioritizedFindings || summary.prioritizedFindings.length === 0) ? (
             <p style={{ fontSize: 13, color: 'var(--rs-color-success)' }}>هیچ اصطکاکی در این ارزیابی شناسایی نگردید.</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {summary.prioritizedFindings.map((finding, idx) => {
-                const { indicator, response, priorityIndex, priorityFormula } = finding;
+              {orderedFindings.map((finding, idx) => {
+                const { indicator, response } = finding;
                 const isSelected = selectedFrictionIds.has(indicator.id);
                 // Frictions are yes/no; one colour for all of them.
                 const severityColor = 'var(--friction-high)';
@@ -694,33 +502,9 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
                         </span>
                         <span className="indicator-code-badge">{indicator.code}</span>
                         <span style={{ fontWeight: 800, fontSize: 16, color: 'var(--theme-text-primary)' }}>{indicator.subject}</span>
-                        <span style={{ fontSize: 11, color: 'var(--theme-text-secondary)', background: 'var(--surface-chip)', padding: '2px 8px', borderRadius: 6, border: '1px solid var(--theme-card-border)' }}>
-                          بُعد: {(() => { const k = indicator.reportingDimension || finding.reportingDimension; return CANONICAL_DIMENSIONS.find((d) => d.key === k)?.nameFa || k; })()}
-                        </span>
                       </div>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                        {/* Priority Badge */}
-                        <span
-                          style={{
-                            background: 'rgba(0, 176, 240, 0.12)',
-                            color: 'var(--rs-color-brand-cyan)',
-                            border: '1px solid rgba(0, 176, 240, 0.3)',
-                            fontSize: 11,
-                            padding: '3px 10px',
-                            borderRadius: '20px',
-                            fontWeight: 700,
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 4,
-                          }}
-                          title={priorityFormula}
-                        >
-                          <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--rs-color-brand-cyan)' }} />
-                          <span>ضریب اولویت: {priorityIndex}</span>
-                        </span>
-
-
                         {onCreateCorrectiveAction && (
                           <button
                             type="button"
@@ -800,95 +584,6 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
           )}
         </div>
 
-        {/* Explainable Dimension Breakdown Table (Requirement 4) */}
-        <div className="glass-panel" style={{ padding: 24, marginBottom: 20 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-            <h3 style={{ fontSize: 17, fontWeight: 700, color: 'var(--theme-text-primary)', margin: 0 }}>
-              تحلیل و شفافیت محاسباتی ابعاد هشت‌گانه
-            </h3>
-            <span style={{ fontSize: 11, color: 'var(--rs-color-brand-cyan)' }}>
-              تمامی محاسبات بدون گردکردن فرضی و با کسر موارد N/A انجام شده است.
-            </span>
-          </div>
-
-          <div style={{ overflowX: 'auto' }}>
-            <table className="exec-table">
-              <thead>
-                <tr>
-                  <th style={{ textAlign: 'right' }}>بُعد ارزیابی</th>
-                  <th style={{ textAlign: 'center' }}>شاخص پاسخ‌داده</th>
-                  <th style={{ textAlign: 'center' }}>مجموع وزن</th>
-                  <th style={{ textAlign: 'center' }}>اصطکاک</th>
-                  <th style={{ textAlign: 'center' }}>انطباق</th>
-                  <th style={{ textAlign: 'center' }}>N/A (خارج از مخرج)</th>
-                  <th style={{ textAlign: 'center' }}>مجموع جریمه</th>
-                  <th style={{ textAlign: 'center' }}>نمره خام</th>
-                  <th style={{ textAlign: 'center', minWidth: 140 }}>نمره نهایی (۰-۱۰۰)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {summary.dimensionDetails?.map((dim) => {
-                  const scoreColor =
-                    dim.normalizedScore >= 80
-                      ? 'var(--rs-color-success)'
-                      : dim.normalizedScore >= 50
-                      ? 'var(--rs-color-warning)'
-                      : 'var(--rs-color-error)';
-
-                  return (
-                    <tr key={dim.dimensionKey}>
-                      <td>
-                        <strong style={{ fontSize: 13, color: 'var(--theme-text-primary)', display: 'block' }}>{dim.dimensionNameFa}</strong>
-                        <span style={{ fontSize: 11, color: 'var(--rs-color-brand-cyan)' }}>
-                          ضریب وزن در نمره کل: {dim.dimensionWeight}
-                        </span>
-                      </td>
-                      <td style={{ textAlign: 'center', color: 'var(--theme-text-primary)' }} className="ltr-num">{dim.applicableCount}</td>
-                      <td style={{ textAlign: 'center', color: 'var(--theme-text-muted)' }} className="ltr-num">{dim.totalWeight}</td>
-                      <td style={{ textAlign: 'center', color: dim.frictionCount > 0 ? 'var(--rs-color-error)' : 'var(--theme-text-primary)', fontWeight: dim.frictionCount > 0 ? 800 : 400 }} className="ltr-num">
-                        {dim.frictionCount}
-                      </td>
-                      <td style={{ textAlign: 'center', color: 'var(--rs-color-success)', fontWeight: 700 }} className="ltr-num">{dim.cleanCount}</td>
-                      <td style={{ textAlign: 'center', color: 'var(--theme-text-muted)' }} className="ltr-num">{dim.naCount}</td>
-                      <td style={{ textAlign: 'center', color: 'var(--friction-medium)' }}>{faDigits(dim.severityPenaltiesSum)}</td>
-                      <td style={{ textAlign: 'center', color: 'var(--theme-text-secondary)', fontFeatureSettings: "'tnum' 1" }}>{faPercent(dim.rawScore)}</td>
-                      <td style={{ textAlign: 'center' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
-                          <div style={{ flex: 1, height: 6, background: 'var(--surface-chip)', borderRadius: 10, overflow: 'hidden' }}>
-                            <div
-                              style={{
-                                width: `${Math.max(5, Math.min(100, dim.normalizedScore))}%`,
-                                height: '100%',
-                                background: scoreColor,
-                                borderRadius: 10,
-                              }}
-                            />
-                          </div>
-                          <span
-                            className="ltr-num"
-                            style={{
-                              padding: '2px 8px',
-                              borderRadius: '12px',
-                              fontWeight: 800,
-                              fontSize: 12,
-                              background: `${scoreColor}22`,
-                              color: scoreColor,
-                              border: `1px solid ${scoreColor}44`,
-                              minWidth: 46,
-                            }}
-                          >
-                            {faPercent(dim.normalizedScore)}
-                          </span>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
         {/* Official Consulting Footer & Methodology Sign-off (Requirements 18, 20) */}
         <div
           className="glass-panel"
@@ -910,7 +605,7 @@ export const VisitReportView: React.FC<VisitReportViewProps> = ({
               </span>
             </div>
             <p style={{ fontSize: 11, color: 'var(--theme-text-muted)', maxWidth: 620, lineHeight: 1.6, margin: 0 }}>
-              این گزارش بر مبنای بانک شاخص‌های استاندارد و موتور قواعد پویای ریتیل سلوشنز تولید شده است. امتیاز کل از میانگین وزنی ابعاد حاصل شده و شاخص‌های غیرقابل اعمال (N/A) به طور کامل از مخرج کسر محاسباتی حذف گردیده‌اند. کلیه اصطکاک‌های کلیدی وارد چرخه اقدامات اصلاحی شده‌اند.
+              این گزارش بر مبنای بانک شاخص‌های استاندارد و موتور قواعد پویای ریتیل سلوشنز تولید شده است. نرخ اصطکاک هر منطقه و موضوع از تقسیم تعداد اصطکاک‌ها بر تعداد شاخص‌های همان بخش (منهای غیرقابل ارزیابی) به‌دست آمده و شاخص‌های غیرقابل اعمال (N/A) به طور کامل از مخرج کسر محاسباتی حذف گردیده‌اند. کلیه اصطکاک‌های کلیدی وارد چرخه اقدامات اصلاحی شده‌اند.
             </p>
           </div>
 

@@ -31,7 +31,7 @@ import {
   Tag,
   Sliders,
 } from 'lucide-react';
-import { profileLabel } from '../utils/format';
+import { faDigits, profileLabel } from '../utils/format';
 import { BrandService, type Brand } from '../services/brandService';
 import { nameKey } from '../engine/frModel';
 import { PHOTOS_REQUIRED } from '../config/policy';
@@ -45,6 +45,9 @@ interface StartVisitWizardProps {
   /** Registered brands: a visit is for one of them, or for a brand defined right here. */
   brands?: Brand[];
   onBrandsChanged?: () => Promise<void>;
+  /** A branch chosen elsewhere (brand manager, business report) to start a visit for. */
+  preset?: { brandName: string; branchName: string } | null;
+  onPresetUsed?: () => void;
 }
 
 export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
@@ -54,6 +57,8 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
   currentUserName,
   brands = [],
   onBrandsChanged,
+  preset,
+  onPresetUsed,
 }) => {
   const [step, setStep] = useState<number>(1);
   const [wizardMode, setWizardMode] = useState<'DIRECTORY' | 'MANUAL'>('DIRECTORY');
@@ -126,8 +131,8 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
     // Branches defined in the brand manager have no feature answers yet: keep the defaults.
     if (store.attributes && Object.keys(store.attributes).length) setAttributes(store.attributes);
 
-    // Jump straight to confirmation step!
-    setStep(7);
+    // Jump straight to confirmation, unless the branch has no recorded features yet.
+    setStep(store.attributes && Object.keys(store.attributes).length ? 7 : 4);
   };
 
   // Choosing a branch in the branch step fills what is known about it and carries on with the next steps.
@@ -205,6 +210,59 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
     setBrandName(name);
   };
 
+  // From the list: a new branch for this brand goes straight to the branch step.
+  const startBranchOf = (name: string) => {
+    chooseBrand(name);
+    setWizardMode('MANUAL');
+    setStep(3);
+  };
+
+  const [branchBusy, setBranchBusy] = useState(false);
+  const [branchError, setBranchError] = useState<string | null>(null);
+  // Defining a branch saves it in the brand's list right away, so it exists even if the visit is not started.
+  const defineBranch = async () => {
+    const name = branchName.trim();
+    if (!name || !brandName.trim()) return;
+    setBranchBusy(true);
+    setBranchError(null);
+    try {
+      const exact = brandBranches.find((b) => nameKey(b.branchName) === nameKey(name));
+      const saved = exact || (await StoreService.saveStore({
+        brandName,
+        branchName: name,
+        assessmentType,
+        businessType: assessmentType === 'STORE' ? businessType : undefined,
+        mallType: assessmentType === 'MALL' ? mallType : undefined,
+        locationContext,
+        attributes: undefined as any,
+      }));
+      setSavedStores(await StoreService.getAllStores());
+      await onBrandsChanged?.();
+      setBranchName(saved.branchName);
+      setSelectedStoreId(saved.id);
+    } catch (e: any) {
+      setBranchError(e?.message || 'تعریف شعبه انجام نشد.');
+    } finally {
+      setBranchBusy(false);
+    }
+  };
+
+  // A branch picked on another screen: fill it in and continue from there.
+  useEffect(() => {
+    if (!preset) return;
+    const found = savedStores.find((s) => nameKey(s.brandName) === nameKey(preset.brandName) && nameKey(s.branchName) === nameKey(preset.branchName));
+    if (!found && !savedStores.length) return; // the directory is still loading
+    if (found) handleSelectSavedStore(found);
+    else {
+      setBrandName(preset.brandName);
+      setBranchName(preset.branchName);
+      setWizardMode('MANUAL');
+      setStep(4);
+    }
+    onPresetUsed?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preset, savedStores]);
+
   const defineBrand = async () => {
     if (newBrand.trim().length < 2) return;
     setBrandBusy(true);
@@ -270,6 +328,23 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
         (s.address && s.address.toLowerCase().includes(q))
     );
   }, [savedStores, storeSearchQuery]);
+
+  // The directory, grouped by brand; brands without a branch are listed too so a first branch can be added.
+  const storeGroups = useMemo(() => {
+    const groups = new Map<string, { name: string; stores: SavedStoreDirectoryItem[] }>();
+    const key = (n: string) => nameKey(brands.find((b) => [b.name, ...b.aliases].some((x) => nameKey(x) === nameKey(n)))?.name || n);
+    const displayName = (n: string) => brands.find((b) => [b.name, ...b.aliases].some((x) => nameKey(x) === nameKey(n)))?.name || n;
+    const q = storeSearchQuery.trim();
+    for (const b of brands) if (b.isActive && !q) groups.set(nameKey(b.name), { name: b.name, stores: [] });
+    for (const st of filteredStores) {
+      if (st.isActive === false) continue;
+      const k = key(st.brandName);
+      if (!groups.has(k)) groups.set(k, { name: displayName(st.brandName), stores: [] });
+      groups.get(k)!.stores.push(st);
+    }
+    return [...groups.values()].sort((a, b) => b.stores.length - a.stores.length || a.name.localeCompare(b.name, 'fa'));
+  }, [brands, filteredStores, storeSearchQuery]);
+
 
   const stepTitles = [
     'انتخاب یا ثبت فروشگاه',
@@ -421,7 +496,18 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
 
                   {/* List of Saved Stores */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 310, overflowY: 'auto', paddingLeft: 4 }}>
-                    {filteredStores.map((store) => {
+                    {storeGroups.map((group) => (
+                    <React.Fragment key={group.name}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 4 }}>
+                      <strong style={{ fontSize: 13, color: 'var(--theme-text-primary)' }}>{group.name} <span style={{ fontWeight: 400, color: 'var(--theme-text-muted)', fontSize: 11 }}>· {faDigits(group.stores.length)} شعبه</span></strong>
+                      <button type="button" className="btn-secondary" style={{ fontSize: 11, padding: '4px 10px', minHeight: 28 }} onClick={() => startBranchOf(group.name)}>
+                        <Plus size={12} /> شعبهٔ جدید
+                      </button>
+                    </div>
+                    {group.stores.length === 0 && (
+                      <div style={{ fontSize: 11, color: 'var(--theme-text-muted)', padding: '2px 4px 6px' }}>این برند هنوز شعبه‌ای ندارد؛ با «شعبهٔ جدید» اولین شعبه را تعریف کنید.</div>
+                    )}
+                    {group.stores.map((store) => {
                       const isSelected = selectedStoreId === store.id;
                       return (
                         <div
@@ -520,8 +606,10 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                         </div>
                       );
                     })}
+                    </React.Fragment>
+                    ))}
 
-                    {filteredStores.length === 0 && (
+                    {storeGroups.length === 0 && (
                       <div style={{ textAlign: 'center', padding: '24px 12px', color: 'var(--theme-text-muted)', fontSize: 12 }}>
                         فروشگاهی با این نام یافت نشد. می‌توانید با گزینه «تعریف فروشگاه جدید» فروشگاه مد نظر را اضافه کنید.
                       </div>
@@ -690,14 +778,24 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                 <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
                   نام شعبه:
                 </label>
-                <input
-                  type="text"
-                  value={branchName}
-                  onChange={(e) => setBranchName(e.target.value)}
-                  className="friction-textarea"
-                  style={{ minHeight: 44, padding: '10px 14px', fontSize: 14 }}
-                  placeholder="مثلاً: شعبه خیابان ولیعصر، طبقه G1 کوروش..."
-                />
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input
+                    type="text"
+                    value={branchName}
+                    onChange={(e) => setBranchName(e.target.value)}
+                    className="friction-textarea"
+                    style={{ minHeight: 44, padding: '10px 14px', fontSize: 14, flex: 1 }}
+                    placeholder="نام شعبه، مثلاً: ولیعصر، طبقه G1 کوروش…"
+                    onKeyDown={(e) => e.key === 'Enter' && defineBranch()}
+                  />
+                  <button type="button" className="btn-secondary" disabled={branchBusy || !branchName.trim()} onClick={defineBranch}>
+                    <Plus size={15} /> تعریف شعبه
+                  </button>
+                </div>
+                {branchError && <div className="auth-error" role="alert" style={{ marginTop: 8 }}>{branchError}</div>}
+                {selectedStoreId && brandBranches.some((b) => b.id === selectedStoreId && nameKey(b.branchName) === nameKey(branchName)) && (
+                  <p style={{ fontSize: 12, marginTop: 8 }}>شعبهٔ <strong>{branchName}</strong> برای برند <strong>{brandName}</strong> ثبت شده است.</p>
+                )}
               </div>
 
               {brandBranches.length > 0 && (

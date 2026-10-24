@@ -1,3 +1,4 @@
+import { computeStoreFrictionRate } from '../engine/frModel';
 import React, { useState, useMemo } from 'react';
 import { VisitSession, QuestionResponse, Indicator, SeverityLevel } from '../types';
 import { calculateVisitSummary } from '../engine/scoringEngine';
@@ -141,8 +142,8 @@ export const SupervisorReview: React.FC<SupervisorReviewProps> = ({
         {/* Section 26: Summary First */}
         <StatRow>
           <StatCard
-            label="امتیاز اولیه سامانه"
-            value={summary.answeredCount < visit.indicators.length ? '—' : faPercent(summary.overallScore)}
+            label="نرخ اصطکاک فروشگاه"
+            value={summary.answeredCount < visit.indicators.length ? '—' : faPercent(computeStoreFrictionRate(visit.indicators, visit.responses).total.rate * 100)}
             hint={summary.answeredCount < visit.indicators.length ? 'پس از تکمیل پرسشنامه محاسبه می‌شود' : undefined}
           />
           <StatCard label="بررسی‌نشده" value={faDigits(pendingCount)} tone={pendingCount > 0 ? 'alarm' : 'default'} />

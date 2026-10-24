@@ -19,6 +19,8 @@ interface Props {
   canManage: boolean;
   /** Reload brands and the branch directory after any change. */
   onChanged: () => Promise<void>;
+  /** Starts a new visit for a branch. */
+  onNewVisit?: (brandName: string, branchName: string) => void;
 }
 
 type Dialog =
@@ -31,7 +33,7 @@ type Dialog =
  * Brands and their branches: define, rename, switch off, merge, delete.
  * Reports group visits by these names, so a renamed or merged brand stays one business.
  */
-export const BrandManager: React.FC<Props> = ({ brands, stores, visits, canManage, onChanged }) => {
+export const BrandManager: React.FC<Props> = ({ brands, stores, visits, canManage, onChanged, onNewVisit }) => {
   const [dialog, setDialog] = useState<Dialog>(null);
   const [open, setOpen] = useState<Set<string>>(() => new Set());
   const [busy, setBusy] = useState(false);
@@ -137,7 +139,7 @@ export const BrandManager: React.FC<Props> = ({ brands, stores, visits, canManag
                 <div className="fr-table-wrap">
                   <table className="fr-table">
                     <thead>
-                      <tr><th scope="col">شعبه</th><th scope="col">شهر</th><th scope="col">نشانی</th><th scope="col">مدیر شعبه</th><th scope="col">بازدید</th><th scope="col">آخرین بازدید</th><th scope="col">وضعیت</th>{canManage && <th scope="col" />}</tr>
+                      <tr><th scope="col">شعبه</th><th scope="col">شهر</th><th scope="col">نشانی</th><th scope="col">مدیر شعبه</th><th scope="col">بازدید</th><th scope="col">آخرین بازدید</th><th scope="col">وضعیت</th>{(canManage || onNewVisit) && <th scope="col" />}</tr>
                     </thead>
                     <tbody>
                       {branches.map((s) => {
@@ -151,8 +153,12 @@ export const BrandManager: React.FC<Props> = ({ brands, stores, visits, canManag
                             <td className="ltr-num">{faDigits(count)}</td>
                             <td>{s.lastVisitedAt ? new Date(s.lastVisitedAt).toLocaleDateString('fa-IR') : '—'}</td>
                             <td>{s.isActive === false ? 'غیرفعال' : 'فعال'}</td>
-                            {canManage && (
+                            {(canManage || onNewVisit) && (
                               <td className="xl-actions">
+                                {onNewVisit && s.isActive !== false && (
+                                  <button type="button" className="btn-primary" style={{ minHeight: 30, padding: '0 10px', marginInlineEnd: 4 }} onClick={() => onNewVisit(brand.name, s.branchName)}>بازدید جدید</button>
+                                )}
+                                {canManage && (<>
                                 <button type="button" className="btn-secondary" onClick={() => setDialog({ kind: 'branch', brand, store: s })} aria-label="ویرایش شعبه" title="ویرایش شعبه"><Pencil size={14} /></button>
                                 <button
                                   type="button"
@@ -163,6 +169,7 @@ export const BrandManager: React.FC<Props> = ({ brands, stores, visits, canManag
                                     if (window.confirm(`شعبهٔ «${s.branchName}» از فهرست حذف شود؟ بازدیدهای ثبت‌شده دست‌نخورده می‌مانند.`)) run(async () => { await StoreService.deleteStore(s.id); });
                                   }}
                                 ><Trash2 size={14} /></button>
+                                </>)}
                               </td>
                             )}
                           </tr>
