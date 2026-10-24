@@ -291,7 +291,61 @@ function topicZones(wb: any, current: Indicator[]): Map<string, string> {
   return map;
 }
 
-export async function parseWorkbook(file: File, current: Indicator[]): Promise<ParsedWorkbook> {
+/** Text of the Excel note (the red triangle) on a cell, without the author's name Excel puts in front. */
+function noteText(cell: any): string {
+  const n = cell?.note;
+  if (!n) return '';
+  if (typeof n === 'string') return n.replace(/^[^\n:]{1,40}:\s*\n/, '').replace(/\s+/g, ' ').trim();
+  const runs: { text?: string; font?: { bold?: boolean } }[] = Array.isArray(n.texts) ? n.texts : [];
+  // Excel writes the author as a bold first run ("Name:"); the note itself follows.
+  const body = runs.length > 1 && runs[0].font?.bold ? runs.slice(1) : runs;
+  return body.map((r) => r.text || '').join('').replace(/\s+/g, ' ').trim();
+}
+
+/** What the file offers, so the person can be asked which sector it is for before it is read. */
+export interface WorkbookInfo {
+  /** Sector columns found in the store sheets (e.g. only "F&B", or all thirteen). */
+  sectors: string[];
+  mallTypes: string[];
+  hasStore: boolean;
+  hasMall: boolean;
+  /** Indicators with an Excel note on the KPI cell. */
+  notes: number;
+}
+
+export interface ImportOptions {
+  /** 'chosen': every row applies to the sectors the person picked. 'columns': the X marks of the file decide. */
+  mode: 'chosen' | 'columns';
+  sectors: string[];
+  mallTypes: string[];
+}
+
+export async function inspectWorkbook(file: File): Promise<WorkbookInfo> {
+  const ExcelJS = (await import('exceljs')).default;
+  const wb = new ExcelJS.Workbook();
+  try {
+    await wb.xlsx.load(await file.arrayBuffer());
+  } catch {
+    throw new Error('فایل خوانده نشد. آن را در Excel باز و با «Save As» به‌صورت .xlsx ذخیره کنید و دوباره بارگذاری کنید.');
+  }
+  const info: WorkbookInfo = { sectors: [], mallTypes: [], hasStore: false, hasMall: false, notes: 0 };
+  for (const ws of wb.worksheets as any[]) {
+    if (ws.state !== 'visible') continue;
+    const layout = findLayout(ws, ws.name);
+    if (!layout || dataRows(ws, layout) === 0) continue;
+    if (layout.template === 'STORE') {
+      info.hasStore = true;
+      layout.scope.forEach((c) => !info.sectors.includes(c.code) && info.sectors.push(c.code));
+    } else {
+      info.hasMall = true;
+      layout.scope.forEach((c) => !info.mallTypes.includes(c.code) && info.mallTypes.push(c.code));
+    }
+    for (let r = layout.headerRow + 1; r <= ws.rowCount; r++) if (noteText(ws.getRow(r).getCell(layout.cols.statement!))) info.notes += 1;
+  }
+  return info;
+}
+
+export async function parseWorkbook(file: File, current: Indicator[], options?: ImportOptions): Promise<ParsedWorkbook> {
   const ExcelJS = (await import('exceljs')).default;
   const wb = new ExcelJS.Workbook();
   try {
@@ -344,7 +398,9 @@ export async function parseWorkbook(file: File, current: Indicator[]): Promise<P
 
       const universe = template === 'STORE' ? SECTORS : MALL_TYPES;
       let scope: string[];
-      if (layout.scope.length && layout.template === template) {
+      if (options?.mode === 'chosen') {
+        scope = template === 'STORE' ? options.sectors : options.mallTypes;
+      } else if (layout.scope.length && layout.template === template) {
         scope = layout.scope.filter((s) => norm(cellText(row.getCell(s.col).value))).map((s) => s.code);
       } else scope = (template === 'STORE' ? target?.applicableBusinessTypes : target?.applicableMallTypes) || universe;
 
@@ -370,7 +426,8 @@ export async function parseWorkbook(file: File, current: Indicator[]): Promise<P
         group,
         subject,
         statement,
-        note: cols.note ? raw('note') : target?.auditorNote || '',
+        // The note column wins; otherwise the Excel note on the KPI cell; otherwise what the indicator already has.
+        note: (cols.note ? raw('note') : '') || noteText(cols.statement ? row.getCell(cols.statement) : null) || (cols.note ? '' : target?.auditorNote || ''),
         scope,
         photo: flag('photo', !!target?.requiresPhoto),
         comment: flag('comment', !!target?.requiresComment),
