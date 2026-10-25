@@ -314,11 +314,50 @@ const liveCatalogCodes = async (tenantId: string): Promise<string[]> =>
 const catalogIndicator = (id: string): any | undefined =>
   catalog?.indicators?.find((i: any) => i.id === id);
 
+/**
+ * One-time move to the Fashion store-format workbooks: Fashion is now exactly the four format files.
+ * Fashion indicators added by hand or imported earlier (they would sit next to the file's rows as
+ * duplicates) are removed, and the checklist is brought back if it had been cleared. Runs once per
+ * account (a marker row records it); the other sectors' hand-added rows are left alone.
+ */
+const FORMATS_MIGRATION_ID = '__FASHION_FORMATS_V1__';
+const migrating = new Map<string, Promise<void>>();
+const migrateToFormatWorkbooks = (tenantId: string): Promise<void> => {
+  let job = migrating.get(tenantId);
+  if (!job) {
+    job = (async () => {
+      const overrides = await store.listIndicatorOverrides(tenantId);
+      if (overrides.some((o) => o.indicatorId === FORMATS_MIGRATION_ID)) return;
+      let removed = 0;
+      for (const c of await store.listCustomIndicators(tenantId)) {
+        if (c.template === 'STORE' && c.applicableBusinessTypes?.includes('Fashion')) {
+          if (await store.deleteCustomIndicator(tenantId, c.id)) removed += 1;
+        }
+      }
+      await store.deleteIndicatorOverride(tenantId, CLEARED_ID);
+      await store.saveIndicatorOverride(tenantId, {
+        indicatorId: FORMATS_MIGRATION_ID,
+        code: FORMATS_MIGRATION_ID,
+        disabled: false,
+        updatedAt: new Date().toISOString(),
+        updatedBy: 'system',
+      });
+      logger.security('Fashion format workbooks applied', { tenantId, removedCustom: removed });
+    })().catch((e) => {
+      migrating.delete(tenantId);
+      throw e;
+    });
+    migrating.set(tenantId, job);
+  }
+  return job;
+};
+
 /** Everyone signed in reads the edits (a questionnaire is built from them); only catalog managers write. */
 app.get(
   '/api/indicator-overrides',
   route(async (req, res) => {
-    res.json(await store.listIndicatorOverrides(tenantOf(req)));
+    await migrateToFormatWorkbooks(tenantOf(req));
+    res.json((await store.listIndicatorOverrides(tenantOf(req))).filter((o) => o.indicatorId !== FORMATS_MIGRATION_ID));
   })
 );
 
@@ -493,6 +532,7 @@ function cleanCustomFields(body: Fields, template: string, partial: boolean): { 
 app.get(
   '/api/custom-indicators',
   route(async (req, res) => {
+    await migrateToFormatWorkbooks(tenantOf(req));
     res.json(await store.listCustomIndicators(tenantOf(req)));
   })
 );
