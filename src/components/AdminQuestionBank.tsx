@@ -445,6 +445,26 @@ export const AdminQuestionBank: React.FC<AdminQuestionBankProps> = ({
                 <span>اکسل</span>
               </button>
             )}
+            {canEdit && onClearAll && onRestoreChecklist && (addedCount > 0 || cleared) && (
+              <button
+                type="button"
+                className="btn-secondary"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 38, padding: '0 14px' }}
+                disabled={clearBusy}
+                title="شاخص‌های اضافه و تکراری (دستی یا واردشده) پاک می‌شوند و فقط چک‌لیست فایل‌های اکسل می‌ماند"
+                onClick={() => {
+                  if (window.confirm(`${faDigits(addedCount)} شاخص دستی/واردشده پاک شود و فقط چک‌لیست فایل‌های اکسل بماند؟ ویرایش‌های متن شاخص‌ها هم برمی‌گردد. پرسشنامه‌های قبلی دست‌نخورده می‌مانند.`)) {
+                    runClear(async () => {
+                      await onClearAll();
+                      await onRestoreChecklist();
+                    });
+                  }
+                }}
+              >
+                <Trash2 size={16} />
+                <span>پاک‌سازی: فقط فایل‌های اکسل</span>
+              </button>
+            )}
             {canEdit && onClearAll && !(cleared && !indicators.length) && (
               <button type="button" className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 38, padding: '0 14px', color: 'var(--fr-mark)' }} onClick={() => setClearing(true)}>
                 <Trash2 size={16} />
