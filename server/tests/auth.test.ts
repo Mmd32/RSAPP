@@ -177,6 +177,19 @@ try {
     }
   });
 
+  await test('login tolerates copy-paste slips in the temporary password (spaces, invisible marks, Persian digits)', async () => {
+    const r = await admin.req('POST', '/users', { name: 'کپی رمز', email: 'paste@test.ir', role: 'Evaluator' });
+    assert.equal(r.status, 201);
+    const pw = r.json.temporaryPassword as string;
+    const persian = pw.replace(/[0-9]/g, (d: string) => '۰۱۲۳۴۵۶۷۸۹'[Number(d)]);
+    for (const attempt of [` ${pw}\n`, `\u200f${pw}`, persian]) {
+      const c = new Client();
+      assert.equal((await c.req('POST', '/auth/login', { email: ' PASTE@test.ir ', password: attempt })).status, 200, JSON.stringify(attempt));
+    }
+    const bad = new Client();
+    assert.equal((await bad.req('POST', '/auth/login', { email: 'paste@test.ir', password: pw + 'x' })).status, 401);
+  });
+
   await test('duplicate email and bad role are refused', async () => {
     assert.equal((await admin.req('POST', '/users', { name: 'تکراری', email: 'E1@test.ir', role: 'Evaluator' })).status, 409);
     assert.equal((await admin.req('POST', '/users', { name: 'نقش بد', email: 'z@test.ir', role: 'God' })).status, 400);

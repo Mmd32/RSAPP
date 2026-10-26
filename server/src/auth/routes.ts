@@ -8,6 +8,7 @@ import {
   hashPassword,
   passwordProblem,
   verifyPassword,
+  verifyPasswordLenient,
 } from './password.js';
 import {
   SESSION_TTL_SECONDS,
@@ -256,7 +257,7 @@ export function registerAuthRoutes(app: Express, getStore: () => DataStore) {
         });
       }
 
-      const ok = await verifyPassword(password, user.passwordHash);
+      const ok = await verifyPasswordLenient(password, user.passwordHash);
       if (!ok) {
         const failedLogins = (user.failedLogins || 0) + 1;
         const locked = failedLogins >= MAX_FAILED_LOGINS;
@@ -302,7 +303,7 @@ export function registerAuthRoutes(app: Express, getStore: () => DataStore) {
       const store = getStore();
       const { currentPassword, newPassword } = req.body || {};
       const user = req.user!;
-      if (typeof currentPassword !== 'string' || !(await verifyPassword(currentPassword, user.passwordHash))) {
+      if (typeof currentPassword !== 'string' || !(await verifyPasswordLenient(currentPassword, user.passwordHash))) {
         return res.status(400).json({ error: 'رمز عبور فعلی نادرست است.' });
       }
       const problem = passwordProblem(newPassword);

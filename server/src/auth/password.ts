@@ -20,6 +20,27 @@ export async function hashPassword(password: string): Promise<string> {
   return ['scrypt', PARAMS.N, PARAMS.r, PARAMS.p, salt.toString('base64'), hash.toString('base64')].join('$');
 }
 
+/**
+ * What a person most often types by mistake when copying a temporary password: a space or line break
+ * around it, invisible direction marks (from chat apps), or Persian/Arabic digits from a Persian keyboard.
+ */
+export function cleanedPassword(password: string): string {
+  const digits = '۰۱۲۳۴۵۶۷۸۹';
+  const arabic = '٠١٢٣٤٥٦٧٨٩';
+  return password
+    .replace(/[\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, '')
+    .replace(/[۰-۹]/g, (d) => String(digits.indexOf(d)))
+    .replace(/[٠-٩]/g, (d) => String(arabic.indexOf(d)))
+    .trim();
+}
+
+/** Exact password first; then the cleaned-up spelling when it differs. */
+export async function verifyPasswordLenient(password: string, stored: string): Promise<boolean> {
+  if (await verifyPassword(password, stored)) return true;
+  const cleaned = cleanedPassword(password);
+  return cleaned !== password && cleaned.length > 0 ? verifyPassword(cleaned, stored) : false;
+}
+
 export async function verifyPassword(password: string, stored: string): Promise<boolean> {
   const parts = stored.split('$');
   if (parts.length !== 6 || parts[0] !== 'scrypt') return false;
