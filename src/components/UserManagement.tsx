@@ -26,8 +26,13 @@ const TemporaryPasswordNotice: React.FC<{ user: AuthUser; password: string; onCl
       /* clipboard blocked; the password is still on screen */
     }
   };
+  // The notice sits at the top of the page; the button that opens it is far below in the list.
+  const box = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    box.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, []);
   return (
-    <div className="users-notice" role="status">
+    <div className="users-notice" role="status" ref={box} style={{ scrollMarginTop: 80 }}>
       <strong>رمز موقت برای {user.name}</strong>
       <p>این رمز فقط همین یک‌بار نمایش داده می‌شود. آن را به کاربر بدهید؛ در اولین ورود باید رمز شخصی تعیین کند.</p>
       <div className="users-notice__secret">
@@ -273,7 +278,7 @@ export const UserManagement: React.FC<Props> = ({ currentUserId, onSelfUpdated }
       </header>
 
       {notice && (
-        <TemporaryPasswordNotice user={notice.user} password={notice.password} onClose={() => setNotice(null)} />
+        <TemporaryPasswordNotice key={`${notice.user.id}:${notice.password}`} user={notice.user} password={notice.password} onClose={() => setNotice(null)} />
       )}
 
       <form className="card-rs users-form" onSubmit={create}>
