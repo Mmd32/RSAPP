@@ -194,7 +194,7 @@ export const BusinessReportView: React.FC<BusinessReportViewProps> = ({ visits, 
             headline={`نرخ اصطکاک کل کسب‌وکار (${faDigits(latest.length)} شعبه)`}
           />
           <BranchSection brandName={brand} branches={branches} id="biz-branches-title" />
-          <TopTopicsSection rate={business} id="biz-topics-title" title={`۱۰ اصطکاک اصلی — کل ${brand}`} />
+          <TopTopicsSection rate={business} id="biz-topics-title" title={`۱۰ موضوع با اصطکاک ۱۰۰٪ — کل ${brand}`} />
           <TopTopicsByCountSection rate={business} id="biz-topics-count-title" title={`۱۰ موضوع با بیشترین تعداد اصطکاک — کل ${brand}`} />
 
           <BusinessDetail brand={brand} visits={latest} />
