@@ -637,3 +637,12 @@ svg.lucide { stroke-width: 1.75px; }
 .pivot-table thead th:first-child, .pivot-table tbody th, .pivot-table tfoot th { text-align: right; min-width: 150px; position: sticky; inset-inline-start: 0; background: var(--rd-surface); }
 .pivot-table .pivot-codes { display: block; max-width: 220px; overflow-wrap: anywhere; }
 .pivot-features { border: 1px solid var(--rd-line); border-radius: var(--r-md); margin: 0 var(--sp-4) var(--sp-3); padding: var(--sp-3) var(--sp-4); }
+
+/* Pivot: format picker as one even row, narrow equal number columns, a wider codes column. */
+.pivot-format-row { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 6px; }
+.pivot-format-row .ie-check { white-space: nowrap; }
+.pivot-table { width: 100%; }
+.pivot-table thead th:not(:first-child):not(:last-child), .pivot-table tbody td:not(:last-child), .pivot-table tfoot td:not(:last-child) { width: 72px; min-width: 60px; text-align: center; }
+.pivot-table thead th:last-child, .pivot-table tbody td:last-child, .pivot-table tfoot td:last-child { text-align: right; min-width: 200px; }
+.pivot-table .pivot-codes { max-width: 340px; line-height: 1.6; }
+.pivot-table thead th span { white-space: nowrap; }

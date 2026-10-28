@@ -32,7 +32,7 @@ import {
   Sliders,
 } from 'lucide-react';
 import { faDigits, profileLabel } from '../utils/format';
-import { storeFormatsFor } from '../data/storeFormats';
+import { sectorHasFormatWorkbooks, storeFormatsFor } from '../data/storeFormats';
 import { BrandService, type Brand } from '../services/brandService';
 import { nameKey } from '../engine/frModel';
 import { PHOTOS_REQUIRED } from '../config/policy';
@@ -363,6 +363,11 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
   }, [brands, filteredStores, storeSearchQuery]);
 
 
+  // The facilities step only filters indicators of sectors without a workbook per format; skip it otherwise.
+  const skipFacilities = assessmentType === 'STORE' && sectorHasFormatWorkbooks(businessType);
+  const totalSteps = skipFacilities ? 6 : 7;
+  const shownStep = skipFacilities && step === 7 ? 6 : step;
+
   const stepTitles = [
     'انتخاب یا ثبت فروشگاه',
     'مجموعه / برند',
@@ -379,14 +384,14 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
       <div className="glass-panel" style={{ padding: '14px 18px', marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
           <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--rs-color-brand-cyan)' }}>
-            مرحله {step} از ۷: {stepTitles[step - 1]}
+            مرحله {faDigits(shownStep)} از {faDigits(totalSteps)}: {stepTitles[step - 1]}
           </span>
           <span className="ltr-num" style={{ fontSize: 12, color: 'var(--theme-text-muted)', fontWeight: 700 }}>
-            {Math.round((step / 7) * 100)}%
+            {Math.round((shownStep / totalSteps) * 100)}%
           </span>
         </div>
         <div className="progress-bar-bg" style={{ height: 6 }}>
-          <div className="progress-bar-fill" style={{ width: `${(step / 7) * 100}%` }} />
+          <div className="progress-bar-fill" style={{ width: `${(shownStep / totalSteps) * 100}%` }} />
         </div>
       </div>
 
@@ -1151,7 +1156,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
           {step > 1 ? (
             <button
               type="button"
-              onClick={() => setStep((s) => Math.max(1, s - 1))}
+              onClick={() => setStep((s) => (skipFacilities && s === 7 ? 5 : Math.max(1, s - 1)))}
               className="btn-secondary"
               style={{ minHeight: 44, padding: '8px 16px', fontSize: 13 }}
             >
@@ -1174,7 +1179,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
           {step < 7 ? (
             <button
               type="button"
-              onClick={() => setStep((s) => Math.min(7, s + 1))}
+              onClick={() => setStep((s) => (skipFacilities && s === 5 ? 7 : Math.min(7, s + 1)))}
               // Brand and branch are required: a visit without them cannot be saved.
               disabled={(step === 2 && !brandName.trim()) || (step === 3 && !branchName.trim())}
               className="btn-primary"
