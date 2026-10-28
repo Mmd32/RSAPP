@@ -37,6 +37,15 @@ import); every row records the formats whose file has it (applicableFormats). Th
 sheet in those files is the same as in Nima's workbook, so the other 12 sectors are unchanged.
 Blank topic cells in the format files are merged cells: they take the topic of the row above.
 
+F&B per store format
+--------------------
+F&B (restaurants and cafes) works the same way, from data/reference/FR_Checklist_FB_Table_Service.xlsx
+(visible sheet "FR Check List - F&B": group | topic | KPI | six format columns with an X | Friction ...).
+That workbook carries all six formats (Restaurant, Coffee Shop, Stand alone, Food Court, Table Service,
+Counter Service), so it is the master. It has no code column: codes are generated (RC001 ...) in the
+file's row order. A per-format workbook next to it (FR_Checklist_FB_<Format>.xlsx, one X column) is only
+used to check the master: its KPIs must be exactly the master's KPIs for that format, in the same order.
+
 Run: python3 scripts/import_store_checklist.py [--dry-run]
 """
 import collections
@@ -60,6 +69,24 @@ FORMAT_FILES = {  # LocationContext code -> workbook (listed in the order the fo
     "KIOSK": "data/reference/FR_Checklist_Fashion_Kiosk.xlsx",
 }
 MASTER_FORMAT = "MALL_STORE"  # the file with every Fashion KPI, in the reading order
+
+FB_MASTER = "data/reference/FR_Checklist_FB_Table_Service.xlsx"
+FB_SHEET = "FR Check List - F&B"
+FB_CODE_PREFIX = "RC"
+FB_FORMAT_COLUMNS = {  # header text in the master -> LocationContext code
+    "Restaurant": "RESTAURANT", "Coffee Shop": "COFFEE_SHOP", "Stand alone": "STREET_STORE",
+    "Food Court": "FOOD_COURT", "Table Service": "TABLE_SERVICE", "Counter Service": "COUNTER_SERVICE",
+}
+FB_CHECK_FILES = {  # per-format workbooks that, when present, must agree with the master
+    "STREET_STORE": "data/reference/FR_Checklist_FB_Stand_Alone.xlsx",
+    "RESTAURANT": "data/reference/FR_Checklist_FB_Restaurant.xlsx",
+    "COFFEE_SHOP": "data/reference/FR_Checklist_FB_Coffee_Shop.xlsx",
+    "FOOD_COURT": "data/reference/FR_Checklist_FB_Food_Court.xlsx",
+    "TABLE_SERVICE": "data/reference/FR_Checklist_FB_Table_Service.xlsx",
+    "COUNTER_SERVICE": "data/reference/FR_Checklist_FB_Counter_Service.xlsx",
+}
+FB_ZONES = {"محوطه فروشگاه": "FLOOR", "کیفیت سرویس": "SERVICES", "تیم": "TEAM", "تیم فروشگاه": "TEAM",
+            "محصول": "PRODUCT", "صندوق": "CASH"}
 
 SECTORS = {"Fashion": "Fashion", "Shoe & Bag": "Shoe_Bag", "Watch & Jewelry": "Watch_Jewelry", "FMCG": "FMCG",
            "F&B": "F_B", "Hardware": "Hardware", "Homeware": "Homeware", "Beauty/Cosmetics": "Beauty_Cosmetics",
@@ -260,6 +287,57 @@ def parse_format_workbooks():
     return rows
 
 
+def read_fb_sheet(path):
+    """Rows of the F&B workbook: group (zone code) and topic filled down, KPI, notes, X columns by header."""
+    wf, wv = openpyxl.load_workbook(path), None
+    ws = wf[FB_SHEET]
+    header = {clean(ws.cell(2, c).value): c for c in range(1, ws.max_column + 1) if ws.cell(2, c).value}
+    zone = topic = None
+    rows = []
+    for r in range(3, ws.max_row + 1):
+        a, b = ws.cell(r, 1).value, ws.cell(r, 2).value
+        if isinstance(a, str) and not a.startswith("="):
+            zone = FB_ZONES[clean(a)]
+        if isinstance(b, str) and not b.startswith("="):
+            topic = clean(b)
+        kpi = ws.cell(r, 3).value
+        if not kpi or not clean(kpi):
+            continue
+        rows.append({"zone": zone, "topic": topic, "kpi": clean(kpi), "note": note_of(ws.cell(r, 3)),
+                     "x": {h: ws.cell(r, c).value not in (None, "") for h, c in header.items()}})
+    return rows
+
+
+def parse_fb_workbooks():
+    """F&B KPIs, one row per KPI in the master's order, with the formats that have an X."""
+    master = read_fb_sheet(os.path.join(ROOT, FB_MASTER))
+    kpis = [r["kpi"] for r in master]
+    if len(set(kpis)) != len(kpis):
+        raise SystemExit("duplicate KPI in the F&B master")
+    for col in FB_FORMAT_COLUMNS:
+        if col not in master[0]["x"]:
+            raise SystemExit(f"F&B master has no {col!r} column")
+    for fmt, rel in FB_CHECK_FILES.items():
+        path = os.path.join(ROOT, rel)
+        if not os.path.exists(path) or rel == FB_MASTER:
+            continue
+        other = read_fb_sheet(path)
+        column = next(c for c, code in FB_FORMAT_COLUMNS.items() if code == fmt)
+        own = [r["kpi"] for r in other if any(r["x"].values())]
+        want = [r["kpi"] for r in master if r["x"][column]]
+        if own != want:
+            raise SystemExit(f"{rel}: its KPIs differ from the master's {column} column "
+                             f"({len(own)} vs {len(want)}; first difference: "
+                             f"{next((a for a, b in zip(own, want) if a != b), 'length')})")
+    rows = []
+    for n, r in enumerate(master, start=1):
+        rows.append({"code": f"{FB_CODE_PREFIX}{n:03d}", "group": r["zone"], "subject": r["topic"], "statement": r["kpi"],
+                     "note": r["note"], "sectors": ["F_B"],
+                     "formats": [code for col, code in FB_FORMAT_COLUMNS.items() if r["x"][col]],
+                     "in_matrix": False, "source": "format", "prefix": "IND_FN_"})
+    return rows
+
+
 def parse_workbook():
     """Every store KPI: the Fashion list of the format workbooks first, then the other sectors' KPIs.
 
@@ -277,14 +355,18 @@ def parse_workbook():
         else:
             n_matrix += 1
             row["number"] = n_visible + n_matrix
-        row["sectors"] = [s for s in row["sectors"] if s != "Fashion"]
+        row["sectors"] = [s for s in row["sectors"] if s not in ("Fashion", "F_B")]
         if row["sectors"]:
             row["formats"] = []
             rest.append(row)
     fashion = parse_format_workbooks()
     for n, row in enumerate(fashion, start=1):
         row["number"] = n
-    merged = fashion + rest
+        row["prefix"] = "IND_FF_"
+    fb = parse_fb_workbooks()
+    for n, row in enumerate(fb, start=1):
+        row["number"] = n
+    merged = fashion + fb + rest
     for n, row in enumerate(merged, start=1):
         row["order"] = n
     return merged, topic_stats
@@ -328,7 +410,7 @@ def main(dry_run):
             stage, dim = majority(donor, "journeyStage"), majority(donor, "reportingDimension")
             photo, comment, weight = False, False, 1.0
         store.append({
-            "id": f"IND_FF_{row['number']:04d}" if row["source"] == "format" else f"IND_FR_{row['number']:04d}",
+            "id": f"{row.get('prefix', 'IND_FR_')}{row['number']:04d}",
             "code": row["code"],
             "template": "STORE",
             "group": row["group"],

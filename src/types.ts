@@ -21,7 +21,11 @@ export type LocationContextCode =
   | 'FOOD_COURT'
   | 'STANDALONE'
   | 'SHOP_IN_SHOP'
-  | 'KIOSK';
+  | 'KIOSK'
+  | 'RESTAURANT'
+  | 'COFFEE_SHOP'
+  | 'TABLE_SERVICE'
+  | 'COUNTER_SERVICE';
 
 export type StoreFormatCode =
   | 'FLAGSHIP'
