@@ -87,18 +87,18 @@ function zoneRateMap(rate: StoreFrictionRate): Record<string, FrictionRateRow | 
   return Object.fromEntries(rate.zones.map((z) => [z.group, z]));
 }
 
-const radarLabels = ZONES.map((z) => `${ZONE_FA[z]}\n${z}`);
-
 function radar(pptx: any, slide: Slide, rate: StoreFrictionRate, x: number, y: number, w: number, h: number, axisMax: number, fontSize = 11, plot?: { x: number; y: number; w: number; h: number }) {
   const map = zoneRateMap(rate);
   slide.addChart(
     pptx.charts.RADAR,
-    [{ name: 'نرخ اصطکاک (٪)', labels: radarLabels, values: ZONES.map((z) => pctNum(map[z]?.rate || 0)) }],
+    // The value is part of the axis label (Persian name, then English name and rate): nothing is drawn on top of the
+    // chart, so the texts cannot run into each other.
+    [{ name: 'نرخ اصطکاک (٪)', labels: ZONES.map((z) => `${ZONE_FA[z]}\n${z} ${pctNum(map[z]?.rate || 0)}%`), values: ZONES.map((z) => pctNum(map[z]?.rate || 0)) }],
     {
       x, y, w, h, radarStyle: 'standard', chartColors: [PURPLE], lineSize: 2.5, ...(plot ? { layout: plot } : {}),
       catAxisLabelFontFace: FONT, catAxisLabelFontSize: fontSize, catAxisLabelColor: INK,
       valAxisHidden: true, valAxisMinVal: 0, valAxisMaxVal: axisMax, valGridLine: { color: 'E5E7EB', size: 0.75 },
-      showValue: true, dataLabelFormatCode: '0"%";-0"%";', dataLabelFontSize: fontSize, dataLabelFontFace: 'Arial', dataLabelColor: INK, showLegend: false,
+      showValue: false, showLegend: false,
     },
   );
 }
@@ -225,9 +225,10 @@ function rankByZone(pptx: any, visits: VisitSession[], brand: string) {
 /** Small radars of up to six stores per slide, on one common scale. */
 function radarComparison(pptx: any, visits: VisitSession[], brand: string) {
   const rates = visits.map((v) => ({ v, rate: computeStoreFrictionRate(v.indicators, v.responses) }));
-  // Each branch's radar with the branch name above its chart: up to 3 on a slide, side by side in one tall
-  // row so every chart is big; a brand with more branches goes on to further slides.
-  const perSlide = 3;
+  // Each branch's radar with the branch name above its chart: two on a slide, side by side, so every chart
+  // is big and its labels have room (a radar shrinks to what is left of its width after the labels); a brand
+  // with more branches goes on to further slides.
+  const perSlide = 2;
   const area = { right: 12.05, left: 0.75, top: 1.72, bottom: 6.8 };
   for (let page = 0; page * perSlide < rates.length; page++) {
     const slide = frame(pptx, `مقایسه نمودار اصطکاک فروشگاه‌های ${brand}`, brand);
@@ -368,6 +369,7 @@ export async function buildBusinessDeck(brandNames: string | string[], visits: V
   for (const visit of latest) {
     storePage(pptx, visit);
     topTen(pptx, visit);
+    topTenByCount(pptx, visit);
   }
   return { blob: await toBlob(pptx), fileName: deckFileName('Business') };
 }
