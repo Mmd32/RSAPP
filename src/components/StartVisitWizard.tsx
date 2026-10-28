@@ -32,6 +32,7 @@ import {
   Sliders,
 } from 'lucide-react';
 import { faDigits, profileLabel } from '../utils/format';
+import { storeFormatsFor } from '../data/storeFormats';
 import { BrandService, type Brand } from '../services/brandService';
 import { nameKey } from '../engine/frModel';
 import { PHOTOS_REQUIRED } from '../config/policy';
@@ -184,15 +185,21 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
     return generateDynamicChecklistWithAudit(allIndicators, profile);
   }, [allIndicators, profile]);
 
+  // A format the new sector does not have (Restaurant for Fashion) falls back to the first one it has.
+  useEffect(() => {
+    const list = storeFormatsFor(assessmentType === 'STORE' ? businessType : undefined);
+    if (!list.some((f) => f.code === locationContext)) setLocationContext(list.find((f) => f.code === 'STREET_STORE')?.code ?? list[0].code);
+  }, [assessmentType, businessType, locationContext]);
+
   // How many indicators each store format asks for this sector (shown when the format is chosen).
   const formatCounts = useMemo(() => {
     const out: Record<string, number> = {};
     if (assessmentType !== 'STORE') return out;
-    for (const code of ['STREET_STORE', 'MALL_STORE', 'SHOP_IN_SHOP', 'KIOSK'] as const) {
+    for (const { code } of storeFormatsFor(businessType)) {
       out[code] = generateDynamicChecklistWithAudit(allIndicators, { ...profile, locationContext: code }).indicators.length;
     }
     return out;
-  }, [allIndicators, profile, assessmentType]);
+  }, [allIndicators, profile, assessmentType, businessType]);
 
   const uniqueSectionsCount = useMemo(() => {
     return new Set(previewIndicators.map((i) => i.journeyStage)).size;
@@ -927,12 +934,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {[
-                  { code: 'STREET_STORE', label: 'فروشگاه واقع در خیابان', desc: 'واحد مستقل با دید مستقیم از پیاده‌رو شهری' },
-                  { code: 'MALL_STORE', label: 'فروشگاه داخل مرکز خرید', desc: 'واحد تجاری مستقر در راهروها یا طبقات مرکز خرید' },
-                  { code: 'SHOP_IN_SHOP', label: 'شاپ این شاپ', desc: 'غرفه داخل دیپارتمنت‌استور یا فروشگاه زنجیره‌ای' },
-                  { code: 'KIOSK', label: 'کیوسک / پاپ‌آپ', desc: 'کیوسک یا غرفهٔ پاپ‌آپ در کریدور یا فضای باز' },
-                ].map((lc) => (
+                {storeFormatsFor(assessmentType === 'STORE' ? businessType : undefined).map((lc) => (
                   <button
                     key={lc.code}
                     type="button"

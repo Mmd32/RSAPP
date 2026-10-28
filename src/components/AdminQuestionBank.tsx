@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Indicator, LocationContextCode } from '../types';
 import { generateDynamicChecklistWithAudit } from '../engine/ruleEngine';
+import { storeFormatsFor } from '../data/storeFormats';
 import { Database, Filter, CheckCircle, AlertTriangle, Layers, Plus, FileSpreadsheet, Trash2 } from 'lucide-react';
 import { groupLabel, faDigits, profileLabel } from '../utils/format';
 import { nameKey } from '../engine/frModel';
@@ -90,12 +91,6 @@ interface AdminQuestionBankProps {
 const PAGE_SIZE = 100;
 
 /** The formats a store can have (the "where is it" step of a new visit). */
-const FORMATS: { code: LocationContextCode; label: string }[] = [
-  { code: 'STREET_STORE', label: 'فروشگاه واقع در خیابان' },
-  { code: 'MALL_STORE', label: 'فروشگاه داخل مرکز خرید' },
-  { code: 'SHOP_IN_SHOP', label: 'شاپ این شاپ' },
-  { code: 'KIOSK', label: 'کیوسک / پاپ‌آپ' },
-];
 
 /** The facilities a new visit asks about; each switches some indicators off when missing. */
 const FEATURES: { key: string; compat?: string; label: string }[] = [
@@ -127,6 +122,7 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[]; cleared?: boolean; onR
     () => indicators.filter((i) => i.template === 'STORE' && i.status !== 'ARCHIVED'),
     [indicators],
   );
+  const formats = useMemo(() => storeFormatsFor(sector === 'ALL' ? undefined : sector), [sector]);
   // Indicators the workbook marks for the sector (all of them for "all sectors").
   const inSector = useMemo(
     () => store.filter((i) => sector === 'ALL' || !i.applicableBusinessTypes?.length || i.applicableBusinessTypes.includes(sector)),
@@ -134,7 +130,7 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[]; cleared?: boolean; onR
   );
   // The sector has its own checklist file per store format (Fashion): the format's X decides, not the facilities.
   const hasFormatFiles = sector !== 'ALL' && inSector.some((i) => i.applicableFormats?.length);
-  const activeFormat = hasFormatFiles ? format : 'ALL';
+  const activeFormat = hasFormatFiles && formats.some((f) => f.code === format) ? format : 'ALL';
   // Per format: the ids the questionnaire would ask, by the same rules a new visit uses.
   const askedIn = useMemo(() => {
     const attributes: Record<string, boolean> = {};
@@ -144,7 +140,7 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[]; cleared?: boolean; onR
     }
     const out = new Map<string, Set<string>>();
     if (sector === 'ALL') return out;
-    for (const format of FORMATS) {
+    for (const format of formats) {
       const { indicators: asked } = generateDynamicChecklistWithAudit(store, {
         assessmentType: 'STORE',
         businessType: sector as any,
@@ -156,7 +152,7 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[]; cleared?: boolean; onR
       out.set(format.code, new Set(asked.map((i) => i.id)));
     }
     return out;
-  }, [store, sector, features]);
+  }, [store, sector, features, formats]);
 
   const ofSector = useMemo(
     () => (activeFormat === 'ALL' ? inSector : inSector.filter((i) => askedIn.get(activeFormat)?.has(i.id))),
@@ -206,7 +202,7 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[]; cleared?: boolean; onR
       <button type="button" className="pivot-sort" onClick={() => sortBy(key)}>{label}{arrow(key)}</button>
     </th>
   );
-  const formatCols = sector === 'ALL' || activeFormat !== 'ALL' ? [] : FORMATS;
+  const formatCols = sector === 'ALL' || activeFormat !== 'ALL' ? [] : formats;
 
   return (
     <section className="fr-card" aria-labelledby="pivot-title">
@@ -247,7 +243,7 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[]; cleared?: boolean; onR
         <div className="pivot-features">
           <span className="ie-label">قالب فروشگاه (شاخص‌ها دقیقاً از فایل اکسل همان قالب)</span>
           <div className="ie-checks">
-            {[{ code: 'ALL', label: 'همه قالب‌ها' }, ...FORMATS].map((f) => (
+            {[{ code: 'ALL', label: 'همه قالب‌ها' }, ...formats].map((f) => (
               <label key={f.code} className="ie-check">
                 <input type="radio" name="pivot-format" checked={activeFormat === f.code} onChange={() => setFormat(f.code)} />
                 <span>{f.label}</span>

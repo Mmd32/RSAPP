@@ -121,7 +121,11 @@ const STORE_PROFILE_LABEL: Record<string, string> = {
   STREET_STORE: 'فروشگاه واقع در خیابان',
   MALL_STORE: 'فروشگاه داخل مرکز خرید',
   // No longer offered in the wizard; kept so older visits still read well.
-  FOOD_COURT: 'غرفه فودکورت',
+  FOOD_COURT: 'فود کورت',
+  RESTAURANT: 'رستوران',
+  COFFEE_SHOP: 'کافی‌شاپ',
+  TABLE_SERVICE: 'پذیرایی سر میز (Table Service)',
+  COUNTER_SERVICE: 'سفارش از پیشخوان (Counter Service)',
   STANDALONE: 'فروشگاه مستقل بزرگ',
   // Store format (SHOP_IN_SHOP / KIOSK are shared with location)
   FLAGSHIP: 'شعبه پرچمدار',
