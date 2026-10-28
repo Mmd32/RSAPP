@@ -1,5 +1,6 @@
 import type { VisitSession } from '../types';
 import {
+  computeFrictionRate,
   computeStoreFrictionRate,
   latestVisitPerBranch,
   fullFrictionTopics,
@@ -170,7 +171,18 @@ function topTen(pptx: any, visit: VisitSession) {
 function topTenByCount(pptx: any, visit: VisitSession) {
   const rate = computeStoreFrictionRate(visit.indicators, visit.responses);
   if (!rate.total.indicators) return;
-  const slide = frame(pptx, `ده موضوع با بیشترین تعداد Friction (${visit.branchName})`, visit.brandName);
+  topTenByCountSlide(pptx, rate, `ده موضوع با بیشترین تعداد Friction (${visit.branchName})`, visit.brandName);
+}
+
+/** The whole brand: its ten topics with the most frictions, summed over the branches' latest visits. */
+function brandTopTenByCount(pptx: any, visits: VisitSession[], brand: string) {
+  const rate = computeFrictionRate(visits);
+  if (!rate.total.indicators) return;
+  topTenByCountSlide(pptx, rate, `ده Friction اصلی (بیشترین تعداد) — کل ${brand}`, brand);
+}
+
+function topTenByCountSlide(pptx: any, rate: StoreFrictionRate, title: string, brand: string) {
+  const slide = frame(pptx, title, brand);
   box(slide, 0.78, 1.97, 11.97, 4.62);
   const top = topFrictionTopicsByCount(rate, 10);
   if (!top.length) {
@@ -366,6 +378,7 @@ export async function buildBusinessDeck(brandNames: string | string[], visits: V
   atAGlance(pptx, latest, brandName);
   rankByZone(pptx, latest, brandName);
   radarComparison(pptx, latest, brandName);
+  brandTopTenByCount(pptx, latest, brandName);
   for (const visit of latest) {
     storePage(pptx, visit);
     topTen(pptx, visit);
