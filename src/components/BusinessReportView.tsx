@@ -4,7 +4,7 @@ import type { VisitSession } from '../types';
 import type { Brand } from '../services/brandService';
 import { computeBrandFrictionRates, computeFrictionRate, computeStoreFrictionRate, isFinishedVisit, latestVisitPerBranch, nameKey } from '../engine/frModel';
 import { BusinessDetail } from './BusinessDetail';
-import { BranchSection, TopTopicsSection, ZoneSection, ZONE_ORDER, faRate } from './FrictionRateReport';
+import { BranchSection, TopTopicsByCountSection, TopTopicsSection, ZoneSection, ZONE_ORDER, faRate } from './FrictionRateReport';
 import { faDigits, groupLabel } from '../utils/format';
 
 /*
@@ -195,6 +195,7 @@ export const BusinessReportView: React.FC<BusinessReportViewProps> = ({ visits, 
           />
           <BranchSection brandName={brand} branches={branches} id="biz-branches-title" />
           <TopTopicsSection rate={business} id="biz-topics-title" title={`۱۰ اصطکاک اصلی — کل ${brand}`} />
+          <TopTopicsByCountSection rate={business} id="biz-topics-count-title" title={`۱۰ موضوع با بیشترین تعداد اصطکاک — کل ${brand}`} />
 
           <BusinessDetail brand={brand} visits={latest} />
 

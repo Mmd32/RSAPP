@@ -3,6 +3,7 @@ import {
   computeStoreFrictionRate,
   latestVisitPerBranch,
   topFrictionTopics,
+  topFrictionTopicsByCount,
   type FrictionRateRow,
   type StoreFrictionRate,
 } from '../engine/frModel';
@@ -165,6 +166,30 @@ function topTen(pptx: any, visit: VisitSession) {
   );
 }
 
+/** One store: its ten topics with the most frictions, by count (not rate). */
+function topTenByCount(pptx: any, visit: VisitSession) {
+  const rate = computeStoreFrictionRate(visit.indicators, visit.responses);
+  if (!rate.total.indicators) return;
+  const slide = frame(pptx, `ده موضوع با بیشترین تعداد Friction (${visit.branchName})`, visit.brandName);
+  box(slide, 0.78, 1.97, 11.97, 4.62);
+  const top = topFrictionTopicsByCount(rate, 10);
+  if (!top.length) {
+    slide.addText('اصطکاکی ثبت نشده است.', { x: 1, y: 3.5, w: 11.5, h: 0.6, fontFace: FONT, fontSize: 20, color: GREY, align: 'center', rtlMode: true });
+    return;
+  }
+  slide.addChart(
+    pptx.charts.BAR,
+    [{ name: 'تعداد اصطکاک', labels: top.map((t) => clip(t.subject, 30)), values: top.map((t) => t.frictions) }],
+    {
+      x: 0.9, y: 2.05, w: 11.75, h: 4.45, barDir: 'col', chartColors: [PURPLE], barGapWidthPct: 60,
+      catAxisLabelFontFace: FONT, catAxisLabelFontSize: 11, catAxisLabelColor: INK,
+      valAxisHidden: true, valGridLine: { style: 'none' }, valAxisMinVal: 0,
+      showValue: true, dataLabelFormatCode: '0', dataLabelFontSize: 13, dataLabelFontFace: 'Arial', dataLabelColor: INK, dataLabelPosition: 'outEnd',
+      showValAxisTitle: false, showLegend: false,
+    },
+  );
+}
+
 /** Stores side by side, ranked per zone: the worst store is the first row of each column. */
 function rankByZone(pptx: any, visits: VisitSession[], brand: string) {
   const slide = frame(pptx, 'رتبه‌بندی فروشگاه‌ها بر حسب گروه Friction', brand);
@@ -287,6 +312,7 @@ export async function downloadStoreDeck(visit: VisitSession) {
   pptx.title = `گزارش ${visit.brandName} - ${visit.branchName}`;
   storePage(pptx, visit);
   topTen(pptx, visit);
+  topTenByCount(pptx, visit);
   await pptx.writeFile({ fileName: `${safe(`گزارش ${visit.brandName} - ${visit.branchName}`)}.pptx` });
 }
 

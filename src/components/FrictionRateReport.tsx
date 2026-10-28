@@ -4,6 +4,7 @@ import {
   computeBrandFrictionRates,
   computeStoreFrictionRate,
   topFrictionTopics,
+  topFrictionTopicsByCount,
   type BranchFrictionRate,
   type FrictionRateRow,
   type StoreFrictionRate,
@@ -339,6 +340,59 @@ export const TopTopicsSection: React.FC<{ rate: StoreFrictionRate; title: string
   );
 };
 
+/**
+ * Chart: the ten topics with the highest NUMBER of frictions (not the rate). Bars are drawn against the
+ * largest count, so a topic with ten frictions is longer than one with three of three.
+ */
+export const TopTopicsByCountSection: React.FC<{ rate: StoreFrictionRate; title: string; id: string }> = ({ rate, title, id }) => {
+  const top = topFrictionTopicsByCount(rate, 10);
+  const max = top[0]?.frictions || 1;
+  return (
+    <section className="fr-card" aria-labelledby={id}>
+      <header className="fr-card__header">
+        <div>
+          <h3 id={id} className="fr-card__title">{title}</h3>
+          <p className="fr-card__subtitle">
+            موضوع‌ها بر اساس «تعداد» اصطکاک مرتب می‌شوند، نه نرخ: مثلاً ۱۰ اصطکاک در اتاق پرو بالاتر از ۳ اصطکاک از ۳ شاخص قرار می‌گیرد.
+          </p>
+        </div>
+      </header>
+      {top.length ? (
+        <div className="fr-bars" role="list" aria-label="موضوعات با بیشترین تعداد اصطکاک">
+          {top.map((t, i) => (
+            <div
+              key={t.key}
+              role="listitem"
+              className="fr-bars__row"
+              title={`${t.subject}: ${faDigits(t.frictions)} اصطکاک از ${faDigits(assessable(t))} شاخص قابل ارزیابی (${faRate(t.rate)})`}
+            >
+              <div className="fr-bars__label">
+                <span className="fr-bars__rank ltr-num">{faDigits(i + 1)}</span>
+                <span className="fr-bars__name">
+                  {t.subject}
+                  <small>{groupLabel(t.group)}</small>
+                </span>
+              </div>
+              <div className="fr-bars__track">
+                <span className="fr-bars__grid" aria-hidden="true" />
+                <span className="fr-bars__bar" style={{ width: `${(t.frictions / max) * 100}%`, background: zoneColor(t.group) }} />
+              </div>
+              <div className="fr-bars__value">
+                <b className="ltr-num">{faDigits(t.frictions)}</b>
+                <small>
+                  از {faDigits(assessable(t))} · {faRate(t.rate)}
+                </small>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="fr-card__empty">هیچ اصطکاکی ثبت نشده است.</p>
+      )}
+    </section>
+  );
+};
+
 /** Branches of one brand: table + ranked bars, highest first. */
 export const BranchSection: React.FC<{
   brandName: string;
@@ -425,6 +479,7 @@ export const FrictionRateReport: React.FC<FrictionRateReportProps> = ({ visit, h
     <>
       <ZoneSection rate={store} id="fr-zones-title" title="نرخ اصطکاک به تفکیک منطقه" headline="نرخ اصطکاک کل فروشگاه" />
       <TopTopicsSection rate={store} id="fr-topics-title" title="۱۰ اصطکاک اصلی فروشگاه" />
+      <TopTopicsByCountSection rate={store} id="fr-topics-count-title" title="۱۰ موضوع با بیشترین تعداد اصطکاک" />
       <BranchSection brandName={visit.brandName} branches={branches} currentVisitId={visit.id} id="fr-branches-title" />
     </>
   );
