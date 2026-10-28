@@ -92,7 +92,9 @@ const ZoneTable: React.FC<{ zones: FrictionRateRow[]; total: FrictionRateRow; to
  * The highest-friction zone sits at 12 o'clock and the rest follow clockwise
  * from highest to lowest, so the shape always "leans" from the top.
  */
-const ZoneRadar: React.FC<{ zones: FrictionRateRow[] }> = ({ zones }) => {
+const ZoneRadar: React.FC<{ zones: FrictionRateRow[] }> = ({ zones: unordered }) => {
+  // Fixed spoke order, starting at the top and running clockwise: Floor, Services, Team, Product, Cash.
+  const zones = [...unordered].sort((a, b) => ZONE_ORDER.indexOf(a.group) - ZONE_ORDER.indexOf(b.group));
   const [active, setActive] = useState<string | null>(null);
   const width = 480;
   const height = 380;
@@ -165,10 +167,13 @@ const ZoneRadar: React.FC<{ zones: FrictionRateRow[] }> = ({ zones }) => {
             <title>{`${groupLabel(z.group)}: ${faRate(z.rate)} (${faDigits(z.frictions)} از ${faDigits(assessable(z))})`}</title>
             <circle className="fr-radar__hit" cx={x} cy={y} r={14} />
             <circle className="fr-radar__dot" cx={x} cy={y} r={isActive ? 7 : 5.5} style={{ fill: zoneColor(z.group) }} />
-            <text className="fr-radar__label" x={lx} y={ly - 6} textAnchor={anchor}>
+            <text className="fr-radar__label" x={lx} y={ly - 15} textAnchor={anchor}>
               <tspan className="fr-radar__label-name">{groupLabel(z.group)}</tspan>
             </text>
-            <text className="fr-radar__label fr-radar__label-value" x={lx} y={ly + 11} textAnchor={anchor}>
+            <text className="fr-radar__label fr-radar__label-en" x={lx} y={ly - 2} textAnchor={anchor} direction="ltr">
+              {z.group}
+            </text>
+            <text className="fr-radar__label fr-radar__label-value" x={lx} y={ly + 13} textAnchor={anchor}>
               {faRate(z.rate)}
             </text>
           </g>
@@ -236,7 +241,7 @@ const RateBars: React.FC<{ items: BarItem[]; ariaLabel: string }> = ({ items, ar
 
 /* --- Sections -------------------------------------------------------------- */
 
-/** Report 1: zone table + radar, highest-friction zone at the top, clockwise down. */
+/** Report 1: zone table + radar with the zones in the fixed order Floor, Services, Team, Product, Cash. */
 export const ZoneSection: React.FC<{
   rate: StoreFrictionRate;
   title: string;
@@ -250,7 +255,7 @@ export const ZoneSection: React.FC<{
         <h3 id={id} className="fr-card__title">{title}</h3>
         <p className="fr-card__subtitle">
           نرخ اصطکاک (<bdi dir="ltr">F%</bdi>) = تعداد اصطکاک (FR) ÷ (تعداد شاخص‌ها − غیرقابل ارزیابی (N/A)). در نمودار،
-          منطقه با بیشترین اصطکاک در بالا قرار دارد و بقیه در جهت عقربه‌های ساعت از بیشترین به کمترین می‌آیند.
+          ترتیب محورها ثابت است و از بالا در جهت عقربه‌های ساعت: محوطه فروشگاه (FLOOR)، کیفیت سرویس (SERVICES)، تیم فروشگاه (TEAM)، محصول (PRODUCT)، صندوق (CASH).
         </p>
       </div>
       <div className="fr-card__headline">
@@ -267,7 +272,11 @@ export const ZoneSection: React.FC<{
           <ZoneRadar zones={rate.zones} />
         </div>
       ) : null}
-      <ZoneTable zones={rate.zones} total={rate.total} totalLabel={totalLabel} />
+      <ZoneTable
+        zones={[...rate.zones].sort((a, b) => ZONE_ORDER.indexOf(a.group) - ZONE_ORDER.indexOf(b.group))}
+        total={rate.total}
+        totalLabel={totalLabel}
+      />
     </div>
     {rate.total.unanswered > 0 && (
       <p className="fr-card__note">
@@ -478,7 +487,7 @@ export const FrictionRateReport: React.FC<FrictionRateReportProps> = ({ visit, h
   return (
     <>
       <ZoneSection rate={store} id="fr-zones-title" title="نرخ اصطکاک به تفکیک منطقه" headline="نرخ اصطکاک کل فروشگاه" />
-      <TopTopicsSection rate={store} id="fr-topics-title" title="۱۰ اصطکاک اصلی فروشگاه" />
+      <TopTopicsSection rate={store} id="fr-topics-title" title="۱۰ موضوع با اصطکاک ۱۰۰٪" />
       <TopTopicsByCountSection rate={store} id="fr-topics-count-title" title="۱۰ موضوع با بیشترین تعداد اصطکاک" />
       <BranchSection brandName={visit.brandName} branches={branches} currentVisitId={visit.id} id="fr-branches-title" />
     </>

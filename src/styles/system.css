@@ -1585,3 +1585,5 @@ td.ltr-num, th.ltr-num { display: table-cell; }
 .answer-saved { display: flex; align-items: center; gap: 8px; margin-top: var(--sp-3); padding: 8px 12px; border-radius: var(--r-md); font-size: var(--fs-small); font-weight: 700; }
 .answer-saved--clean { background: var(--friction-clean-bg); color: var(--friction-clean); border: var(--bw-hair) solid var(--friction-clean); }
 .answer-saved--na { background: var(--theme-badge-bg); color: var(--theme-text-secondary); border: var(--bw-hair) solid var(--theme-card-border); }
+.fr-radar__label-en { font-size: 10px; font-weight: var(--fw-medium, 500); fill: var(--theme-text-muted); letter-spacing: 0.04em; }
+@media (max-width: 600px) { .fr-radar__label-en { font-size: 14px; } }

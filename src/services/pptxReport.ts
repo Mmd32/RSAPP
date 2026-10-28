@@ -98,7 +98,7 @@ function radar(pptx: any, slide: Slide, rate: StoreFrictionRate, x: number, y: n
       x, y, w, h, radarStyle: 'standard', chartColors: [PURPLE], lineSize: 2.5,
       catAxisLabelFontFace: FONT, catAxisLabelFontSize: fontSize, catAxisLabelColor: INK,
       valAxisHidden: true, valAxisMinVal: 0, valAxisMaxVal: axisMax, valGridLine: { color: 'E5E7EB', size: 0.75 },
-      showValue: true, dataLabelFormatCode: '0"%"', dataLabelFontSize: fontSize, dataLabelFontFace: 'Arial', dataLabelColor: INK, showLegend: false,
+      showValue: true, dataLabelFormatCode: '0"%";-0"%";', dataLabelFontSize: fontSize, dataLabelFontFace: 'Arial', dataLabelColor: INK, showLegend: false,
     },
   );
 }
@@ -125,7 +125,7 @@ function storePage(pptx: any, visit: VisitSession) {
   });
   const t = rate.total;
   const total = [cell('Total', { bold: true, color: BLUE, align: 'left' }), ...[String(t.indicators), String(t.frictions), String(t.notApplicable), pctEn(t.rate)].map((v) => cell(v, { bold: true, color: BLUE }))];
-  slide.addTable([head, ...rows, total], { x: 0.77, y: 1.98, w: 5.45, colW: [1.45, 1.1, 1.2, 0.85, 0.85], rowH: 0.36 });
+  slide.addTable([head, ...rows, total], { x: 0.77, y: 1.98, w: 5.45, colW: [1.15, 1.25, 1.25, 0.8, 1.0], rowH: 0.36 });
 
   const lines: [string, string][] = [['تاریخ بازدید', jalali(visit.completedAt || visit.startedAt)]];
   if (visit.supervisorName) lines.push(['نام مدیر', visit.supervisorName]);
@@ -134,7 +134,7 @@ function storePage(pptx: any, visit: VisitSession) {
   lines.forEach(([label, value], i) => {
     slide.addText(
       [{ text: `${label}: `, options: { color: INK } }, { text: value, options: { bold: true, color: INK } }],
-      { x: 0.6, y: 4.5 + i * 0.62, w: 5.6, h: 0.55, fontFace: FONT, fontSize: 22, align: 'right', valign: 'middle', rtlMode: true },
+      { x: 0.6, y: 4.85 + i * 0.52, w: 5.6, h: 0.55, fontFace: FONT, fontSize: 22, align: 'right', valign: 'middle', rtlMode: true },
     );
   });
 
@@ -146,7 +146,7 @@ function storePage(pptx: any, visit: VisitSession) {
 function topTen(pptx: any, visit: VisitSession) {
   const rate = computeStoreFrictionRate(visit.indicators, visit.responses);
   if (!rate.total.indicators) return;
-  const slide = frame(pptx, `ده Friction اصلی در فروشگاه (${visit.branchName})`, visit.brandName);
+  const slide = frame(pptx, `۱۰ موضوع با اصطکاک ۱۰۰٪ (${visit.branchName})`, visit.brandName);
   box(slide, 0.78, 1.97, 11.97, 4.62);
   const top = topFrictionTopics(rate, 10);
   if (!top.length) {
