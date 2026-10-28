@@ -2,7 +2,7 @@ import type { VisitSession } from '../types';
 import {
   computeStoreFrictionRate,
   latestVisitPerBranch,
-  topFrictionTopics,
+  fullFrictionTopics,
   topFrictionTopicsByCount,
   type FrictionRateRow,
   type StoreFrictionRate,
@@ -64,8 +64,8 @@ function box(slide: Slide, x: number, y: number, w: number, h: number) {
 }
 
 /** Small purple tab with a store name, sitting on the frame. */
-function tab(slide: Slide, text: string, x: number, y: number, w: number) {
-  slide.addText(text, { x, y, w, h: 0.32, fontFace: FONT, fontSize: 13, bold: true, color: 'FFFFFF', align: 'center', valign: 'middle', rtlMode: true, shape: 'roundRect', rectRadius: 0.06, fill: { color: PURPLE } });
+function tab(slide: Slide, text: string, x: number, y: number, w: number, h = 0.32) {
+  slide.addText(text, { x, y, w, h, fontFace: FONT, fontSize: h < 0.3 ? 11 : 13, bold: true, color: 'FFFFFF', align: 'center', valign: 'middle', rtlMode: true, shape: 'roundRect', rectRadius: 0.06, fill: { color: PURPLE } });
 }
 
 /** Red-to-green arrow: the highest friction is at the top. */
@@ -142,15 +142,15 @@ function storePage(pptx: any, visit: VisitSession) {
   radar(pptx, slide, rate, 6.75, 2.05, 5.4, 4.45, axisMaxFor(ZONES.map((z) => pctNum(map[z]?.rate || 0))));
 }
 
-/** One store: its ten topics with the highest friction. */
+/** One store: every topic with 100% friction, however many there are. */
 function topTen(pptx: any, visit: VisitSession) {
   const rate = computeStoreFrictionRate(visit.indicators, visit.responses);
   if (!rate.total.indicators) return;
-  const slide = frame(pptx, `۱۰ موضوع با اصطکاک ۱۰۰٪ (${visit.branchName})`, visit.brandName);
+  const slide = frame(pptx, `موضوع‌های با اصطکاک ۱۰۰٪ (${visit.branchName})`, visit.brandName);
   box(slide, 0.78, 1.97, 11.97, 4.62);
-  const top = topFrictionTopics(rate, 10);
+  const top = fullFrictionTopics(rate);
   if (!top.length) {
-    slide.addText('اصطکاکی ثبت نشده است.', { x: 1, y: 3.5, w: 11.5, h: 0.6, fontFace: FONT, fontSize: 20, color: GREY, align: 'center', rtlMode: true });
+    slide.addText('موضوعی با اصطکاک ۱۰۰٪ وجود ندارد.', { x: 1, y: 3.5, w: 11.5, h: 0.6, fontFace: FONT, fontSize: 20, color: GREY, align: 'center', rtlMode: true });
     return;
   }
   slide.addChart(
@@ -226,19 +226,29 @@ function rankByZone(pptx: any, visits: VisitSession[], brand: string) {
 function radarComparison(pptx: any, visits: VisitSession[], brand: string) {
   const rates = visits.map((v) => ({ v, rate: computeStoreFrictionRate(v.indicators, v.responses) }));
   const axisMax = axisMaxFor(rates.flatMap((r) => ZONES.map((z) => pctNum(zoneRateMap(r.rate)[z]?.rate || 0))));
-  const cellW = 3.72;
-  const cellH = 2.22;
-  const startRight = 12.05;
-  for (let page = 0; page * 6 < rates.length; page++) {
+  // Every branch's radar on one slide, the branch name above its chart. The grid grows with the number
+  // of branches (up to 6 on a slide, so each chart stays readable); a brand with more goes on to a second slide.
+  const perSlide = 6;
+  const area = { right: 12.05, left: 0.75, top: 1.85, bottom: 6.65 };
+  for (let page = 0; page * perSlide < rates.length; page++) {
     const slide = frame(pptx, `مقایسه نمودار اصطکاک فروشگاه‌های ${brand}`, brand);
-    rates.slice(page * 6, page * 6 + 6).forEach((r, i) => {
-      const col = i % 3;
-      const row = Math.floor(i / 3);
-      const x = startRight - cellW - col * (cellW + 0.05);
-      const y = 1.85 + row * (cellH + 0.07);
+    const chunk = rates.slice(page * perSlide, (page + 1) * perSlide);
+    const n = chunk.length;
+    const cols = n <= 1 ? 1 : n <= 4 ? 2 : 3;
+    const rows = Math.ceil(n / cols);
+    const gap = 0.08;
+    const cellW = (area.right - area.left - (cols - 1) * gap) / cols;
+    const cellH = (area.bottom - area.top - (rows - 1) * gap) / rows;
+    const label = Math.min(0.34, cellH * 0.16);
+    const fontSize = n <= 2 ? 12 : n <= 4 ? 10 : 9;
+    chunk.forEach((r, i) => {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const x = area.right - cellW - col * (cellW + gap); // right to left, as the deck reads
+      const y = area.top + row * (cellH + gap);
       box(slide, x, y, cellW, cellH);
-      radar(pptx, slide, r.rate, x + 0.05, y + 0.12, cellW - 0.1, cellH - 0.2, axisMax, 8);
-      tab(slide, r.v.branchName, x + cellW / 2 - 0.6, row === 0 ? y - 0.16 : y + cellH - 0.16, 1.2);
+      tab(slide, clip(r.v.branchName, 28), x + 0.1, y + 0.06, cellW - 0.2, label);
+      radar(pptx, slide, r.rate, x + 0.05, y + label + 0.1, cellW - 0.1, cellH - label - 0.16, axisMax, fontSize);
     });
   }
 }
@@ -304,23 +314,51 @@ async function newDeck(): Promise<any> {
   return pptx;
 }
 
-const safe = (s: string) => s.replace(/[\\/:*?"<>|]+/g, '-').trim();
+/**
+ * Download names are ASCII only: some browsers drop a Persian file name altogether and save the file as
+ * "download" with no extension, which PowerPoint cannot open. The Persian title is inside the deck.
+ */
+const deckFileName = (kind: 'Store' | 'Business') => `RS_${kind}_Report_${new Date().toISOString().slice(0, 10)}.pptx`;
+
+export interface BuiltDeck {
+  blob: Blob;
+  fileName: string;
+}
+
+const toBlob = async (pptx: any): Promise<Blob> => (await pptx.write({ outputType: 'blob', compression: true })) as Blob;
+
+/** Starts the browser download of a built deck. */
+export function saveDeck(deck: BuiltDeck) {
+  const url = URL.createObjectURL(deck.blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = deck.fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  // Keep the address alive: a "download again" link in the page uses the same one.
+  return url;
+}
 
 /** The deck of one store's visit. */
-export async function downloadStoreDeck(visit: VisitSession) {
+export async function buildStoreDeck(visit: VisitSession): Promise<BuiltDeck> {
   const pptx = await newDeck();
   pptx.title = `گزارش ${visit.brandName} - ${visit.branchName}`;
   storePage(pptx, visit);
   topTen(pptx, visit);
   topTenByCount(pptx, visit);
-  await pptx.writeFile({ fileName: `${safe(`گزارش ${visit.brandName} - ${visit.branchName}`)}.pptx` });
+  return { blob: await toBlob(pptx), fileName: deckFileName('Store') };
+}
+
+export async function downloadStoreDeck(visit: VisitSession) {
+  saveDeck(await buildStoreDeck(visit));
 }
 
 /** The deck of a whole brand: the business slides, then two slides for every branch's latest visit. */
-export async function downloadBusinessDeck(brandNames: string | string[], visits: VisitSession[]) {
+export async function buildBusinessDeck(brandNames: string | string[], visits: VisitSession[]): Promise<BuiltDeck | null> {
   const brandName = (Array.isArray(brandNames) ? brandNames[0] : brandNames) || '';
   const latest = latestVisitPerBranch(brandNames, visits);
-  if (!latest.length) return;
+  if (!latest.length) return null;
   const pptx = await newDeck();
   pptx.title = `گزارش کل کسب‌وکار ${brandName}`;
   atAGlance(pptx, latest, brandName);
@@ -330,5 +368,10 @@ export async function downloadBusinessDeck(brandNames: string | string[], visits
     storePage(pptx, visit);
     topTen(pptx, visit);
   }
-  await pptx.writeFile({ fileName: `${safe(`گزارش کل کسب‌وکار ${brandName}`)}.pptx` });
+  return { blob: await toBlob(pptx), fileName: deckFileName('Business') };
+}
+
+export async function downloadBusinessDeck(brandNames: string | string[], visits: VisitSession[]) {
+  const deck = await buildBusinessDeck(brandNames, visits);
+  if (deck) saveDeck(deck);
 }

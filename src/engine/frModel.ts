@@ -109,6 +109,16 @@ export function topFrictionTopics(rate: StoreFrictionRate, limit = 10, group?: s
 }
 
 /**
+ * Topics where every assessable indicator has a friction (100%), however many there are: one topic or
+ * twelve. The larger topics (more frictions) come first.
+ */
+export function fullFrictionTopics(rate: StoreFrictionRate, group?: string): FrictionRateRow[] {
+  return rate.topics
+    .filter((t) => t.frictions > 0 && t.frictions === t.indicators - t.notApplicable && (!group || t.group === group))
+    .sort((a, b) => b.frictions - a.frictions || a.key.localeCompare(b.key, 'fa'));
+}
+
+/**
  * The topics with the most frictions, by count: ten frictions in the fitting rooms rank above three
  * out of three. Ties go to the higher rate. Topics without friction are left out.
  */
