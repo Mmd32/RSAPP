@@ -8661,6 +8661,7 @@
       "applicableMallTypes": [],
       "applicableFormats": [
         "RESTAURANT",
+        "COFFEE_SHOP",
         "STREET_STORE",
         "FOOD_COURT",
         "TABLE_SERVICE",
@@ -9006,6 +9007,7 @@
       "applicableMallTypes": [],
       "applicableFormats": [
         "RESTAURANT",
+        "COFFEE_SHOP",
         "STREET_STORE",
         "FOOD_COURT",
         "TABLE_SERVICE",
@@ -9092,6 +9094,7 @@
       "applicableMallTypes": [],
       "applicableFormats": [
         "RESTAURANT",
+        "COFFEE_SHOP",
         "STREET_STORE",
         "TABLE_SERVICE",
         "COUNTER_SERVICE"
@@ -11454,6 +11457,7 @@
       "applicableMallTypes": [],
       "applicableFormats": [
         "RESTAURANT",
+        "COFFEE_SHOP",
         "STREET_STORE",
         "FOOD_COURT",
         "TABLE_SERVICE"
@@ -13944,6 +13948,8 @@
       ],
       "applicableMallTypes": [],
       "applicableFormats": [
+        "RESTAURANT",
+        "COFFEE_SHOP",
         "STREET_STORE",
         "FOOD_COURT",
         "TABLE_SERVICE",
