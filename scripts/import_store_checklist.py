@@ -43,8 +43,7 @@ F&B (restaurants and cafes) works the same way, from data/reference/FR_Checklist
 (visible sheet "FR Check List - F&B": group | topic | KPI | six format columns with an X | Friction ...).
 That workbook carries all six formats (Restaurant, Coffee Shop, Stand alone, Food Court, Table Service,
 Counter Service), so it is the master. It has no code column: codes are generated (RC001 ...) in the
-file's row order. A per-format workbook next to it (FR_Checklist_FB_<Format>.xlsx, one X column) is only
-used to check the master: its KPIs must be exactly the master's KPIs for that format, in the same order.
+file's row order. A per-format workbook next to it (FR_Checklist_FB_<Format>.xlsx, one X column) is the authority for that format: it decides that format's list (its KPIs must all be in the master, in its order).
 
 Run: python3 scripts/import_store_checklist.py [--dry-run]
 """
@@ -317,23 +316,28 @@ def parse_fb_workbooks():
     for col in FB_FORMAT_COLUMNS:
         if col not in master[0]["x"]:
             raise SystemExit(f"F&B master has no {col!r} column")
+    # A format's own workbook decides that format's list; the master's column is only used for the
+    # formats whose workbook is not there (yet). A file's KPIs must all exist in the master, in its order.
+    wanted = {code: {r["kpi"] for r in master if r["x"][col]} for col, code in FB_FORMAT_COLUMNS.items()}
+    own_files = []
     for fmt, rel in FB_CHECK_FILES.items():
         path = os.path.join(ROOT, rel)
         if not os.path.exists(path) or rel == FB_MASTER:
             continue
-        other = read_fb_sheet(path)
-        column = next(c for c, code in FB_FORMAT_COLUMNS.items() if code == fmt)
-        own = [r["kpi"] for r in other if any(r["x"].values())]
-        want = [r["kpi"] for r in master if r["x"][column]]
-        if own != want:
-            raise SystemExit(f"{rel}: its KPIs differ from the master's {column} column "
-                             f"({len(own)} vs {len(want)}; first difference: "
-                             f"{next((a for a, b in zip(own, want) if a != b), 'length')})")
+        own = [r["kpi"] for r in read_fb_sheet(path) if any(r["x"].values())]
+        it = iter(kpis)
+        if len(set(own)) != len(own) or not all(k in it for k in own):
+            unknown = [k for k in own if k not in set(kpis)]
+            raise SystemExit(f"{rel}: KPIs missing from the master or out of its order: {unknown[:3] or 'order'}")
+        wanted[fmt] = set(own)
+        own_files.append(fmt)
+    print("F&B formats read from their own workbook:", own_files, "| from the master's column:",
+          [c for c in wanted if c not in own_files])
     rows = []
     for n, r in enumerate(master, start=1):
         rows.append({"code": f"{FB_CODE_PREFIX}{n:03d}", "group": r["zone"], "subject": r["topic"], "statement": r["kpi"],
                      "note": r["note"], "sectors": ["F_B"],
-                     "formats": [code for col, code in FB_FORMAT_COLUMNS.items() if r["x"][col]],
+                     "formats": [code for code in FB_FORMAT_COLUMNS.values() if r["kpi"] in wanted[code]],
                      "in_matrix": False, "source": "format", "prefix": "IND_FN_"})
     return rows
 
