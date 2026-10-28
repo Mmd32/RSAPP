@@ -89,13 +89,13 @@ function zoneRateMap(rate: StoreFrictionRate): Record<string, FrictionRateRow | 
 
 const radarLabels = ZONES.map((z) => `${ZONE_FA[z]}\n${z}`);
 
-function radar(pptx: any, slide: Slide, rate: StoreFrictionRate, x: number, y: number, w: number, h: number, axisMax: number, fontSize = 11) {
+function radar(pptx: any, slide: Slide, rate: StoreFrictionRate, x: number, y: number, w: number, h: number, axisMax: number, fontSize = 11, plot?: { x: number; y: number; w: number; h: number }) {
   const map = zoneRateMap(rate);
   slide.addChart(
     pptx.charts.RADAR,
     [{ name: 'نرخ اصطکاک (٪)', labels: radarLabels, values: ZONES.map((z) => pctNum(map[z]?.rate || 0)) }],
     {
-      x, y, w, h, radarStyle: 'standard', chartColors: [PURPLE], lineSize: 2.5,
+      x, y, w, h, radarStyle: 'standard', chartColors: [PURPLE], lineSize: 2.5, ...(plot ? { layout: plot } : {}),
       catAxisLabelFontFace: FONT, catAxisLabelFontSize: fontSize, catAxisLabelColor: INK,
       valAxisHidden: true, valAxisMinVal: 0, valAxisMaxVal: axisMax, valGridLine: { color: 'E5E7EB', size: 0.75 },
       showValue: true, dataLabelFormatCode: '0"%";-0"%";', dataLabelFontSize: fontSize, dataLabelFontFace: 'Arial', dataLabelColor: INK, showLegend: false,
@@ -225,22 +225,23 @@ function rankByZone(pptx: any, visits: VisitSession[], brand: string) {
 /** Small radars of up to six stores per slide, on one common scale. */
 function radarComparison(pptx: any, visits: VisitSession[], brand: string) {
   const rates = visits.map((v) => ({ v, rate: computeStoreFrictionRate(v.indicators, v.responses) }));
-  const axisMax = axisMaxFor(rates.flatMap((r) => ZONES.map((z) => pctNum(zoneRateMap(r.rate)[z]?.rate || 0))));
-  // Every branch's radar on one slide, the branch name above its chart. The grid grows with the number
-  // of branches (up to 6 on a slide, so each chart stays readable); a brand with more goes on to a second slide.
-  const perSlide = 6;
-  const area = { right: 12.05, left: 0.75, top: 1.85, bottom: 6.65 };
+  // Each branch's radar with the branch name above its chart: up to 3 on a slide, side by side in one tall
+  // row so every chart is big; a brand with more branches goes on to further slides.
+  const perSlide = 3;
+  const area = { right: 12.05, left: 0.75, top: 1.72, bottom: 6.8 };
   for (let page = 0; page * perSlide < rates.length; page++) {
     const slide = frame(pptx, `مقایسه نمودار اصطکاک فروشگاه‌های ${brand}`, brand);
     const chunk = rates.slice(page * perSlide, (page + 1) * perSlide);
     const n = chunk.length;
-    const cols = n <= 1 ? 1 : n <= 4 ? 2 : 3;
+    // The scale is shared by the charts on one slide, so they can be compared at a glance.
+    const axisMax = axisMaxFor(chunk.flatMap((r) => ZONES.map((z) => pctNum(zoneRateMap(r.rate)[z]?.rate || 0))));
+    const cols = n;
     const rows = Math.ceil(n / cols);
     const gap = 0.08;
     const cellW = (area.right - area.left - (cols - 1) * gap) / cols;
     const cellH = (area.bottom - area.top - (rows - 1) * gap) / rows;
-    const label = Math.min(0.34, cellH * 0.16);
-    const fontSize = n <= 2 ? 12 : n <= 4 ? 10 : 9;
+    const label = Math.min(0.36, cellH * 0.16);
+    const fontSize = 12;
     chunk.forEach((r, i) => {
       const col = i % cols;
       const row = Math.floor(i / cols);
@@ -248,7 +249,7 @@ function radarComparison(pptx: any, visits: VisitSession[], brand: string) {
       const y = area.top + row * (cellH + gap);
       box(slide, x, y, cellW, cellH);
       tab(slide, clip(r.v.branchName, 28), x + 0.1, y + 0.06, cellW - 0.2, label);
-      radar(pptx, slide, r.rate, x + 0.05, y + label + 0.1, cellW - 0.1, cellH - label - 0.16, axisMax, fontSize);
+      radar(pptx, slide, r.rate, x + 0.02, y + label + 0.08, cellW - 0.04, cellH - label - 0.1, axisMax, fontSize);
     });
   }
 }
