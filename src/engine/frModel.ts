@@ -108,6 +108,17 @@ export function topFrictionTopics(rate: StoreFrictionRate, limit = 10, group?: s
   return rate.topics.filter((t) => t.frictions > 0 && (!group || t.group === group)).slice(0, limit);
 }
 
+/**
+ * The topics with the most frictions, by count: ten frictions in the fitting rooms rank above three
+ * out of three. Ties go to the higher rate. Topics without friction are left out.
+ */
+export function topFrictionTopicsByCount(rate: StoreFrictionRate, limit = 10, group?: string): FrictionRateRow[] {
+  return rate.topics
+    .filter((t) => t.frictions > 0 && (!group || t.group === group))
+    .sort((a, b) => b.frictions - a.frictions || b.rate - a.rate || a.key.localeCompare(b.key, 'fa'))
+    .slice(0, limit);
+}
+
 export interface BranchFrictionRate extends FrictionRateRow {
   branchName: string;
   visitId: string;

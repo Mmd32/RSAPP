@@ -5,7 +5,7 @@
  */
 import assert from 'node:assert/strict';
 import type { Indicator, QuestionResponse, VisitSession } from '../src/types';
-import { computeBrandFrictionRates, computeStoreFrictionRate, nameKey, topFrictionTopics } from '../src/engine/frModel';
+import { computeBrandFrictionRates, computeStoreFrictionRate, nameKey, topFrictionTopics, topFrictionTopicsByCount } from '../src/engine/frModel';
 
 let n = 0;
 const indicators: Indicator[] = [];
@@ -89,5 +89,25 @@ const mergedBrands = computeBrandFrictionRates(['Opal', 'Opal Vali'], [
   { ...visit('m2', 'B', '2026-01-02', 2), brandName: 'Opal Vali' } as VisitSession,
 ]);
 assert.equal(mergedBrands.length, 2, 'two brand names merged into one business');
+
+// Top topics by NUMBER of frictions: ten in one topic beat three out of three.
+{
+  const ni: Indicator[] = [];
+  const nr: Record<string, QuestionResponse> = {};
+  const mk = (subject: string, total: number, fr: number) => {
+    for (let i = 0; i < total; i++) {
+      const id = `${subject}${i}`;
+      ni.push({ id, code: id, template: 'STORE', group: 'FLOOR', subject, statement: '', journeyStage: '', weight: 1, requiresPhoto: false, requiresComment: false, displayOrder: ni.length, applicableBusinessTypes: [], applicableMallTypes: [] } as Indicator);
+      nr[id] = { indicatorId: id, answerState: i < fr ? 'FRICTION' : 'NO_FRICTION', photos: [], isFlagged: false };
+    }
+  };
+  mk('اتاق پرو', 40, 10);
+  mk('تابلو', 3, 3);
+  mk('ویترین', 12, 6);
+  mk('نور', 5, 0);
+  const rate = computeStoreFrictionRate(ni, nr);
+  assert.deepEqual(topFrictionTopicsByCount(rate).map((t) => t.subject), ['اتاق پرو', 'ویترین', 'تابلو'], 'ranked by count, no-friction topics left out');
+  assert.equal(topFrictionTopics(rate)[0].subject, 'تابلو', 'the rate ranking is unchanged');
+}
 
 console.log('FR model: all checks passed');
