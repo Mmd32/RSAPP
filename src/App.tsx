@@ -497,7 +497,6 @@ export const App: React.FC = () => {
   const [currentStage, setCurrentStage] = useState<string>('APPROACH');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [auditFilter, setAuditFilter] = useState<'ALL' | 'MISSING' | 'FRICTION' | 'FLAGGED'>('ALL');
-  const [quickMode, setQuickMode] = useState<boolean>(true);
   const [isFrictionSheetOpen, setIsFrictionSheetOpen] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
@@ -964,8 +963,10 @@ export const App: React.FC = () => {
 
     saveVisitState(updatedSession);
 
-    // Section 13 & 14: Quick Mode auto advance on No Friction + Undo Snackbar
-    if (state === 'NO_FRICTION' && quickMode) {
+    // Section 13 & 14: auto advance on No Friction / Not applicable + Undo Snackbar. A friction stays on
+    // its question: its note and photo are added there. (The quick-mode switch no longer turns the advance
+    // off: a questionnaire that sits on an answered question looks as if the answer was not recorded.)
+    if (state === 'NO_FRICTION' || state === 'NOT_APPLICABLE') {
       if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
 
       setUndoState({
@@ -984,7 +985,7 @@ export const App: React.FC = () => {
         // Move on only if the auditor is still on the question just answered:
         // a double tap or a manual jump must not skip a question.
         setCurrentQuestionIndex((prev) => (prev === answeredIndex && prev < lastIndex ? prev + 1 : prev));
-      }, 250);
+      }, 150);
 
       // Auto dismiss undo after 4 seconds
       undoTimeoutRef.current = setTimeout(() => {
@@ -1886,8 +1887,6 @@ export const App: React.FC = () => {
                       onPrev={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}
                       onNext={() => canGoTo(currentQuestionIndex + 1) && setCurrentQuestionIndex((prev) => Math.min(displayedIndicators.length - 1, prev + 1))}
                       nextLocked={currentQuestionIndex < displayedIndicators.length - 1 && !canGoTo(currentQuestionIndex + 1)}
-                      quickMode={quickMode}
-                      onToggleQuickMode={() => setQuickMode(!quickMode)}
                       supervisorNote={activeSession.findingDecisions?.[currentIndicator.id]?.comment}
                     />
                   )}
@@ -1920,8 +1919,6 @@ export const App: React.FC = () => {
                     onPrev={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}
                     onNext={() => canGoTo(currentQuestionIndex + 1) && setCurrentQuestionIndex((prev) => Math.min(displayedIndicators.length - 1, prev + 1))}
                     nextLocked={currentQuestionIndex < displayedIndicators.length - 1 && !canGoTo(currentQuestionIndex + 1)}
-                    quickMode={quickMode}
-                    onToggleQuickMode={() => setQuickMode(!quickMode)}
                     supervisorNote={activeSession.findingDecisions?.[currentIndicator.id]?.comment}
                   />
                 )}

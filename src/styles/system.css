@@ -1576,3 +1576,12 @@ td.ltr-num, th.ltr-num { display: table-cell; }
 .pivot-topic th { padding-inline-start: 28px !important; font-weight: var(--fw-medium) !important; }
 .pivot-muted { color: var(--theme-text-muted); font-size: var(--fs-micro); }
 .pivot-codes { font-family: var(--rs-font-mono, monospace); font-size: var(--fs-micro); color: var(--theme-text-secondary); word-break: break-word; }
+
+/* The answer is saved on tap: a visible "saved" mark on the chosen button and a line under the buttons. */
+.answer-btn__saved { display: block; margin-top: 2px; font-size: var(--fs-small); font-weight: 700; }
+.answer-btn.selected-clean .answer-btn__saved { color: var(--friction-clean); }
+.answer-btn.selected-friction .answer-btn__saved { color: var(--friction-critical); }
+.answer-btn.selected-na .answer-btn__saved { color: var(--theme-text-muted); }
+.answer-saved { display: flex; align-items: center; gap: 8px; margin-top: var(--sp-3); padding: 8px 12px; border-radius: var(--r-md); font-size: var(--fs-small); font-weight: 700; }
+.answer-saved--clean { background: var(--friction-clean-bg); color: var(--friction-clean); border: var(--bw-hair) solid var(--friction-clean); }
+.answer-saved--na { background: var(--theme-badge-bg); color: var(--theme-text-secondary); border: var(--bw-hair) solid var(--theme-card-border); }

@@ -31,8 +31,6 @@ interface QuestionCardProps {
   onNext: () => void;
   /** The next question stays closed until this one is answered. */
   nextLocked?: boolean;
-  quickMode: boolean;
-  onToggleQuickMode: () => void;
   supervisorNote?: string;
 }
 
@@ -48,8 +46,6 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   onPrev,
   onNext,
   nextLocked = false,
-  quickMode,
-  onToggleQuickMode,
   supervisorNote,
 }) => {
   const currentState = response?.answerState || 'UNANSWERED';
@@ -116,25 +112,6 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button
-            type="button"
-            onClick={onToggleQuickMode}
-            style={{
-              background: quickMode ? 'rgba(45, 157, 120, 0.15)' : 'var(--theme-input-bg)',
-              border: `1px solid ${quickMode ? 'var(--rs-color-success)' : 'var(--border-subtle)'}`,
-              color: quickMode ? 'var(--rs-color-success)' : 'var(--text-muted)',
-              fontSize: 12,
-              padding: '4px 10px',
-              borderRadius: 'var(--rs-radius-full)',
-              cursor: 'pointer',
-              fontWeight: 600,
-              transition: 'all var(--rs-duration-micro) var(--rs-ease-standard)',
-            }}
-            aria-label={quickMode ? 'حالت ثبت سریع فعال است' : 'تغییر به حالت ثبت سریع'}
-          >
-            {quickMode ? <><Zap size={13} style={{ display: 'inline', verticalAlign: '-2px' }} /> حالت سریع فعال</> : 'حالت عادی'}
-          </button>
-
           <button
             type="button"
             className={`flag-btn ${isFlagged ? 'flagged' : ''}`}
@@ -241,6 +218,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               <span className="answer-btn-sub">
                 استاندارد رعایت شده و مشکلی مشاهده نشد
               </span>
+              {currentState === 'NO_FRICTION' && <span className="answer-btn__saved" aria-hidden="true">ثبت شد ✓</span>}
             </div>
           </button>
 
@@ -260,6 +238,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               <span className="answer-btn-sub">
                 نقص، عدم انطباق یا مانع تجربه مشتری وجود دارد
               </span>
+              {currentState === 'FRICTION' && <span className="answer-btn__saved" aria-hidden="true">ثبت شد ✓</span>}
             </div>
           </button>
 
@@ -279,9 +258,18 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               <span className="answer-btn-sub">
                 این مورد در این شعبه وجود ندارد یا قابل بررسی نیست (N/A)
               </span>
+              {currentState === 'NOT_APPLICABLE' && <span className="answer-btn__saved" aria-hidden="true">ثبت شد ✓</span>}
             </div>
           </button>
         </div>
+
+        {/* The answer is recorded the moment it is tapped; say so for the two answers that have no details panel. */}
+        {(currentState === 'NO_FRICTION' || currentState === 'NOT_APPLICABLE') && (
+          <div className={`answer-saved answer-saved--${currentState === 'NO_FRICTION' ? 'clean' : 'na'}`} role="status">
+            <CheckCircle2 size={16} />
+            <span>{currentState === 'NO_FRICTION' ? 'ثبت شد: وضعیت مناسب است' : 'ثبت شد: قابل ارزیابی نیست'}</span>
+          </div>
+        )}
 
         {/* Friction Details Capsule (if answer is FRICTION) */}
         {currentState === 'FRICTION' && (
