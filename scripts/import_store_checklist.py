@@ -324,7 +324,12 @@ def parse_fb_workbooks():
         path = os.path.join(ROOT, rel)
         if not os.path.exists(path) or rel == FB_MASTER:
             continue
-        own = [r["kpi"] for r in read_fb_sheet(path) if any(r["x"].values())]
+        # A per-format file has one X column; some are a copy of the six-column master, so take the
+        # format's own column when the file has it.
+        column = next(c for c, code in FB_FORMAT_COLUMNS.items() if code == fmt)
+        file_rows = read_fb_sheet(path)
+        has_column = column in file_rows[0]["x"]
+        own = [r["kpi"] for r in file_rows if (r["x"][column] if has_column else any(r["x"].values()))]
         it = iter(kpis)
         if len(set(own)) != len(own) or not all(k in it for k in own):
             unknown = [k for k in own if k not in set(kpis)]
