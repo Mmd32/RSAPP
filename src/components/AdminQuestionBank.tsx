@@ -210,7 +210,7 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[]; cleared?: boolean; onR
         <div>
           <h3 id="pivot-title" className="fr-card__title">جدول محوری شاخص‌ها (منطقه ← موضوع ← کد)</h3>
           <p className="fr-card__subtitle">
-            سکتور را انتخاب کنید. «کل» تعداد شاخص‌های فایل چک‌لیست برای آن سکتور است و هر ستون فرمت، تعداد شاخص‌هایی که در همان فرمت پرسیده می‌شود. برای پوشاک هر قالب فایل اکسل خودش را دارد؛ قالب را انتخاب کنید تا فقط موضوع‌ها و کدهای همان قالب دیده شود (برای سایر سکتورها امکانات تیک‌خورده اثر دارد). روی عنوان ستون‌ها بزنید تا مرتب شوند؛ روی هر منطقه بزنید تا موضوع‌ها و کدها را ببینید.
+            سکتور را انتخاب کنید. ستون «کل» تعداد شاخص‌های آن سکتور است و هر ستون قالب، تعداد شاخص‌های همان قالب. برای پوشاک و رستوران و کافه، قالب را انتخاب کنید تا فقط موضوع‌ها و کدهای همان قالب بیاید. روی عنوان ستون‌ها بزنید تا مرتب شوند و روی هر منطقه بزنید تا موضوع‌ها باز شوند.
           </p>
         </div>
         <label className="business-brand">
@@ -242,7 +242,7 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[]; cleared?: boolean; onR
       {hasFormatFiles && (
         <div className="pivot-features">
           <span className="ie-label">قالب فروشگاه (شاخص‌ها دقیقاً از فایل اکسل همان قالب)</span>
-          <div className="ie-checks">
+          <div className="pivot-format-row">
             {[{ code: 'ALL', label: 'همه قالب‌ها' }, ...formats].map((f) => (
               <label key={f.code} className="ie-check">
                 <input type="radio" name="pivot-format" checked={activeFormat === f.code} onChange={() => setFormat(f.code)} />
@@ -272,8 +272,8 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[]; cleared?: boolean; onR
           <thead>
             <tr>
               {head('name', 'منطقه / موضوع')}
-              {head('total', activeFormat === 'ALL' ? (hasFormatFiles ? 'همه قالب‌ها (اجتماع فایل‌ها)' : 'کل (بر اساس اکسل)') : 'شاخص‌های این قالب')}
-              {formatCols.map((f) => head(f.code, f.label))}
+              {head('total', activeFormat === 'ALL' ? (hasFormatFiles ? 'همه قالب‌ها' : 'کل (بر اساس اکسل)') : 'شاخص‌های این قالب')}
+              {formatCols.map((f) => head(f.code, <span title={f.label}>{f.short || f.label}</span>))}
               <th scope="col">کدها</th>
             </tr>
           </thead>
