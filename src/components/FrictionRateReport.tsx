@@ -3,7 +3,7 @@ import type { VisitSession } from '../types';
 import {
   computeBrandFrictionRates,
   computeStoreFrictionRate,
-  topFrictionTopics,
+  fullFrictionTopics,
   topFrictionTopicsByCount,
   type BranchFrictionRate,
   type FrictionRateRow,
@@ -291,10 +291,10 @@ export const ZoneSection: React.FC<{
  * zone. A topic's rate divides by that topic's own indicators only.
  */
 export const TopTopicsSection: React.FC<{ rate: StoreFrictionRate; title: string; id: string }> = ({ rate, title, id }) => {
-  const zonesWithFriction = rate.zones.filter((z) => z.frictions > 0).map((z) => z.group);
+  const zonesWithFriction = rate.zones.filter((z) => fullFrictionTopics(rate, z.group).length > 0).map((z) => z.group);
   const [zone, setZone] = useState<string>('ALL');
   const active = zone !== 'ALL' && !zonesWithFriction.includes(zone) ? 'ALL' : zone;
-  const top = topFrictionTopics(rate, 10, active === 'ALL' ? undefined : active);
+  const top = fullFrictionTopics(rate, active === 'ALL' ? undefined : active);
 
   return (
     <section className="fr-card" aria-labelledby={id}>
@@ -302,8 +302,8 @@ export const TopTopicsSection: React.FC<{ rate: StoreFrictionRate; title: string
         <div>
           <h3 id={id} className="fr-card__title">{title}</h3>
           <p className="fr-card__subtitle">
-            نرخ هر موضوع فقط با شاخص‌های همان موضوع محاسبه می‌شود: اصطکاک‌های موضوع ÷ (شاخص‌های همان موضوع − غیرقابل
-            ارزیابی همان موضوع). رنگ هر میله منطقه‌ی آن موضوع را نشان می‌دهد.
+            فقط موضوع‌هایی که همه‌ی شاخص‌های قابل ارزیابی‌شان اصطکاک داشته است (نرخ ۱۰۰٪) نشان داده می‌شوند؛ هر تعداد که باشند،
+            یک موضوع یا ۱۲ موضوع. رنگ هر میله منطقه‌ی آن موضوع را نشان می‌دهد.
           </p>
         </div>
       </header>
@@ -343,7 +343,7 @@ export const TopTopicsSection: React.FC<{ rate: StoreFrictionRate; title: string
           }))}
         />
       ) : (
-        <p className="fr-card__empty">هیچ اصطکاکی ثبت نشده است.</p>
+        <p className="fr-card__empty">موضوعی با اصطکاک ۱۰۰٪ وجود ندارد.</p>
       )}
     </section>
   );
@@ -487,7 +487,7 @@ export const FrictionRateReport: React.FC<FrictionRateReportProps> = ({ visit, h
   return (
     <>
       <ZoneSection rate={store} id="fr-zones-title" title="نرخ اصطکاک به تفکیک منطقه" headline="نرخ اصطکاک کل فروشگاه" />
-      <TopTopicsSection rate={store} id="fr-topics-title" title="۱۰ موضوع با اصطکاک ۱۰۰٪" />
+      <TopTopicsSection rate={store} id="fr-topics-title" title="موضوع‌های با اصطکاک ۱۰۰٪" />
       <TopTopicsByCountSection rate={store} id="fr-topics-count-title" title="۱۰ موضوع با بیشترین تعداد اصطکاک" />
       <BranchSection brandName={visit.brandName} branches={branches} currentVisitId={visit.id} id="fr-branches-title" />
     </>

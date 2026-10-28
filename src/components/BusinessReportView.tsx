@@ -47,6 +47,8 @@ export const BusinessReportView: React.FC<BusinessReportViewProps> = ({ visits, 
   // Brands typed differently (or each branch typed as its own brand) can be added to the same business.
   const [merged, setMerged] = useState<string[]>([]);
   const [exporting, setExporting] = useState(false);
+  // The built deck stays downloadable from the page: a browser may refuse a download that starts after the build.
+  const [deckLink, setDeckLink] = useState<{ url: string; name: string } | null>(null);
   useEffect(() => {
     if (!brands.some((b) => b.key === brandKey)) setBrandKey(brands[0]?.key || '');
   }, [brands, brandKey]);
@@ -96,8 +98,16 @@ export const BusinessReportView: React.FC<BusinessReportViewProps> = ({ visits, 
             onClick={async () => {
               setExporting(true);
               try {
-                const { downloadBusinessDeck } = await import('../services/pptxReport');
-                await downloadBusinessDeck(names, pickedVisits);
+                const { buildBusinessDeck, saveDeck } = await import('../services/pptxReport');
+                const deck = await buildBusinessDeck(names, pickedVisits);
+                if (!deck) {
+                  alert('برای این کسب‌وکار پرسشنامه‌ی ارسال‌شده یا تأییدشده‌ای نیست.');
+                } else {
+                  setDeckLink((old) => {
+                    if (old) URL.revokeObjectURL(old.url);
+                    return { url: saveDeck(deck), name: deck.fileName };
+                  });
+                }
               } catch (err) {
                 console.error('PowerPoint export failed:', err);
                 alert('ساخت پاورپوینت انجام نشد. دوباره تلاش کنید.');
@@ -110,6 +120,12 @@ export const BusinessReportView: React.FC<BusinessReportViewProps> = ({ visits, 
             <Download size={15} />
             <span>{exporting ? 'در حال ساخت پاورپوینت…' : 'دانلود پاورپوینت'}</span>
           </button>
+        )}
+        {deckLink && (
+          <a className="btn-secondary" href={deckLink.url} download={deckLink.name} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <Download size={15} />
+            <span>پاورپوینت آماده است؛ اگر دانلود شروع نشد اینجا بزنید</span>
+          </a>
         )}
         {brands.length > 0 && (
           <label className="business-brand">
@@ -194,7 +210,7 @@ export const BusinessReportView: React.FC<BusinessReportViewProps> = ({ visits, 
             headline={`نرخ اصطکاک کل کسب‌وکار (${faDigits(latest.length)} شعبه)`}
           />
           <BranchSection brandName={brand} branches={branches} id="biz-branches-title" />
-          <TopTopicsSection rate={business} id="biz-topics-title" title={`۱۰ موضوع با اصطکاک ۱۰۰٪ — کل ${brand}`} />
+          <TopTopicsSection rate={business} id="biz-topics-title" title={`موضوع‌های با اصطکاک ۱۰۰٪ — کل ${brand}`} />
           <TopTopicsByCountSection rate={business} id="biz-topics-count-title" title={`۱۰ موضوع با بیشترین تعداد اصطکاک — کل ${brand}`} />
 
           <BusinessDetail brand={brand} visits={latest} />

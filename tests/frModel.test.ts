@@ -5,7 +5,7 @@
  */
 import assert from 'node:assert/strict';
 import type { Indicator, QuestionResponse, VisitSession } from '../src/types';
-import { computeBrandFrictionRates, computeStoreFrictionRate, nameKey, topFrictionTopics, topFrictionTopicsByCount } from '../src/engine/frModel';
+import { computeBrandFrictionRates, computeStoreFrictionRate, nameKey, topFrictionTopics, topFrictionTopicsByCount, fullFrictionTopics } from '../src/engine/frModel';
 
 let n = 0;
 const indicators: Indicator[] = [];
@@ -108,6 +108,7 @@ assert.equal(mergedBrands.length, 2, 'two brand names merged into one business')
   const rate = computeStoreFrictionRate(ni, nr);
   assert.deepEqual(topFrictionTopicsByCount(rate).map((t) => t.subject), ['اتاق پرو', 'ویترین', 'تابلو'], 'ranked by count, no-friction topics left out');
   assert.equal(topFrictionTopics(rate)[0].subject, 'تابلو', 'the rate ranking is unchanged');
+  assert.deepEqual(fullFrictionTopics(rate).map((t) => t.subject), ['تابلو'], 'only topics with every assessable indicator in friction, any number of them');
 }
 
 console.log('FR model: all checks passed');
