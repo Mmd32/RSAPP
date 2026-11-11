@@ -73,6 +73,8 @@ export interface StoreProfile {
   /** F&B: restaurant or coffee shop, and table or counter service (the format is locationContext). */
   fbType?: FbType;
   fbService?: FbService;
+  /** F&B: does the place have an outdoor area? Decides whether the outdoor-area topic is asked. */
+  fbOutdoor?: boolean;
   storeFormat?: StoreFormatCode;
   brand?: string;
   branch?: string;
@@ -99,6 +101,8 @@ export interface SavedStoreDirectoryItem {
   locationContext: LocationContextCode;
   fbType?: FbType;
   fbService?: FbService;
+  /** F&B: does the place have an outdoor area? Decides whether the outdoor-area topic is asked. */
+  fbOutdoor?: boolean;
   storeFormat?: StoreFormatCode;
   mallType?: MallTypeCode;
   attributes: StoreAttributes;
@@ -256,6 +260,8 @@ export interface VisitSession {
   locationContext: LocationContextCode;
   fbType?: FbType;
   fbService?: FbService;
+  /** F&B: does the place have an outdoor area? Decides whether the outdoor-area topic is asked. */
+  fbOutdoor?: boolean;
   storeFormat?: StoreFormatCode;
   mallType?: MallTypeCode;
   attributes: StoreAttributes;

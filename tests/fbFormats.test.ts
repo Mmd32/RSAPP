@@ -28,6 +28,16 @@ for (const [fbType, fmt, fbService, n] of expected) {
   for (const r of rows) assert.ok([fbType, fmt, fbService].every((c) => r.applicableFormats!.includes(c as LocationContextCode)), `${r.code} lacks an X`);
   assert.deepEqual(rows.map((r) => r.displayOrder), [...rows.map((r) => r.displayOrder)].sort((a, b) => a - b), 'workbook order');
 }
+// The outdoor-area question: "yes" changes nothing, "no" drops exactly the outdoor-area topic.
+for (const [fbType, fmt, fbService, n] of expected) {
+  const yes = ask('F_B', fmt, { fbType, fbService, fbOutdoor: true });
+  const no = ask('F_B', fmt, { fbType, fbService, fbOutdoor: false });
+  assert.equal(yes.length, n, 'with an outdoor area every row stays');
+  const outdoorRows = yes.filter((r) => r.subject.trim() === 'بخش فضای بیرونی');
+  assert.ok(outdoorRows.length > 0, 'the combination has outdoor-area rows');
+  assert.equal(no.length, n - outdoorRows.length, `${fbType} ${fmt} ${fbService} without an outdoor area`);
+  assert.ok(no.every((r) => r.subject.trim() !== 'بخش فضای بیرونی'), 'no outdoor-area row is asked');
+}
 // Without the extra choices (a branch saved before) the format alone decides, as before.
 assert.equal(ask('F_B', 'FOOD_COURT').length, 268);
 assert.equal(ask('F_B', 'STREET_STORE').length, 285);
