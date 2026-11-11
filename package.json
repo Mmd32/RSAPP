@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit && tsc -p server/tsconfig.json",
     "test:scenarios": "python3 scripts/test_scenarios.py",
     "test:auth": "tsx server/tests/auth.test.ts",
-    "test:fr": "tsx tests/frModel.test.ts",
+    "test:fr": "tsx tests/frModel.test.ts && tsx tests/fbFormats.test.ts",
     "test:catalog": "python3 scripts/verify_catalog_against_reference.py"
   },
   "dependencies": {

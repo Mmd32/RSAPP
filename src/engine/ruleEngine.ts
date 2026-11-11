@@ -320,8 +320,11 @@ export function explainIndicatorApplicability(
     const loc = profile.locationContext || 'STREET_STORE';
     if (ind.applicableFormats && ind.applicableFormats.length > 0) {
       const fr = SYSTEM_RULES.RULE_STORE_FORMAT_EXCEL;
-      const inFormat = ind.applicableFormats.includes(loc);
-      lines.push(`Store format ${loc}: ${inFormat ? 'X' : 'no X'} in the format workbook`);
+      // F&B picks three things (type, format, service): the row must have an X in every chosen column.
+      const chosen = [loc, ...(profile.fbType ? [profile.fbType] : []), ...(profile.fbService ? [profile.fbService] : [])];
+      const missing = chosen.filter((c) => !ind.applicableFormats!.includes(c as LocationContextCode));
+      const inFormat = missing.length === 0;
+      lines.push(`Store format ${chosen.join(' + ')}: ${inFormat ? 'X in every chosen column' : `no X in ${missing.join(', ')}`} in the format workbooks`);
       lines.push(`Rule ID: ${fr.id}`);
       lines.push(`Final result:\n${inFormat ? 'INCLUDED' : 'EXCLUDED'}`);
       return {
@@ -338,7 +341,7 @@ export function explainIndicatorApplicability(
               status: fr.status,
               priority: fr.priority,
               decision: 'EXCLUDED',
-              reason: `در فایل اکسل این قالب فروشگاه علامت X ندارد`,
+              reason: `در فایل اکسل ${missing.join('، ')} علامت X ندارد`,
             }],
         finalResult: inFormat ? 'INCLUDED' : 'EXCLUDED',
         formattedExplanation: lines.join('\n'),

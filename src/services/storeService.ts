@@ -84,6 +84,8 @@ export const StoreService = {
         assessmentType: storeData.assessmentType || 'STORE',
         businessType: storeData.businessType || 'Fashion',
         locationContext: storeData.locationContext || 'STREET_STORE',
+        ...(storeData.fbType ? { fbType: storeData.fbType } : {}),
+        ...(storeData.fbService ? { fbService: storeData.fbService } : {}),
         mallType: storeData.mallType,
         attributes: storeData.attributes || {},
         auditorName: storeData.auditorName,

@@ -27,6 +27,10 @@ export type LocationContextCode =
   | 'TABLE_SERVICE'
   | 'COUNTER_SERVICE';
 
+/** F&B only: the three choices that together pick the checklist (type x format x service). */
+export type FbType = 'RESTAURANT' | 'COFFEE_SHOP';
+export type FbService = 'TABLE_SERVICE' | 'COUNTER_SERVICE';
+
 export type StoreFormatCode =
   | 'FLAGSHIP'
   | 'CHAIN'
@@ -66,6 +70,9 @@ export interface StoreProfile {
   assessmentType: 'STORE';
   businessType: BusinessTypeCode;
   locationContext: LocationContextCode;
+  /** F&B: restaurant or coffee shop, and table or counter service (the format is locationContext). */
+  fbType?: FbType;
+  fbService?: FbService;
   storeFormat?: StoreFormatCode;
   brand?: string;
   branch?: string;
@@ -90,6 +97,8 @@ export interface SavedStoreDirectoryItem {
   assessmentType: AssessmentType;
   businessType?: BusinessTypeCode;
   locationContext: LocationContextCode;
+  fbType?: FbType;
+  fbService?: FbService;
   storeFormat?: StoreFormatCode;
   mallType?: MallTypeCode;
   attributes: StoreAttributes;
@@ -245,6 +254,8 @@ export interface VisitSession {
   assessmentType: AssessmentType;
   businessType?: BusinessTypeCode;
   locationContext: LocationContextCode;
+  fbType?: FbType;
+  fbService?: FbService;
   storeFormat?: StoreFormatCode;
   mallType?: MallTypeCode;
   attributes: StoreAttributes;

@@ -3,6 +3,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import {
   AssessmentType,
   BusinessTypeCode,
+  FbService,
+  FbType,
   LocationContextCode,
   MallTypeCode,
   StoreAttributes,
@@ -32,7 +34,7 @@ import {
   Sliders,
 } from 'lucide-react';
 import { faDigits, profileLabel } from '../utils/format';
-import { sectorHasFormatWorkbooks, storeFormatsFor } from '../data/storeFormats';
+import { FB_FORMATS, FB_SERVICES, FB_TYPES, describeStoreFormat, sectorHasFormatWorkbooks, storeFormatsFor } from '../data/storeFormats';
 import { BrandService, type Brand } from '../services/brandService';
 import { nameKey } from '../engine/frModel';
 import { PHOTOS_REQUIRED } from '../config/policy';
@@ -90,6 +92,10 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
   const [businessType, setBusinessType] = useState<BusinessTypeCode>('Fashion');
   const [mallType, setMallType] = useState<MallTypeCode>('Regional');
   const [locationContext, setLocationContext] = useState<LocationContextCode>('STREET_STORE');
+  // F&B picks three things: type, format and service. Nothing is preselected: all three must be chosen.
+  const [fbType, setFbType] = useState<FbType | undefined>(undefined);
+  const [fbFormat, setFbFormat] = useState<LocationContextCode | undefined>(undefined);
+  const [fbService, setFbService] = useState<FbService | undefined>(undefined);
   const [auditorName, setAuditorName] = useState(currentUserName || '');
   // The supervisor is recorded when someone actually approves the visit.
   const [supervisorName, setSupervisorName] = useState('');
@@ -120,6 +126,21 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
     });
   };
 
+  // F&B choices of a saved branch. Branches saved before the three choices existed carry a single code
+  // (RESTAURANT, TABLE_SERVICE ...): it fills the matching choice and the rest has to be picked.
+  const applyStoreFb = (st: SavedStoreDirectoryItem) => {
+    let t: FbType | undefined = st.fbType;
+    let sv: FbService | undefined = st.fbService;
+    let f: LocationContextCode | undefined = st.locationContext;
+    if (f === 'RESTAURANT' || f === 'COFFEE_SHOP') { t = t ?? f; f = undefined; }
+    else if (f === 'TABLE_SERVICE' || f === 'COUNTER_SERVICE') { sv = sv ?? f; f = undefined; }
+    if (f !== 'STREET_STORE' && f !== 'FOOD_COURT') f = undefined;
+    setFbType(t);
+    setFbService(sv);
+    setFbFormat(f);
+    return !!(t && f && sv);
+  };
+
   // Select store from directory & auto-populate everything
   const handleSelectSavedStore = (store: SavedStoreDirectoryItem) => {
     setSelectedStoreId(store.id);
@@ -129,11 +150,13 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
     if (store.businessType) setBusinessType(store.businessType);
     if (store.mallType) setMallType(store.mallType);
     if (store.locationContext) setLocationContext(store.locationContext);
+    const fbDone = store.assessmentType === 'STORE' && store.businessType === 'F_B' ? applyStoreFb(store) : true;
     // Branches defined in the brand manager have no feature answers yet: keep the defaults.
     if (store.attributes && Object.keys(store.attributes).length) setAttributes(store.attributes);
 
-    // Jump straight to confirmation, unless the branch has no recorded features yet.
-    setStep(store.attributes && Object.keys(store.attributes).length ? 7 : 4);
+    // Jump straight to confirmation, unless the branch has no recorded features yet (or an F&B branch
+    // still has to choose its type, format and service).
+    setStep(!fbDone ? 5 : store.attributes && Object.keys(store.attributes).length ? 7 : 4);
   };
 
   // Choosing a branch in the branch step fills what is known about it and carries on with the next steps.
@@ -144,6 +167,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
     if (store.assessmentType === assessmentType) {
       if (store.businessType) setBusinessType(store.businessType);
       if (store.mallType) setMallType(store.mallType);
+      if (store.assessmentType === 'STORE' && store.businessType === 'F_B') applyStoreFb(store);
     }
     if (store.attributes && Object.keys(store.attributes).length) setAttributes(store.attributes);
   };
@@ -164,6 +188,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
         assessmentType: 'STORE',
         businessType,
         locationContext,
+        ...(businessType === 'F_B' ? { fbType, fbService } : {}),
         brand: brandName,
         branch: branchName,
         attributes,
@@ -178,23 +203,42 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
         attributes,
       };
     }
-  }, [assessmentType, businessType, locationContext, mallType, brandName, branchName, attributes]);
+  }, [assessmentType, businessType, locationContext, fbType, fbService, mallType, brandName, branchName, attributes]);
 
   // Evaluated indicators via deterministic rule engine
   const { indicators: previewIndicators, auditTrail } = useMemo(() => {
     return generateDynamicChecklistWithAudit(allIndicators, profile);
   }, [allIndicators, profile]);
 
-  // A format the new sector does not have (Restaurant for Fashion) falls back to the first one it has.
+  const isFb = assessmentType === 'STORE' && businessType === 'F_B';
+  const fbComplete = !!(fbType && fbFormat && fbService);
+  // The format follows the sector. F&B: the format is the one picked among street / food court; other
+  // sectors fall back to the first format they have when the current one is not theirs.
   useEffect(() => {
+    if (isFb) {
+      if (locationContext !== (fbFormat ?? 'STREET_STORE')) setLocationContext(fbFormat ?? 'STREET_STORE');
+      return;
+    }
     const list = storeFormatsFor(assessmentType === 'STORE' ? businessType : undefined);
     if (!list.some((f) => f.code === locationContext)) setLocationContext(list.find((f) => f.code === 'STREET_STORE')?.code ?? list[0].code);
-  }, [assessmentType, businessType, locationContext]);
+  }, [assessmentType, businessType, locationContext, isFb, fbFormat]);
+
+  // How many F&B indicators an option would leave, given the other two choices (a row needs an X in each).
+  const fbOptionCount = (kind: 'type' | 'format' | 'service', code: string) => {
+    const chosen = [kind === 'type' ? code : fbType, kind === 'format' ? code : fbFormat, kind === 'service' ? code : fbService].filter(Boolean) as string[];
+    return allIndicators.filter(
+      (i) =>
+        i.template === 'STORE' &&
+        i.status !== 'ARCHIVED' &&
+        (!i.applicableBusinessTypes?.length || i.applicableBusinessTypes.includes('F_B')) &&
+        chosen.every((c) => !i.applicableFormats?.length || i.applicableFormats.includes(c as LocationContextCode)),
+    ).length;
+  };
 
   // How many indicators each store format asks for this sector (shown when the format is chosen).
   const formatCounts = useMemo(() => {
     const out: Record<string, number> = {};
-    if (assessmentType !== 'STORE') return out;
+    if (assessmentType !== 'STORE' || businessType === 'F_B') return out;
     for (const { code } of storeFormatsFor(businessType)) {
       out[code] = generateDynamicChecklistWithAudit(allIndicators, { ...profile, locationContext: code }).indicators.length;
     }
@@ -251,6 +295,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
         businessType: assessmentType === 'STORE' ? businessType : undefined,
         mallType: assessmentType === 'MALL' ? mallType : undefined,
         locationContext,
+        ...(isFb ? { fbType, fbService } : {}),
         attributes: undefined as any,
       }));
       setSavedStores(await StoreService.getAllStores());
@@ -306,6 +351,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
         businessType: assessmentType === 'STORE' ? businessType : undefined,
         mallType: assessmentType === 'MALL' ? mallType : undefined,
         locationContext,
+        ...(isFb ? { fbType, fbService } : {}),
         attributes,
         ...(auditorName ? { auditorName } : {}),
         ...(supervisorName ? { supervisorName } : {}),
@@ -321,6 +367,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
       assessmentType,
       businessType: assessmentType === 'STORE' ? businessType : undefined,
       locationContext,
+      ...(isFb ? { fbType, fbService } : {}),
       mallType: assessmentType === 'MALL' ? mallType : undefined,
       attributes,
       auditorName,
@@ -935,9 +982,55 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
             <div>
               <h2 style={{ fontSize: 17, fontWeight: 800, marginBottom: 6 }}>مرحله ۵: موقعیت مکانی فروشگاه</h2>
               <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
-                موقعیت استقرار واحد را تعیین کنید تا شاخص‌های متناسب خیابانی یا درون مجتمع اعمال شوند.
+                {isFb
+                  ? 'نوع واحد، فرمت و نوع سرویس را انتخاب کنید؛ فقط شاخص‌هایی پرسیده می‌شوند که برای هر سه انتخاب در فایل اکسل ضربدر دارند.'
+                  : 'موقعیت استقرار واحد را تعیین کنید تا شاخص‌های متناسب خیابانی یا درون مجتمع اعمال شوند.'}
               </p>
 
+              {isFb ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {([
+                    { kind: 'type' as const, title: '۱. نوع واحد', list: FB_TYPES, value: fbType, set: (c: string) => setFbType(c as FbType) },
+                    { kind: 'format' as const, title: '۲. فرمت (محل استقرار)', list: FB_FORMATS, value: fbFormat, set: (c: string) => setFbFormat(c as LocationContextCode) },
+                    { kind: 'service' as const, title: '۳. نوع سرویس', list: FB_SERVICES, value: fbService, set: (c: string) => setFbService(c as FbService) },
+                  ]).map((group) => (
+                    <div key={group.kind}>
+                      <strong style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>{group.title}</strong>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {group.list.map((opt) => (
+                          <button
+                            key={opt.code}
+                            type="button"
+                            aria-pressed={group.value === opt.code}
+                            onClick={() => group.set(opt.code)}
+                            style={{
+                              padding: '10px 12px',
+                              borderRadius: 'var(--rs-radius-control)',
+                              border: `1.5px solid ${group.value === opt.code ? 'var(--rs-color-brand-cyan)' : 'var(--border-subtle)'}`,
+                              background: group.value === opt.code ? 'rgba(0, 176, 240, 0.14)' : 'var(--theme-input-bg)',
+                              color: 'var(--theme-text-primary)',
+                              textAlign: 'right',
+                              cursor: 'pointer',
+                              transition: 'all 120ms ease',
+                            }}
+                          >
+                            <strong style={{ fontSize: 13, display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                              <span>{opt.label}</span>
+                              <span className="ltr-num" style={{ color: 'var(--rs-color-brand-cyan)' }}>{faDigits(fbOptionCount(group.kind, opt.code))} شاخص</span>
+                            </strong>
+                            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{opt.desc}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  <p style={{ fontSize: 12, color: fbComplete ? 'var(--theme-text-primary)' : 'var(--text-muted)', margin: 0 }}>
+                    {fbComplete
+                      ? `با این انتخاب (${describeStoreFormat('F_B', locationContext, fbType, fbService)}): ${faDigits(previewIndicators.length)} شاخص پرسیده می‌شود. فقط شاخص‌هایی که در هر سه ستون انتخاب‌شده ضربدر دارند.`
+                      : 'هر سه مورد را انتخاب کنید؛ عدد کنار هر گزینه تعداد شاخص‌ها با توجه به انتخاب‌های دیگر است.'}
+                  </p>
+                </div>
+              ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {storeFormatsFor(assessmentType === 'STORE' ? businessType : undefined).map((lc) => (
                   <button
@@ -963,6 +1056,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                   </button>
                 ))}
               </div>
+              )}
             </div>
           )}
 
@@ -1063,14 +1157,14 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>موقعیت:</span>
                   <span style={{ fontSize: 12, color: 'var(--theme-text-primary)' }}>
-                    {assessmentType === 'STORE' ? profileLabel(locationContext) : 'مرکز تجاری'}
+                    {assessmentType === 'STORE' ? describeStoreFormat(businessType, locationContext, fbType, fbService) : 'مرکز تجاری'}
                   </span>
                 </div>
                 {assessmentType === 'STORE' && (
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>شاخص‌های این قالب:</span>
                     <span style={{ fontSize: 12, color: 'var(--theme-text-primary)' }}>
-                      {faDigits(previewIndicators.length)} شاخص ({profileLabel(businessType)} · {profileLabel(locationContext)})
+                      {faDigits(previewIndicators.length)} شاخص ({profileLabel(businessType)} · {describeStoreFormat(businessType, locationContext, fbType, fbService)})
                     </span>
                   </div>
                 )}
@@ -1181,7 +1275,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
               type="button"
               onClick={() => setStep((s) => (skipFacilities && s === 5 ? 7 : Math.min(7, s + 1)))}
               // Brand and branch are required: a visit without them cannot be saved.
-              disabled={(step === 2 && !brandName.trim()) || (step === 3 && !branchName.trim())}
+              disabled={(step === 2 && !brandName.trim()) || (step === 3 && !branchName.trim()) || (step === 5 && isFb && !fbComplete)}
               className="btn-primary"
               style={{ minHeight: 44, padding: '8px 18px', fontSize: 13 }}
             >
