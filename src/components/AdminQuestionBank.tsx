@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Indicator, LocationContextCode } from '../types';
 import { generateDynamicChecklistWithAudit } from '../engine/ruleEngine';
-import { FB_FORMATS, FB_SERVICES, FB_TYPES, storeFormatsFor } from '../data/storeFormats';
+import { FB_FORMATS, FB_OUTDOOR, FB_SERVICES, FB_TYPES, storeFormatsFor } from '../data/storeFormats';
+import { FB_OUTDOOR_TOPIC } from '../engine/ruleEngine';
 import { Database, Filter, CheckCircle, AlertTriangle, Layers, Plus, FileSpreadsheet, Trash2 } from 'lucide-react';
 import { groupLabel, faDigits, profileLabel } from '../utils/format';
 import { nameKey } from '../engine/frModel';
@@ -118,7 +119,7 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[]; cleared?: boolean; onR
   const [open, setOpen] = useState<Set<string>>(() => new Set());
   const [format, setFormat] = useState<string>('ALL');
   // F&B: type x format x service; a row is kept when it has an X for every choice made.
-  const [fbSel, setFbSel] = useState<{ type?: string; format?: string; service?: string }>({});
+  const [fbSel, setFbSel] = useState<{ type?: string; format?: string; service?: string; outdoor?: string }>({});
 
   const store = useMemo(
     () => indicators.filter((i) => i.template === 'STORE' && i.status !== 'ARCHIVED'),
@@ -134,6 +135,7 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[]; cleared?: boolean; onR
   const hasFormatFiles = sector !== 'ALL' && inSector.some((i) => i.applicableFormats?.length);
   const isFbSector = sector === 'F_B';
   const fbChosen = isFbSector ? ([fbSel.type, fbSel.format, fbSel.service].filter(Boolean) as string[]) : [];
+  const fbNoOutdoor = isFbSector && fbSel.outdoor === 'NO';
   const activeFormat = hasFormatFiles && !isFbSector && formats.some((f) => f.code === format) ? format : 'ALL';
   // Per format: the ids the questionnaire would ask, by the same rules a new visit uses.
   const askedIn = useMemo(() => {
@@ -161,10 +163,14 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[]; cleared?: boolean; onR
   const ofSector = useMemo(
     () =>
       isFbSector
-        ? inSector.filter((i) => fbChosen.every((c) => i.applicableFormats?.includes(c as any)))
+        ? inSector.filter(
+            (i) =>
+              fbChosen.every((c) => i.applicableFormats?.includes(c as any)) &&
+              !(fbNoOutdoor && !!i.applicableFormats?.length && i.subject.trim() === FB_OUTDOOR_TOPIC),
+          )
         : activeFormat === 'ALL' ? inSector : inSector.filter((i) => askedIn.get(activeFormat)?.has(i.id)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [inSector, activeFormat, askedIn, isFbSector, fbChosen.join('|')],
+    [inSector, activeFormat, askedIn, isFbSector, fbChosen.join('|'), fbNoOutdoor],
   );
 
   const countOf = (items: Indicator[], format: string) => (format === 'total' ? items.length : items.filter((i) => askedIn.get(format)?.has(i.id)).length);
@@ -210,7 +216,7 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[]; cleared?: boolean; onR
       <button type="button" className="pivot-sort" onClick={() => sortBy(key)}>{label}{arrow(key)}</button>
     </th>
   );
-  const formatCols = sector === 'ALL' || activeFormat !== 'ALL' || fbChosen.length ? [] : formats;
+  const formatCols = sector === 'ALL' || activeFormat !== 'ALL' || fbChosen.length || fbSel.outdoor ? [] : formats;
 
   return (
     <section className="fr-card" aria-labelledby="pivot-title">
@@ -249,11 +255,12 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[]; cleared?: boolean; onR
 
       {isFbSector && (
         <div className="pivot-features">
-          <span className="ie-label">رستوران و کافه: نوع، فرمت و سرویس (شاخص باید در هر مورد انتخاب‌شده ضربدر داشته باشد)</span>
+          <span className="ie-label">رستوران و کافه: نوع، فرمت و سرویس (شاخص باید در هر مورد انتخاب‌شده ضربدر داشته باشد) و داشتن فضای بیرونی</span>
           {([
             { key: 'type' as const, title: 'نوع', list: FB_TYPES },
             { key: 'format' as const, title: 'فرمت', list: FB_FORMATS },
             { key: 'service' as const, title: 'سرویس', list: FB_SERVICES },
+            { key: 'outdoor' as const, title: 'فضای بیرونی', list: FB_OUTDOOR },
           ]).map((g) => (
             <div key={g.key} className="pivot-format-row">
               <strong style={{ minWidth: 48 }}>{g.title}</strong>
@@ -306,7 +313,7 @@ const IndicatorPivot: React.FC<{ indicators: Indicator[]; cleared?: boolean; onR
           <thead>
             <tr>
               {head('name', 'منطقه / موضوع')}
-              {head('total', activeFormat === 'ALL' && !fbChosen.length ? (hasFormatFiles ? 'همه قالب‌ها' : 'کل (بر اساس اکسل)') : 'شاخص‌های انتخاب‌شده')}
+              {head('total', activeFormat === 'ALL' && !fbChosen.length && !fbSel.outdoor ? (hasFormatFiles ? 'همه قالب‌ها' : 'کل (بر اساس اکسل)') : 'شاخص‌های انتخاب‌شده')}
               {formatCols.map((f) => head(f.code, <span title={f.label}>{f.short || f.label}</span>))}
               <th scope="col">کدها</th>
             </tr>

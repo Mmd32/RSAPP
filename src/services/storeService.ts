@@ -86,6 +86,7 @@ export const StoreService = {
         locationContext: storeData.locationContext || 'STREET_STORE',
         ...(storeData.fbType ? { fbType: storeData.fbType } : {}),
         ...(storeData.fbService ? { fbService: storeData.fbService } : {}),
+        ...(storeData.fbOutdoor !== undefined ? { fbOutdoor: storeData.fbOutdoor } : {}),
         mallType: storeData.mallType,
         attributes: storeData.attributes || {},
         auditorName: storeData.auditorName,

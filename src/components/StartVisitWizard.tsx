@@ -13,7 +13,7 @@ import {
   AssessmentProfile,
   SavedStoreDirectoryItem,
 } from '../types';
-import { generateDynamicChecklistWithAudit } from '../engine/ruleEngine';
+import { FB_OUTDOOR_TOPIC, generateDynamicChecklistWithAudit } from '../engine/ruleEngine';
 import { StoreService } from '../services/storeService';
 import {
   Store,
@@ -34,7 +34,7 @@ import {
   Sliders,
 } from 'lucide-react';
 import { faDigits, profileLabel } from '../utils/format';
-import { FB_FORMATS, FB_SERVICES, FB_TYPES, describeStoreFormat, sectorHasFormatWorkbooks, storeFormatsFor } from '../data/storeFormats';
+import { FB_FORMATS, FB_OUTDOOR, FB_SERVICES, FB_TYPES, describeStoreFormat, sectorHasFormatWorkbooks, storeFormatsFor } from '../data/storeFormats';
 import { BrandService, type Brand } from '../services/brandService';
 import { nameKey } from '../engine/frModel';
 import { PHOTOS_REQUIRED } from '../config/policy';
@@ -96,6 +96,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
   const [fbType, setFbType] = useState<FbType | undefined>(undefined);
   const [fbFormat, setFbFormat] = useState<LocationContextCode | undefined>(undefined);
   const [fbService, setFbService] = useState<FbService | undefined>(undefined);
+  const [fbOutdoor, setFbOutdoor] = useState<boolean | undefined>(undefined);
   const [auditorName, setAuditorName] = useState(currentUserName || '');
   // The supervisor is recorded when someone actually approves the visit.
   const [supervisorName, setSupervisorName] = useState('');
@@ -138,7 +139,8 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
     setFbType(t);
     setFbService(sv);
     setFbFormat(f);
-    return !!(t && f && sv);
+    setFbOutdoor(st.fbOutdoor);
+    return !!(t && f && sv && st.fbOutdoor !== undefined);
   };
 
   // Select store from directory & auto-populate everything
@@ -188,7 +190,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
         assessmentType: 'STORE',
         businessType,
         locationContext,
-        ...(businessType === 'F_B' ? { fbType, fbService } : {}),
+        ...(businessType === 'F_B' ? { fbType, fbService, fbOutdoor } : {}),
         brand: brandName,
         branch: branchName,
         attributes,
@@ -203,7 +205,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
         attributes,
       };
     }
-  }, [assessmentType, businessType, locationContext, fbType, fbService, mallType, brandName, branchName, attributes]);
+  }, [assessmentType, businessType, locationContext, fbType, fbService, fbOutdoor, mallType, brandName, branchName, attributes]);
 
   // Evaluated indicators via deterministic rule engine
   const { indicators: previewIndicators, auditTrail } = useMemo(() => {
@@ -211,7 +213,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
   }, [allIndicators, profile]);
 
   const isFb = assessmentType === 'STORE' && businessType === 'F_B';
-  const fbComplete = !!(fbType && fbFormat && fbService);
+  const fbComplete = !!(fbType && fbFormat && fbService && fbOutdoor !== undefined);
   // The format follows the sector. F&B: the format is the one picked among street / food court; other
   // sectors fall back to the first format they have when the current one is not theirs.
   useEffect(() => {
@@ -224,14 +226,16 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
   }, [assessmentType, businessType, locationContext, isFb, fbFormat]);
 
   // How many F&B indicators an option would leave, given the other two choices (a row needs an X in each).
-  const fbOptionCount = (kind: 'type' | 'format' | 'service', code: string) => {
+  const fbOptionCount = (kind: 'type' | 'format' | 'service' | 'outdoor', code: string) => {
     const chosen = [kind === 'type' ? code : fbType, kind === 'format' ? code : fbFormat, kind === 'service' ? code : fbService].filter(Boolean) as string[];
+    const outdoor = kind === 'outdoor' ? code === 'YES' : fbOutdoor;
     return allIndicators.filter(
       (i) =>
         i.template === 'STORE' &&
         i.status !== 'ARCHIVED' &&
         (!i.applicableBusinessTypes?.length || i.applicableBusinessTypes.includes('F_B')) &&
-        chosen.every((c) => !i.applicableFormats?.length || i.applicableFormats.includes(c as LocationContextCode)),
+        chosen.every((c) => !i.applicableFormats?.length || i.applicableFormats.includes(c as LocationContextCode)) &&
+        !(outdoor === false && !!i.applicableFormats?.length && i.subject.trim() === FB_OUTDOOR_TOPIC),
     ).length;
   };
 
@@ -295,7 +299,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
         businessType: assessmentType === 'STORE' ? businessType : undefined,
         mallType: assessmentType === 'MALL' ? mallType : undefined,
         locationContext,
-        ...(isFb ? { fbType, fbService } : {}),
+        ...(isFb ? { fbType, fbService, fbOutdoor } : {}),
         attributes: undefined as any,
       }));
       setSavedStores(await StoreService.getAllStores());
@@ -351,7 +355,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
         businessType: assessmentType === 'STORE' ? businessType : undefined,
         mallType: assessmentType === 'MALL' ? mallType : undefined,
         locationContext,
-        ...(isFb ? { fbType, fbService } : {}),
+        ...(isFb ? { fbType, fbService, fbOutdoor } : {}),
         attributes,
         ...(auditorName ? { auditorName } : {}),
         ...(supervisorName ? { supervisorName } : {}),
@@ -367,7 +371,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
       assessmentType,
       businessType: assessmentType === 'STORE' ? businessType : undefined,
       locationContext,
-      ...(isFb ? { fbType, fbService } : {}),
+      ...(isFb ? { fbType, fbService, fbOutdoor } : {}),
       mallType: assessmentType === 'MALL' ? mallType : undefined,
       attributes,
       auditorName,
@@ -983,7 +987,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
               <h2 style={{ fontSize: 17, fontWeight: 800, marginBottom: 6 }}>مرحله ۵: موقعیت مکانی فروشگاه</h2>
               <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
                 {isFb
-                  ? 'نوع واحد، فرمت و نوع سرویس را انتخاب کنید؛ فقط شاخص‌هایی پرسیده می‌شوند که برای هر سه انتخاب در فایل اکسل ضربدر دارند.'
+                  ? 'نوع واحد، فرمت، نوع سرویس و داشتن فضای بیرونی را مشخص کنید؛ فقط شاخص‌هایی پرسیده می‌شوند که برای هر سه انتخاب اول در فایل اکسل ضربدر دارند.'
                   : 'موقعیت استقرار واحد را تعیین کنید تا شاخص‌های متناسب خیابانی یا درون مجتمع اعمال شوند.'}
               </p>
 
@@ -993,6 +997,13 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                     { kind: 'type' as const, title: '۱. نوع واحد', list: FB_TYPES, value: fbType, set: (c: string) => setFbType(c as FbType) },
                     { kind: 'format' as const, title: '۲. فرمت (محل استقرار)', list: FB_FORMATS, value: fbFormat, set: (c: string) => setFbFormat(c as LocationContextCode) },
                     { kind: 'service' as const, title: '۳. نوع سرویس', list: FB_SERVICES, value: fbService, set: (c: string) => setFbService(c as FbService) },
+                    {
+                      kind: 'outdoor' as const,
+                      title: '۴. آیا مجموعه بخش فضای بیرونی دارد؟',
+                      list: FB_OUTDOOR,
+                      value: fbOutdoor === undefined ? undefined : fbOutdoor ? 'YES' : 'NO',
+                      set: (c: string) => setFbOutdoor(c === 'YES'),
+                    },
                   ]).map((group) => (
                     <div key={group.kind}>
                       <strong style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>{group.title}</strong>
@@ -1026,8 +1037,8 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                   ))}
                   <p style={{ fontSize: 12, color: fbComplete ? 'var(--theme-text-primary)' : 'var(--text-muted)', margin: 0 }}>
                     {fbComplete
-                      ? `با این انتخاب (${describeStoreFormat('F_B', locationContext, fbType, fbService)}): ${faDigits(previewIndicators.length)} شاخص پرسیده می‌شود. فقط شاخص‌هایی که در هر سه ستون انتخاب‌شده ضربدر دارند.`
-                      : 'هر سه مورد را انتخاب کنید؛ عدد کنار هر گزینه تعداد شاخص‌ها با توجه به انتخاب‌های دیگر است.'}
+                      ? `با این انتخاب (${describeStoreFormat('F_B', locationContext, fbType, fbService, fbOutdoor)}): ${faDigits(previewIndicators.length)} شاخص پرسیده می‌شود. فقط شاخص‌هایی که در هر سه ستون انتخاب‌شده ضربدر دارند؛ بخش فضای بیرونی فقط در صورت داشتن آن.`
+                      : 'هر چهار مورد را انتخاب کنید؛ عدد کنار هر گزینه تعداد شاخص‌ها با توجه به انتخاب‌های دیگر است.'}
                   </p>
                 </div>
               ) : (
@@ -1164,7 +1175,7 @@ export const StartVisitWizard: React.FC<StartVisitWizardProps> = ({
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>شاخص‌های این قالب:</span>
                     <span style={{ fontSize: 12, color: 'var(--theme-text-primary)' }}>
-                      {faDigits(previewIndicators.length)} شاخص ({profileLabel(businessType)} · {describeStoreFormat(businessType, locationContext, fbType, fbService)})
+                      {faDigits(previewIndicators.length)} شاخص ({profileLabel(businessType)} · {describeStoreFormat(businessType, locationContext, fbType, fbService, fbOutdoor)})
                     </span>
                   </div>
                 )}

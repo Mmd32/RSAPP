@@ -14,6 +14,9 @@ import {
   IndicatorDiffDetail,
 } from '../types';
 
+/** F&B: the topic that is asked only when the place has an outdoor area. */
+export const FB_OUTDOOR_TOPIC = 'بخش فضای بیرونی';
+
 export const STORE_JOURNEY_ORDER: Record<string, { order: number; labelFa: string }> = {
   BEFORE_ARRIVAL: { order: 1, labelFa: 'پیش از ورود و دسترسی' },
   APPROACH: { order: 2, labelFa: 'مواجهه، تابلو و نما' },
@@ -323,8 +326,9 @@ export function explainIndicatorApplicability(
       // F&B picks three things (type, format, service): the row must have an X in every chosen column.
       const chosen = [loc, ...(profile.fbType ? [profile.fbType] : []), ...(profile.fbService ? [profile.fbService] : [])];
       const missing = chosen.filter((c) => !ind.applicableFormats!.includes(c as LocationContextCode));
-      const inFormat = missing.length === 0;
-      lines.push(`Store format ${chosen.join(' + ')}: ${inFormat ? 'X in every chosen column' : `no X in ${missing.join(', ')}`} in the format workbooks`);
+      const noOutdoor = profile.fbOutdoor === false && ind.subject.trim() === FB_OUTDOOR_TOPIC;
+      const inFormat = missing.length === 0 && !noOutdoor;
+      lines.push(`Store format ${chosen.join(' + ')}: ${inFormat ? 'X in every chosen column' : `${noOutdoor ? 'no outdoor area' : `no X in ${missing.join(', ')}`}`} in the format workbooks`);
       lines.push(`Rule ID: ${fr.id}`);
       lines.push(`Final result:\n${inFormat ? 'INCLUDED' : 'EXCLUDED'}`);
       return {
@@ -341,7 +345,7 @@ export function explainIndicatorApplicability(
               status: fr.status,
               priority: fr.priority,
               decision: 'EXCLUDED',
-              reason: `در فایل اکسل ${missing.join('، ')} علامت X ندارد`,
+              reason: noOutdoor ? 'مجموعه بخش فضای بیرونی ندارد' : `در فایل اکسل ${missing.join('، ')} علامت X ندارد`,
             }],
         finalResult: inFormat ? 'INCLUDED' : 'EXCLUDED',
         formattedExplanation: lines.join('\n'),

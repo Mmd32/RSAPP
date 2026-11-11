@@ -41,7 +41,8 @@ export const sectorHasFormatWorkbooks = (sector: string | undefined) => !!sector
 
 /**
  * F&B (restaurants and cafes) picks three things, and a checklist row is asked only when it has an X
- * for every one of them: the type, the format (where it is) and the service (how it serves).
+ * for every one of them: the type, the format (where it is) and the service (how it serves). A fourth
+ * yes/no choice says whether the place has an outdoor area: without one, that topic is not asked.
  */
 export const FB_TYPES: { code: FbType; label: string; desc: string }[] = [
   { code: 'RESTAURANT', label: 'رستوران', desc: 'رستوران با سالن پذیرایی' },
@@ -59,14 +60,21 @@ export const FB_SERVICES: { code: FbService; label: string; desc: string }[] = [
 const labelOf = (list: { code: string; label: string }[], code: string | undefined) => list.find((x) => x.code === code)?.label;
 
 /** "کافی‌شاپ · فود کورت · سفارش از پیشخوان" for F&B; just the format for other sectors. */
+export const FB_OUTDOOR: { code: 'YES' | 'NO'; value: boolean; label: string; desc: string }[] = [
+  { code: 'YES', value: true, label: 'دارد', desc: 'شاخص‌های موضوع «بخش فضای بیرونی» هم پرسیده می‌شود' },
+  { code: 'NO', value: false, label: 'ندارد', desc: 'شاخص‌های موضوع «بخش فضای بیرونی» پرسیده نمی‌شود' },
+];
+
 export function describeStoreFormat(
   sector: string | undefined,
   locationContext: LocationContextCode | undefined,
   fbType?: FbType,
   fbService?: FbService,
+  fbOutdoor?: boolean,
 ): string {
   const fmt = labelOf(storeFormatsFor(sector), locationContext) || locationContext || '';
   if (sector !== 'F_B') return fmt;
   const short = (l: string | undefined) => l?.replace(/\s*\(.*\)\s*$/, '');
-  return [labelOf(FB_TYPES, fbType), labelOf(FB_FORMATS, locationContext) || fmt, short(labelOf(FB_SERVICES, fbService))].filter(Boolean).join(' · ');
+  const outdoor = fbOutdoor === undefined ? undefined : fbOutdoor ? 'با فضای بیرونی' : 'بدون فضای بیرونی';
+  return [labelOf(FB_TYPES, fbType), labelOf(FB_FORMATS, locationContext) || fmt, short(labelOf(FB_SERVICES, fbService)), outdoor].filter(Boolean).join(' · ');
 }
